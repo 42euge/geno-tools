@@ -1,0 +1,10 @@
+name: constant
+description: Fixed speed throughout — no variation, classic TTS behavior.
+speed_range: [1.0, 1.0]
+
+prompt: |
+  Apply a constant speed of 1.0x to every chunk. Do not vary the speed.
+
+  For each chunk, output:
+    speed: 1.0
+    reason: "constant profile"

@@ -1,0 +1,28 @@
+engine: kokoro
+voice: af_heart
+voice_pool:
+  - af_heart
+  - af_bella
+  - af_sarah
+  - af_nova
+  - af_sky
+  - af_alloy
+  - af_aoede
+  - af_jessica
+  - af_kore
+  - af_nicole
+  - af_river
+speed: 1.0
+speed_profile: natural
+speed_profile_pool:
+  - constant
+  - natural
+  - storyteller
+  - dynamic
+  - lecturer
+language: a
+sample_rate: 24000
+output_format: wav
+chunk_max_chars: 400
+inter_chunk_silence: 0.3
+inter_chapter_silence: 0.8

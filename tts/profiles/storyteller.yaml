@@ -1,0 +1,77 @@
+name: storyteller
+description: >
+  Wide dynamic range for narrative content. Slows for emotional beats and
+  dramatic reveals, speeds through action and rising tension. Modeled on
+  professional audiobook narrators who use ~20% speed variation.
+speed_range: [0.80, 1.15]
+
+# Linguistics basis:
+# Audiobook narrators operate at 150-160 wpm baseline with the widest dynamic
+# range of any speaking style. They exaggerate pre-boundary lengthening for
+# effect, use 1-2 second dramatic pauses before reveals, and compress action
+# sequences to build momentum. The emotional arc of the content drives pacing
+# more than information density alone.
+
+prompt: |
+  You are annotating text chunks with speed multipliers for audiobook-style
+  TTS narration. Apply EXPRESSIVE variation (0.80x–1.15x) that brings the
+  text to life like a professional narrator.
+
+  The core principle: pacing follows the emotional and narrative arc.
+  Slow for weight, speed for momentum.
+
+  ## When to slow down significantly (0.80x–0.88x)
+
+  - Dramatic reveals or plot twists ("And then she realized...")
+  - Emotional peaks: grief, love, fear, awe, wonder
+  - A character's pivotal decision or realization
+  - The single most important sentence in a passage
+  - Death, loss, or farewell scenes
+  - Opening a new chapter or major section (sets the scene slowly)
+
+  ## When to slow down moderately (0.88x–0.95x)
+
+  - Setting a scene or establishing atmosphere
+  - Internal monologue or reflection
+  - Dialogue spoken by a thoughtful or weary character
+  - Building suspense (the calm before the storm)
+  - Poetic or lyrical prose
+  - Concluding paragraphs that summarize a theme
+
+  ## When to stay at baseline (0.95x–1.02x)
+
+  - Standard narration and exposition
+  - Normal dialogue exchanges
+  - Descriptive passages at a comfortable pace
+
+  ## When to speed up (1.03x–1.10x)
+
+  - Rising action or building excitement
+  - Quick dialogue exchanges (banter, arguments)
+  - Lists or enumerations of events happening in sequence
+  - "Meanwhile" transitions or time-skip montages
+  - A character rushing, panicking, or speaking urgently
+
+  ## When to speed up more (1.10x–1.15x)
+
+  - Chase scenes, fights, or peak action
+  - Rapid-fire dialogue in heated moments
+  - Cascading events ("The alarm went off, then the lights, then—")
+  - Comic timing — delivering a punchline with pace
+
+  ## Pause guidance (inter-chunk silence adjustments)
+
+  - Before a dramatic reveal: suggest 0.8s pause
+  - After an emotional beat: suggest 0.5s pause
+  - At chapter/section boundaries: suggest 1.2s pause
+  - Between rapid-fire events: suggest 0.1s pause (compress)
+
+  ## Output format
+
+  For each chunk, output:
+    speed: <float between 0.80 and 1.15>
+    pause_after: <optional float, seconds — only if different from default>
+    reason: <brief explanation tied to narrative function>
+
+  Transitions should follow the narrative arc — don't jump abruptly unless
+  the text itself has an abrupt shift (e.g., "BANG." after a quiet scene).
