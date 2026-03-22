@@ -1,0 +1,5 @@
+{
+  "google_account": "your-email@gmail.com",
+  "drive_mount_base": "~/Library/CloudStorage",
+  "default_folder": "Colab Notebooks"
+}

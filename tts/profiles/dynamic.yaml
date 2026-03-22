@@ -1,0 +1,82 @@
+name: dynamic
+description: >
+  Full range variation for maximum expressiveness. Combines information-density
+  awareness with emotional pacing. Best for content that mixes technical
+  explanation with narrative (e.g., science writing, longform essays, podcasts).
+speed_range: [0.78, 1.22]
+
+# Linguistics basis:
+# This profile applies two overlapping systems from prosody research:
+# 1. Information density modulation (~39 bits/sec universal rate — slow for
+#    novel/complex content, speed for predictable/redundant content)
+# 2. Discourse structure signaling (pre-boundary lengthening at phrase edges,
+#    pitch reset at topic boundaries, compression of parentheticals)
+# The full range allows both systems to operate simultaneously.
+
+prompt: |
+  You are annotating text chunks with speed multipliers for highly expressive
+  TTS generation. Apply the FULL range (0.78x–1.22x) to create engaging,
+  podcast-quality pacing.
+
+  Two systems drive your decisions:
+
+  ### System 1: Information Density (cognitive load)
+
+  The human brain processes speech at ~39 bits/second. When content is dense,
+  the speaker must slow down so the listener can absorb it. When content is
+  sparse, speeding up maintains engagement.
+
+  HIGH DENSITY (slow to 0.78x–0.90x):
+  - First mention of a technical term, acronym, or jargon
+  - Mathematical or logical reasoning steps
+  - Definitions: "X means Y" or "In other words, ..."
+  - Precise claims with numbers, dates, or statistics
+  - Counterintuitive statements that challenge assumptions
+  - Dense causal chains ("A causes B, which leads to C, resulting in D")
+
+  LOW DENSITY (speed to 1.08x–1.22x):
+  - Transitions: "Now let's turn to...", "With that in mind..."
+  - Restating what was just said in simpler terms
+  - Throat-clearing preambles: "As you might expect...", "It's worth noting..."
+  - Enumerating items the audience already knows
+  - Background context or "previously on..." recaps
+  - Meta-commentary: "This is important because..."
+
+  ### System 2: Discourse & Emotion (narrative function)
+
+  SLOW for weight (0.78x–0.90x):
+  - The thesis statement or central argument
+  - "The answer is..." or "Here's the key insight..."
+  - Emotional peaks: surprise, concern, awe, humor payoff
+  - Endings of sections (pre-boundary lengthening)
+  - Rhetorical questions meant to land with the audience
+
+  SPEED for momentum (1.08x–1.22x):
+  - Building toward a point (the "wind-up")
+  - Stacking examples or evidence in quick succession
+  - Excited enumeration: "We've got X, Y, Z, and even W"
+  - Comedic delivery — compress the setup, slow the punchline
+  - Urgency or time pressure in the content
+
+  BASELINE (0.92x–1.06x):
+  - Standard exposition
+  - Balanced arguments presenting multiple sides
+  - Dialogue or quotes at natural conversational pace
+
+  ### Pause guidance
+
+  - Topic shift / new section: suggest 1.0–1.5s pause
+  - Before key insight: suggest 0.6–1.0s pause
+  - After a surprising statement: suggest 0.4–0.6s pause (let it land)
+  - Between rapid examples: suggest 0.15s pause (keep momentum)
+  - End of a major argument: suggest 0.8–1.2s pause
+
+  ## Output format
+
+  For each chunk, output:
+    speed: <float between 0.78 and 1.22>
+    pause_after: <optional float, seconds — only if different from default>
+    reason: <brief tag, e.g., "high density: new term", "momentum: stacking examples">
+
+  Smooth transitions: max 0.10x jump between adjacent chunks unless the text
+  has a hard break (new section, topic pivot, "But here's the thing—").

@@ -1,0 +1,85 @@
+name: lecturer
+description: >
+  Optimized for educational and explanatory content. Slows significantly for
+  new concepts and definitions, uses rhythmic chunking for retention, and
+  maintains a measured baseline. Based on research showing 27% higher retention
+  with deliberate pausing every 4-6 words.
+speed_range: [0.80, 1.12]
+
+# Linguistics basis:
+# Lecturers and teachers show a distinctive pattern: they slow measurably
+# before nouns (especially novel ones), use rhythmic pausing every 4-6 words
+# to aid working memory, and accelerate through connective/organizational
+# language. Research shows nouns slow speech production across all languages
+# because they carry higher information load than verbs. Effective lecturers
+# also use "pitch reset" at topic boundaries — we approximate this with
+# longer pauses and speed drops at section transitions.
+
+prompt: |
+  You are annotating text chunks with speed multipliers for educational/
+  explanatory TTS content. Apply TEACHING-OPTIMIZED variation (0.80x–1.12x)
+  that maximizes listener comprehension and retention.
+
+  The core principle: slow for learning, speed for scaffolding.
+  The audience is here to understand something new.
+
+  ## When to slow down significantly (0.80x–0.88x)
+
+  - First introduction of any concept, term, or framework
+  - Definitions: "X is defined as...", "This means that..."
+  - Step-by-step reasoning: "First... then... therefore..."
+  - Correcting a misconception: "Contrary to popular belief..."
+  - The thesis or central claim of the piece
+  - Equations, formulas, or precise technical specifications
+  - Analogies that map an unfamiliar concept to a familiar one
+    (slow so the mapping has time to form)
+
+  ## When to slow down moderately (0.88x–0.95x)
+
+  - Expanding on a concept just introduced
+  - Examples that illustrate a principle (the example itself)
+  - Cause-and-effect explanations
+  - Comparisons between two things ("Unlike X, Y does...")
+  - Summary statements at the end of a section
+  - Questions posed to the audience ("So why does this matter?")
+
+  ## When to stay at baseline (0.95x–1.02x)
+
+  - Standard expository content where concepts are already established
+  - Narrative context that supports but doesn't teach
+  - Quoting or citing sources
+
+  ## When to speed up (1.03x–1.08x)
+
+  - Organizational language: "Let's look at three aspects..."
+  - Referencing previously explained concepts ("As we saw earlier...")
+  - Transitional phrases between topics
+  - Caveats and qualifiers that don't change the main point
+  - Administrative asides ("We'll return to this later")
+
+  ## When to speed up more (1.08x–1.12x)
+
+  - Listing items the audience already knows as context
+  - "Of course..." or "Obviously..." preambles
+  - Recapping before a new section
+  - Meta-commentary on structure ("Now for the third point...")
+
+  ## Pause guidance (critical for lectures)
+
+  - After introducing a new term: suggest 0.5s pause (processing time)
+  - Between steps in a process: suggest 0.4s pause
+  - Before "the key insight": suggest 0.8s pause (creates anticipation)
+  - At topic/section boundaries: suggest 1.0–1.5s pause (pitch reset)
+  - After a rhetorical question: suggest 0.6s pause (reflection time)
+  - After a definition: suggest 0.4s pause
+
+  ## Output format
+
+  For each chunk, output:
+    speed: <float between 0.80 and 1.12>
+    pause_after: <optional float, seconds — only if different from default>
+    reason: <brief tag, e.g., "new term: first mention of entropy",
+             "scaffolding: transitional phrase", "key insight: thesis">
+
+  Prioritize comprehension over engagement. When in doubt, go slower.
+  The audience would rather re-listen than miss a concept.

@@ -1,0 +1,7 @@
+model: large-v3-turbo
+language: en
+backend: mlx
+output_format: yaml
+beam_size: 5
+temperature: 0.0
+word_timestamps: true

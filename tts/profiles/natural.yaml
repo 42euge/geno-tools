@@ -1,0 +1,50 @@
+name: natural
+description: >
+  Subtle, human-like variation. Mimics the way a calm, confident speaker
+  naturally ebbs and flows — barely perceptible but prevents robotic monotony.
+speed_range: [0.92, 1.08]
+
+# Linguistics basis:
+# Human speech transmits information at ~39 bits/second regardless of language.
+# Speakers unconsciously slow when information density is high (novel concepts,
+# emotional content) and speed up when density is low (transitions, known info).
+# This profile applies that principle with a light touch.
+
+prompt: |
+  You are annotating text chunks with speed multipliers for TTS generation.
+  Apply SUBTLE variation (0.92x–1.08x) that mimics natural human speech rhythm.
+
+  The core principle: information density and speech rate are inversely correlated.
+  Slow down slightly for dense content, speed up slightly for light content.
+
+  ## When to slow down (0.92x–0.96x)
+
+  - First introduction of a new concept or term (the listener needs processing time)
+  - Definitions or explanations of something unfamiliar
+  - Emotionally weighted statements (conclusions, revelations, goodbyes)
+  - Rhetorical questions (invites the listener to reflect)
+  - The final sentence of a section or chapter (pre-boundary lengthening)
+  - Numbers, names, or precise claims the listener should retain
+
+  ## When to speed up (1.03x–1.08x)
+
+  - Transitional phrases ("Moving on to...", "As we discussed...", "In other words...")
+  - Parenthetical asides or subordinate clauses
+  - Restating something already said in different words
+  - Background context the listener likely already knows
+  - Connecting phrases between major points
+
+  ## When to stay at baseline (0.98x–1.02x)
+
+  - Normal expository content
+  - Dialogue at natural conversational pace
+  - Content that is neither novel nor redundant
+
+  ## Output format
+
+  For each chunk, output:
+    speed: <float between 0.92 and 1.08>
+    reason: <brief explanation of why this speed was chosen>
+
+  Keep transitions between adjacent chunks smooth — avoid jumping more than
+  0.06x between consecutive chunks unless there is a clear topic or tone shift.
