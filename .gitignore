@@ -9,15 +9,6 @@ venv/
 # macOS
 .DS_Store
 
-# Runtime (these live in ~/.genotools/)
-*.wav
-*.mp3
-*.mp4
-timing.yaml
-audiobook_meta.yaml
-speed_map.yaml
-media/
-
 # IDE
 .vscode/
 .idea/
