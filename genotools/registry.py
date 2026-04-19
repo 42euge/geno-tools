@@ -1,6 +1,7 @@
 """Curated registry of known geno-* skillsets."""
 
 _REGISTRY: dict[str, str] = {
+    "agents":   "https://github.com/42euge/geno-agents.git",
     "media":    "https://github.com/42euge/geno-media.git",
     "research": "https://github.com/42euge/geno-research.git",
     "taxes":    "https://github.com/42euge/geno-taxes.git",
