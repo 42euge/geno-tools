@@ -316,20 +316,131 @@ def _enumerate_skills(full: str) -> list[str]:
                   if p.is_dir() and (p / "SKILL.md").exists())
 
 
+# ── fork ────────────────────────────────────────────────────────────────────
+
+def _fork(args: argparse.Namespace) -> int:
+    full = paths.normalize(args.name)
+    if not paths.skillset_root(full).exists():
+        print(f"not installed: {full}", file=sys.stderr)
+        return 1
+
+    variant = args.variant
+    if variant in ("main", "active"):
+        print(f"reserved variant name: {variant}", file=sys.stderr)
+        return 1
+
+    worktree = paths.skillset_worktree(full, variant)
+    if worktree.exists():
+        print(f"variant already exists: {full}@{variant}", file=sys.stderr)
+        return 1
+
+    bare = paths.skillset_git(full)
+    print(f"forking {full}@{variant}")
+    subprocess.check_call([
+        "git", "-C", str(bare), "worktree", "add", "-b", variant, str(worktree),
+    ])
+
+    if args.isolated_venv:
+        _create_venv_for_variant(full, variant, worktree)
+
+    print(f"✓ forked {full}@{variant}")
+    return 0
+
+
+def _create_venv_for_variant(full: str, variant: str, worktree: Path) -> None:
+    pyproject = worktree / "pyproject.toml"
+    if not pyproject.exists():
+        print(f"  no pyproject.toml; skipping venv")
+        return
+    data = tomllib.loads(pyproject.read_text())
+    project = data.get("project", {})
+    deps = project.get("dependencies", []) or []
+    if not project:
+        return
+
+    venv_dir = paths.skillset_venvs(full) / variant
+    print(f"  creating isolated venv: {venv_dir}")
+    subprocess.check_call([sys.executable, "-m", "venv", str(venv_dir)])
+    pip = venv_dir / "bin" / "pip"
+    subprocess.check_call([str(pip), "install", "--quiet", "--upgrade", "pip"])
+    if deps:
+        subprocess.check_call([str(pip), "install", "--quiet", *deps])
+    subprocess.check_call([str(pip), "install", "--quiet", "-e", str(worktree)])
+
+
+# ── use ─────────────────────────────────────────────────────────────────────
+
+def _use(args: argparse.Namespace) -> int:
+    name, sep, variant = args.spec.partition("@")
+    if not sep or not variant:
+        print(f"expected <name>@<variant>, got: {args.spec}", file=sys.stderr)
+        return 1
+    full = paths.normalize(name)
+
+    if not paths.skillset_root(full).exists():
+        print(f"not installed: {full}", file=sys.stderr)
+        return 1
+
+    if args.here:
+        return _todo(f"use --here {args.spec}: cwd alias materialization (Phase 4)")
+
+    target_path = paths.skillset_worktree(full, variant)
+    if not target_path.exists():
+        print(f"variant not found: {full}@{variant}", file=sys.stderr)
+        return 1
+
+    # Determine the relative target for the active symlink.
+    target_rel = "main" if variant == "main" else f".worktrees/{variant}"
+
+    active = paths.skillset_active(full)
+    if active.is_symlink() or active.exists():
+        active.unlink()
+    active.symlink_to(target_rel)
+
+    # If the variant has its own venv, repoint ~/.local/bin/ symlinks to it.
+    variant_venv = paths.skillset_venvs(full) / variant
+    if variant_venv.exists():
+        _repoint_bin_symlinks(full, variant)
+    # else: shared venv — bin symlinks already point at venvs/default/, no change needed.
+
+    # Refresh skill installs (npx skills copies, doesn't symlink, so we need to re-add).
+    _install_skills_via_npx(full)
+
+    print(f"✓ active variant for {full}: {variant}")
+    return 0
+
+
+def _repoint_bin_symlinks(full: str, variant: str) -> None:
+    """Replace ~/.local/bin/ symlinks pointing into another venv with this variant's."""
+    if not SYSTEM_BIN.exists():
+        return
+    venvs_root = paths.skillset_venvs(full)
+    target_bin = venvs_root / variant / "bin"
+    if not target_bin.exists():
+        return
+
+    for entry in SYSTEM_BIN.iterdir():
+        if not entry.is_symlink():
+            continue
+        try:
+            link_target = (entry.parent / entry.readlink()).resolve()
+        except OSError:
+            continue
+        # If the symlink already points into this skillset's venvs/, repoint to the variant.
+        if not str(link_target).startswith(str(venvs_root.resolve())):
+            continue
+        new_target = target_bin / entry.name
+        if not new_target.exists():
+            continue
+        entry.unlink()
+        entry.symlink_to(new_target)
+        print(f"  ↳ repointed {entry} -> {new_target}")
+
+
 # ── stubs (later phases) ────────────────────────────────────────────────────
 
 def _dev(args: argparse.Namespace) -> int:
     return _todo(f"dev {args.name} {args.path}: symlink local checkout as main worktree")
-
-
-def _fork(args: argparse.Namespace) -> int:
-    return _todo(f"fork {args.name} {args.variant}: git worktree add"
-                 + (" + isolated venv" if args.isolated_venv else ""))
-
-
-def _use(args: argparse.Namespace) -> int:
-    scope = "cwd" if args.here else "global"
-    return _todo(f"use {args.spec} ({scope}): repoint active or cwd alias")
 
 
 def _promote(args: argparse.Namespace) -> int:
