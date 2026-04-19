@@ -334,6 +334,12 @@ def _fork(args: argparse.Namespace) -> int:
         print(f"variant already exists: {full}@{variant}", file=sys.stderr)
         return 1
 
+    main_wt = paths.skillset_worktree(full, "main")
+    if main_wt.is_symlink():
+        print(f"can't fork: {full} is in dev mode (no bare repo). "
+              "Switch to a normal install first.", file=sys.stderr)
+        return 1
+
     bare = paths.skillset_git(full)
     print(f"forking {full}@{variant}")
     subprocess.check_call([
@@ -437,23 +443,193 @@ def _repoint_bin_symlinks(full: str, variant: str) -> None:
         print(f"  ↳ repointed {entry} -> {new_target}")
 
 
-# ── stubs (later phases) ────────────────────────────────────────────────────
+# ── dev ─────────────────────────────────────────────────────────────────────
 
 def _dev(args: argparse.Namespace) -> int:
-    return _todo(f"dev {args.name} {args.path}: symlink local checkout as main worktree")
+    """Install with main as a symlink to a local checkout (live edits)."""
+    src = Path(args.path).expanduser().resolve()
+    if not src.is_dir():
+        print(f"not a directory: {src}", file=sys.stderr)
+        return 1
 
+    full = paths.normalize(args.name)
+
+    if paths.skillset_root(full).exists():
+        print(f"already installed: {full} "
+              f"(remove first: geno-tools remove {paths.short(full)})", file=sys.stderr)
+        return 1
+
+    print(f"dev-linking {full} -> {src}")
+    root = paths.skillset_root(full)
+    root.mkdir(parents=True)
+    try:
+        # No bare repo, no worktree: main IS a symlink to the live checkout.
+        # `fork` won't work in dev mode (no bare repo); user must `remove` and
+        # `install` from the proper source to enable variant management.
+        paths.skillset_worktree(full, "main").symlink_to(src)
+        scripts = _create_venv_for_dev(full, src)
+        _materialize_bin_symlinks(full, scripts)
+        paths.skillset_active(full).symlink_to("main")
+        _install_skills_via_npx(full)
+    except Exception:
+        shutil.rmtree(root, ignore_errors=True)
+        raise
+
+    print(f"✓ dev-linked {full}")
+    return 0
+
+
+def _create_venv_for_dev(full: str, src: Path) -> dict[str, str]:
+    """Like _create_venv_if_needed but installs editable from the local src path."""
+    pyproject = src / "pyproject.toml"
+    if not pyproject.exists():
+        return {}
+    data = tomllib.loads(pyproject.read_text())
+    project = data.get("project", {})
+    if not project:
+        return {}
+
+    deps = project.get("dependencies", []) or []
+    scripts = project.get("scripts", {}) or {}
+
+    venv_dir = paths.skillset_venvs(full) / "default"
+    venv_dir.parent.mkdir(parents=True, exist_ok=True)
+    print(f"  creating venv: {venv_dir}")
+    subprocess.check_call([sys.executable, "-m", "venv", str(venv_dir)])
+    pip = venv_dir / "bin" / "pip"
+    subprocess.check_call([str(pip), "install", "--quiet", "--upgrade", "pip"])
+    if deps:
+        print(f"  installing deps: {', '.join(deps)}")
+        subprocess.check_call([str(pip), "install", "--quiet", *deps])
+    print(f"  installing package (editable, dev)")
+    subprocess.check_call([str(pip), "install", "--quiet", "-e", str(src)])
+
+    return scripts
+
+
+# ── promote ────────────────────────────────────────────────────────────────
 
 def _promote(args: argparse.Namespace) -> int:
-    return _todo(f"promote {args.name} {args.variant}: merge variant -> main")
+    full = paths.normalize(args.name)
+    variant = args.variant
+    if variant in ("main", "active"):
+        print(f"reserved variant name: {variant}", file=sys.stderr)
+        return 1
 
+    main_wt = paths.skillset_worktree(full, "main")
+    variant_wt = paths.skillset_worktree(full, variant)
+    if not main_wt.exists():
+        print(f"main worktree missing: {main_wt}", file=sys.stderr)
+        return 1
+    if not variant_wt.exists():
+        print(f"variant not found: {full}@{variant}", file=sys.stderr)
+        return 1
+
+    # Refuse to promote in dev mode (main is a symlink to a live checkout).
+    if main_wt.is_symlink():
+        print(f"can't promote: {full} is in dev mode (main is a symlink). "
+              "Switch to a normal install first.", file=sys.stderr)
+        return 1
+
+    print(f"promoting {full}@{variant} -> main")
+    subprocess.check_call(["git", "-C", str(main_wt), "merge", "--no-edit", variant])
+    print(f"✓ merged into main; push when ready")
+    return 0
+
+
+# ── update ─────────────────────────────────────────────────────────────────
 
 def _update(args: argparse.Namespace) -> int:
-    target = args.name or "<all>"
-    return _todo(f"update {target}: git pull on main worktree")
+    if args.name:
+        names = [paths.normalize(args.name)]
+    else:
+        if not paths.ROOT.exists():
+            print("no skillsets installed")
+            return 0
+        names = sorted(
+            p.name for p in paths.ROOT.iterdir()
+            if p.is_dir() and p.name.startswith("geno-")
+            and p.name not in ("geno-bootstrap",)
+        )
 
+    rc = 0
+    for full in names:
+        main_wt = paths.skillset_worktree(full, "main")
+        if not main_wt.exists():
+            print(f"{full}: main worktree missing", file=sys.stderr)
+            rc = 1
+            continue
+        if main_wt.is_symlink():
+            print(f"{full}: dev mode, source is live ({main_wt.readlink()})")
+            continue
+        print(f"{full}: pulling…")
+        result = subprocess.run(
+            ["git", "-C", str(main_wt), "pull", "--ff-only"],
+            check=False,
+        )
+        if result.returncode != 0:
+            rc = result.returncode
+    return rc
+
+
+# ── doctor ─────────────────────────────────────────────────────────────────
 
 def _doctor(_: argparse.Namespace) -> int:
-    return _todo("doctor: verify symlinks, worktrees, venvs")
+    if not paths.ROOT.exists():
+        print("no ~/.geno-tools/; nothing to check")
+        return 0
+
+    issues = 0
+    installed = sorted(
+        p.name for p in paths.ROOT.iterdir()
+        if p.is_dir() and p.name.startswith("geno-")
+        and p.name not in ("geno-bootstrap",)
+    )
+    if not installed:
+        print("no skillsets installed")
+        return 0
+
+    for full in installed:
+        print(f"{full}:")
+        root = paths.skillset_root(full)
+
+        active = paths.skillset_active(full)
+        if not active.is_symlink():
+            print(f"  ✗ active symlink missing")
+            issues += 1
+        else:
+            target = root / active.readlink()
+            if not target.exists():
+                print(f"  ✗ active points to missing target: {target}")
+                issues += 1
+            else:
+                print(f"  ✓ active -> {active.readlink()}")
+
+        main_wt = paths.skillset_worktree(full, "main")
+        if not main_wt.exists():
+            print(f"  ✗ main worktree missing")
+            issues += 1
+
+        # Per-variant worktree checks
+        worktrees_root = root / ".worktrees"
+        if worktrees_root.exists():
+            for v in sorted(p.name for p in worktrees_root.iterdir() if p.is_dir()):
+                if not (worktrees_root / v).exists():
+                    print(f"  ✗ variant worktree dir missing: {v}")
+                    issues += 1
+
+        # Venv check (only if pyproject exists in active worktree)
+        if (active / "pyproject.toml").exists():
+            venv = paths.skillset_venvs(full) / "default"
+            if not venv.exists():
+                print(f"  ! pyproject present but no venv at {venv}")
+                # Not a hard issue — could be intentional
+
+    if issues:
+        print(f"\n{issues} issue(s) found")
+        return 1
+    print("\nall good")
+    return 0
 
 
 def _todo(msg: str) -> int:
