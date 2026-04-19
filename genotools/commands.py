@@ -10,7 +10,7 @@ import sys
 import tomllib
 from pathlib import Path
 
-from genotools import paths, registry
+from genotools import bootstrap, paths, registry
 
 
 # Where venv binaries get symlinked so SKILL.md can call them as bare names.
@@ -66,7 +66,14 @@ def _ls(args: argparse.Namespace) -> int:
 
 def _install(args: argparse.Namespace) -> int:
     if args.here:
-        return _todo(f"install --here {args.name}: cwd alias materialization")
+        full = paths.normalize(args.name)
+        if not paths.skillset_root(full).exists():
+            print(f"not installed globally: {full} "
+                  f"(install first: geno-tools install {paths.short(full)})", file=sys.stderr)
+            return 1
+        n = bootstrap.materialize_cwd_aliases([full])
+        print(f"✓ materialized {n} alias(es) in <cwd>/.claude/skills/")
+        return 0
 
     source, name = _resolve_source(args.name)
     if name is None:
@@ -87,6 +94,7 @@ def _install(args: argparse.Namespace) -> int:
         _materialize_bin_symlinks(full, scripts)
         paths.skillset_active(full).symlink_to("main")
         _install_skills_via_npx(full)
+        bootstrap.ensure_hook_registered()
     except Exception:
         shutil.rmtree(root, ignore_errors=True)
         raise
@@ -104,6 +112,7 @@ def _remove(args: argparse.Namespace) -> int:
         print(f"not installed: {full}", file=sys.stderr)
         return 1
 
+    bootstrap.remove_cwd_aliases(full)
     _uninstall_skills_via_npx(full)
     _remove_bin_symlinks(full)
 
@@ -117,6 +126,14 @@ def _remove(args: argparse.Namespace) -> int:
                 shutil.rmtree(child, ignore_errors=True)
     else:
         shutil.rmtree(root, ignore_errors=True)
+
+    # If no skillsets remain, remove the SessionStart hook.
+    remaining = [
+        p.name for p in paths.ROOT.iterdir()
+        if p.is_dir() and p.name.startswith("geno-")
+    ] if paths.ROOT.exists() else []
+    if not remaining:
+        bootstrap.remove_hook()
 
     print(f"removed {full}")
     return 0
@@ -388,7 +405,34 @@ def _use(args: argparse.Namespace) -> int:
         return 1
 
     if args.here:
-        return _todo(f"use --here {args.spec}: cwd alias materialization (Phase 4)")
+        target_path = paths.skillset_worktree(full, variant)
+        if not target_path.exists():
+            print(f"variant not found: {full}@{variant}", file=sys.stderr)
+            return 1
+        # Remove existing cwd aliases for this skillset, then re-materialize
+        # pointing at the variant's skills.
+        bootstrap.remove_cwd_aliases(full)
+        cwd_skills = Path.cwd() / ".claude" / "skills"
+        cwd_skills.mkdir(parents=True, exist_ok=True)
+        skills_dir = target_path / "skills"
+        if skills_dir.exists():
+            tool = paths.short(full)
+            for skill_dir in sorted(skills_dir.iterdir()):
+                if not skill_dir.is_dir() or not (skill_dir / "SKILL.md").exists():
+                    continue
+                skill_name = skill_dir.name
+                if skill_name == full:
+                    alias = f"gt-{tool}"
+                else:
+                    rest = skill_name.removeprefix(f"{full}-")
+                    alias = f"gt-{rest}" if rest != skill_name else f"gt-{skill_name}"
+                alias_path = cwd_skills / alias
+                if alias_path.is_symlink() or alias_path.exists():
+                    alias_path.unlink()
+                alias_path.symlink_to(skill_dir.resolve())
+                print(f"  ↳ {alias} -> {skill_name} (variant: {variant})")
+        print(f"✓ cwd aliases for {full}: {variant}")
+        return 0
 
     target_path = paths.skillset_worktree(full, variant)
     if not target_path.exists():
