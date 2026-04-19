@@ -409,29 +409,9 @@ def _use(args: argparse.Namespace) -> int:
         if not target_path.exists():
             print(f"variant not found: {full}@{variant}", file=sys.stderr)
             return 1
-        # Remove existing cwd aliases for this skillset, then re-materialize
-        # pointing at the variant's skills.
         bootstrap.remove_cwd_aliases(full)
-        cwd_skills = Path.cwd() / ".claude" / "skills"
-        cwd_skills.mkdir(parents=True, exist_ok=True)
-        skills_dir = target_path / "skills"
-        if skills_dir.exists():
-            tool = paths.short(full)
-            for skill_dir in sorted(skills_dir.iterdir()):
-                if not skill_dir.is_dir() or not (skill_dir / "SKILL.md").exists():
-                    continue
-                skill_name = skill_dir.name
-                if skill_name == full:
-                    alias = f"gt-{tool}"
-                else:
-                    rest = skill_name.removeprefix(f"{full}-")
-                    alias = f"gt-{rest}" if rest != skill_name else f"gt-{skill_name}"
-                alias_path = cwd_skills / alias
-                if alias_path.is_symlink() or alias_path.exists():
-                    alias_path.unlink()
-                alias_path.symlink_to(skill_dir.resolve())
-                print(f"  ↳ {alias} -> {skill_name} (variant: {variant})")
-        print(f"✓ cwd aliases for {full}: {variant}")
+        n = bootstrap.materialize_cwd_aliases([full], variant_override=variant)
+        print(f"✓ cwd aliases for {full}: {variant} ({n} alias(es))")
         return 0
 
     target_path = paths.skillset_worktree(full, variant)

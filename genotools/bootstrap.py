@@ -22,6 +22,8 @@ HOOK_MARKER = "gt-bootstrap"  # substring to find our hook entry
 BOOTSTRAP_SH = r'''#!/bin/bash
 # geno-tools SessionStart hook: materialize /gt-* aliases in cwd.
 # Only runs if <cwd>/.claude/ exists (project is Claude-aware).
+# Copies SKILL.md with the frontmatter `name:` line stripped so Claude
+# uses the folder name (gt-*) instead of the original skill name.
 
 GENO_ROOT="$HOME/.geno-tools"
 CWD_SKILLS=".claude/skills"
@@ -56,9 +58,10 @@ for skillset_dir in "$GENO_ROOT"/geno-*/; do
             fi
         fi
 
-        alias_target="$CWD_SKILLS/$alias_name"
-        [ -e "$alias_target" ] || [ -L "$alias_target" ] && continue
-        ln -s "$skill_dir" "$alias_target"
+        alias_dir="$CWD_SKILLS/$alias_name"
+        [ -f "$alias_dir/SKILL.md" ] && continue
+        mkdir -p "$alias_dir"
+        sed '/^name:/d' "$skill_dir/SKILL.md" > "$alias_dir/SKILL.md"
     done
 done
 '''
@@ -117,11 +120,15 @@ def remove_hook() -> None:
         BOOTSTRAP_SCRIPT.unlink()
 
 
-def materialize_cwd_aliases(skillsets: list[str] | None = None) -> int:
+def materialize_cwd_aliases(skillsets: list[str] | None = None,
+                            variant_override: str | None = None) -> int:
     """Materialize gt-* aliases in <cwd>/.claude/skills/ for the given skillsets.
 
-    If skillsets is None, do all installed. This is the Python equivalent of
-    gt-bootstrap.sh, used by `install --here` and `use --here`.
+    Copies SKILL.md with the frontmatter `name` line stripped so Claude Code
+    uses the folder name (gt-*) rather than the original skill name.
+
+    If variant_override is set, read from that variant's worktree instead of
+    active (used by `use --here`).
     """
     cwd_skills = Path.cwd() / ".claude" / "skills"
     cwd_skills.mkdir(parents=True, exist_ok=True)
@@ -136,17 +143,21 @@ def materialize_cwd_aliases(skillsets: list[str] | None = None) -> int:
 
     count = 0
     for full in skillsets:
-        active = paths.skillset_active(full)
-        if not active.is_symlink():
-            continue
-        # Resolve for iteration (to see what skill dirs exist).
-        resolved_skills = (active.resolve()) / "skills"
-        if not resolved_skills.exists():
+        if variant_override:
+            source_root = paths.skillset_worktree(full, variant_override)
+        else:
+            active = paths.skillset_active(full)
+            if not active.is_symlink():
+                continue
+            source_root = active.resolve()
+
+        skills_dir = source_root / "skills"
+        if not skills_dir.exists():
             continue
 
         tool = paths.short(full)
 
-        for skill_dir in sorted(resolved_skills.iterdir()):
+        for skill_dir in sorted(skills_dir.iterdir()):
             if not skill_dir.is_dir() or not (skill_dir / "SKILL.md").exists():
                 continue
 
@@ -157,34 +168,63 @@ def materialize_cwd_aliases(skillsets: list[str] | None = None) -> int:
                 rest = skill_name.removeprefix(f"{full}-")
                 alias = f"gt-{rest}" if rest != skill_name else f"gt-{skill_name}"
 
-            alias_path = cwd_skills / alias
-            if alias_path.exists() or alias_path.is_symlink():
-                continue
-
-            # Point through `active` (not resolved) so global `use` propagates.
-            alias_path.symlink_to(active / "skills" / skill_name)
+            alias_dir = cwd_skills / alias
+            alias_dir.mkdir(parents=True, exist_ok=True)
+            _copy_skill_without_name(skill_dir / "SKILL.md", alias_dir / "SKILL.md")
             print(f"  ↳ {alias} -> {skill_name}")
             count += 1
 
     return count
 
 
+def _copy_skill_without_name(src: Path, dst: Path) -> None:
+    """Copy a SKILL.md, stripping the frontmatter `name:` line."""
+    import re
+    content = src.read_text()
+    content = re.sub(r'^name:\s+.*\n', '', content, count=1, flags=re.MULTILINE)
+    dst.write_text(content)
+
+
 def remove_cwd_aliases(full: str) -> None:
-    """Remove gt-* aliases in <cwd>/.claude/skills/ that point into this skillset."""
+    """Remove gt-* aliases in <cwd>/.claude/skills/ for this skillset."""
     cwd_skills = Path.cwd() / ".claude" / "skills"
     if not cwd_skills.exists():
         return
-    active = paths.skillset_active(full)
-    if not active.is_symlink():
-        return
-    skillset_path = str(active.resolve())
+    tool = paths.short(full)
+    prefix = f"gt-{tool}"
+    prefix_long = f"gt-"
     for entry in cwd_skills.iterdir():
-        if not entry.is_symlink():
+        if not entry.name.startswith("gt-"):
             continue
-        try:
-            target = str(entry.resolve())
-        except OSError:
+        if not entry.is_dir():
             continue
-        if target.startswith(skillset_path):
-            entry.unlink()
+        skill_md = entry / "SKILL.md"
+        if not skill_md.exists():
+            continue
+        # Check if this alias was derived from this skillset by checking
+        # if the content matches any skill in the skillset.
+        active = paths.skillset_active(full)
+        if not active.is_symlink():
+            continue
+        skills_dir = active.resolve() / "skills"
+        if not skills_dir.exists():
+            continue
+        derived = _alias_matches_skillset(entry.name, full, skills_dir)
+        if derived:
+            import shutil
+            shutil.rmtree(entry)
             print(f"  ↳ removed cwd alias {entry.name}")
+
+
+def _alias_matches_skillset(alias: str, full: str, skills_dir: Path) -> bool:
+    """Check if a gt-* alias name could have been derived from this skillset."""
+    tool = paths.short(full)
+    if alias == f"gt-{tool}":
+        return True
+    for skill_dir in skills_dir.iterdir():
+        if not skill_dir.is_dir():
+            continue
+        rest = skill_dir.name.removeprefix(f"{full}-")
+        if rest != skill_dir.name and alias == f"gt-{rest}":
+            return True
+    return False
