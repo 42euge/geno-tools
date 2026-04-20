@@ -24,6 +24,7 @@ BOOTSTRAP_SH = r'''#!/bin/bash
 # Only runs if <cwd>/.claude/ exists (project is Claude-aware).
 # Copies SKILL.md with the frontmatter `name:` line stripped so Claude
 # uses the folder name (gt-*) instead of the original skill name.
+# Alias rule: strip "geno-" prefix, add "gt-" prefix.
 
 GENO_ROOT="$HOME/.geno-tools"
 CWD_SKILLS=".claude/skills"
@@ -31,38 +32,36 @@ CWD_SKILLS=".claude/skills"
 [ -d ".claude" ] || exit 0
 mkdir -p "$CWD_SKILLS" 2>/dev/null || exit 0
 
+copy_skill() {
+    local src="$1" alias_name="$2"
+    local alias_dir="$CWD_SKILLS/$alias_name"
+    [ -f "$alias_dir/SKILL.md" ] && return
+    mkdir -p "$alias_dir"
+    sed '/^name:/d' "$src" > "$alias_dir/SKILL.md"
+}
+
 for skillset_dir in "$GENO_ROOT"/geno-*/; do
     [ -d "$skillset_dir" ] || continue
     active="$skillset_dir/active"
     [ -L "$active" ] || continue
-    skills_dir="$(cd "$active" 2>/dev/null && pwd)/skills"
-    [ -d "$skills_dir" ] || continue
+    resolved="$(cd "$active" 2>/dev/null && pwd)"
 
     skillset_name=$(basename "$skillset_dir")
-    tool="${skillset_name#geno-}"
 
-    for skill_dir in "$skills_dir"/*/; do
-        [ -d "$skill_dir" ] || continue
-        [ -f "$skill_dir/SKILL.md" ] || continue
+    # Root SKILL.md (umbrella skill)
+    if [ -f "$resolved/SKILL.md" ]; then
+        copy_skill "$resolved/SKILL.md" "gt-${skillset_name#geno-}"
+    fi
 
-        skill_name=$(basename "$skill_dir")
-
-        if [ "$skill_name" = "$skillset_name" ]; then
-            alias_name="gt-${tool}"
-        else
-            rest="${skill_name#${skillset_name}-}"
-            if [ "$rest" != "$skill_name" ]; then
-                alias_name="gt-${rest}"
-            else
-                alias_name="gt-${skill_name}"
-            fi
-        fi
-
-        alias_dir="$CWD_SKILLS/$alias_name"
-        [ -f "$alias_dir/SKILL.md" ] && continue
-        mkdir -p "$alias_dir"
-        sed '/^name:/d' "$skill_dir/SKILL.md" > "$alias_dir/SKILL.md"
-    done
+    # Individual skills in skills/
+    if [ -d "$resolved/skills" ]; then
+        for skill_dir in "$resolved/skills"/*/; do
+            [ -d "$skill_dir" ] || continue
+            [ -f "$skill_dir/SKILL.md" ] || continue
+            skill_name=$(basename "$skill_dir")
+            copy_skill "$skill_dir/SKILL.md" "gt-${skill_name#geno-}"
+        done
+    fi
 done
 '''
 
@@ -151,26 +150,28 @@ def materialize_cwd_aliases(skillsets: list[str] | None = None,
                 continue
             source_root = active.resolve()
 
+        # Collect SKILL.md sources: root-level (umbrella) + skills/*/
+        skill_sources: list[tuple[str, Path]] = []
+
+        root_skill = source_root / "SKILL.md"
+        if root_skill.exists():
+            skill_sources.append((full, root_skill))
+
         skills_dir = source_root / "skills"
-        if not skills_dir.exists():
+        if skills_dir.exists():
+            for skill_dir in sorted(skills_dir.iterdir()):
+                if skill_dir.is_dir() and (skill_dir / "SKILL.md").exists():
+                    skill_sources.append((skill_dir.name, skill_dir / "SKILL.md"))
+
+        if not skill_sources:
             continue
 
-        tool = paths.short(full)
-
-        for skill_dir in sorted(skills_dir.iterdir()):
-            if not skill_dir.is_dir() or not (skill_dir / "SKILL.md").exists():
-                continue
-
-            skill_name = skill_dir.name
-            if skill_name == full:
-                alias = f"gt-{tool}"
-            else:
-                rest = skill_name.removeprefix(f"{full}-")
-                alias = f"gt-{rest}" if rest != skill_name else f"gt-{skill_name}"
+        for skill_name, skill_md in skill_sources:
+            alias = "gt-" + skill_name.removeprefix("geno-")
 
             alias_dir = cwd_skills / alias
             alias_dir.mkdir(parents=True, exist_ok=True)
-            _copy_skill_without_name(skill_dir / "SKILL.md", alias_dir / "SKILL.md")
+            _copy_skill_without_name(skill_md, alias_dir / "SKILL.md")
             print(f"  ↳ {alias} -> {skill_name}")
             count += 1
 
@@ -218,13 +219,15 @@ def remove_cwd_aliases(full: str) -> None:
 
 def _alias_matches_skillset(alias: str, full: str, skills_dir: Path) -> bool:
     """Check if a gt-* alias name could have been derived from this skillset."""
-    tool = paths.short(full)
-    if alias == f"gt-{tool}":
+    # Umbrella: gt-{tool} matches the root SKILL.md
+    expected_umbrella = "gt-" + full.removeprefix("geno-")
+    if alias == expected_umbrella:
         return True
+    # Individual skills: gt-{skill_name_without_geno_prefix}
     for skill_dir in skills_dir.iterdir():
         if not skill_dir.is_dir():
             continue
-        rest = skill_dir.name.removeprefix(f"{full}-")
-        if rest != skill_dir.name and alias == f"gt-{rest}":
+        expected = "gt-" + skill_dir.name.removeprefix("geno-")
+        if alias == expected:
             return True
     return False
