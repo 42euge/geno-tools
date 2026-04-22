@@ -53,7 +53,7 @@ geno-tools remove media [--keep-data]
 
 ## Legacy (transitional)
 
-Some slash commands still live in this repo's `commands/` — `gt-start-task`, `gt-rewrite-commit`, `gt-config-colab`, `gt-upload-colab`, `gt-upload-kaggle`. These will migrate into `geno-dev` and `geno-kaggle` as those repos come online.
+Some slash commands still live in this repo's `commands/` — `gt-start-task`, `gt-rewrite-commit`, `gt-config-colab`, `gt-upload-colab`, `gt-upload-kaggle`. These will migrate into `geno-dev` and `geno-kaggle` as those repos come online. Lab notes have moved to the [`geno-notes`](https://github.com/42euge/geno-notes) repo (use `/gt-notes`).
 
 A legacy `install.sh` is still present to wire up the remaining commands and colab config. It will be removed once everything is extracted.
 

@@ -6,10 +6,8 @@ build-backend = "setuptools.build_meta"
 name = "geno-tools"
 version = "0.1.0"
 description = "Installer and meta-CLI for geno-* skillsets"
-requires-python = ">=3.10"
-dependencies = [
-    "pyyaml>=6.0",
-]
+requires-python = ">=3.11"
+dependencies = []
 
 [project.scripts]
 geno-tools = "genotools.cli:main"
