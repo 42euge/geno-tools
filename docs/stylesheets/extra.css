@@ -76,6 +76,13 @@
   pointer-events: none;
 }
 
+.md-typeset .hero-face {
+  width: 200px;
+  height: 200px;
+  margin: 0 auto 1rem;
+  filter: drop-shadow(0 0 30px #e8650a30);
+}
+
 .md-typeset .hero h1 {
   font-size: 3rem;
   font-weight: 800;

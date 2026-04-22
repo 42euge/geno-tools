@@ -1,30 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <rect width="512" height="512" fill="#0e0b14"/>
 
-  <!-- Left eye: sharp triangle, wide at top-left, point at inner-bottom -->
-  <path d="M100 160 L230 175 L220 245 Z" fill="#e8650a"/>
-  <!-- Left pupil -->
-  <ellipse cx="180" cy="200" rx="7" ry="9" fill="#0e0b14"/>
-  <circle cx="184" cy="197" r="2.5" fill="#fff"/>
+  <!-- Left eye -->
+  <path d="M124.0 140.0 L228 156.8 C202.0 196.8 150.0 180.0 124.0 140.0 Z" fill="#e8650a"/>
+  <ellipse cx="184" cy="161" rx="6" ry="7" fill="#0e0b14"/>
+  <circle cx="187" cy="159" r="2.5" fill="#fff"/>
 
-  <!-- Right eye: mirror triangle, wide at top-right, point at inner-bottom -->
-  <path d="M412 160 L282 175 L292 245 Z" fill="#e8650a"/>
-  <!-- Right pupil -->
-  <ellipse cx="340" cy="200" rx="6" ry="8" fill="#0e0b14"/>
-  <circle cx="337" cy="197" r="2" fill="#fff"/>
+  <!-- Right eye -->
+  <path d="M388.0 140.0 L284 156.8 C310.0 196.8 362.0 180.0 388.0 140.0 Z" fill="#e8650a"/>
+  <ellipse cx="328" cy="161" rx="5" ry="6" fill="#0e0b14"/>
+  <circle cx="325" cy="159" r="2" fill="#fff"/>
 
-  <!-- Wide grin — curls up sharply at ends, almost to eye level -->
-  <path d="M75 240
-           C80 280, 160 310, 256 312
-           C352 310, 432 280, 437 240
-           C430 310, 385 380, 256 385
-           C127 380, 82 310, 75 240 Z"
-        fill="#c4a8d8" stroke="#1a0a2e" stroke-width="2"/>
+  <!-- Grin -->
+  <path d="M56.0 220.0 C61.0 310.0 160 340.0 256 342.0 C352 340.0 451.0 310.0 456.0 220.0 C452.0 340.0 336 410.0 256 415.0 C176 410.0 60.0 340.0 56.0 220.0 Z" fill="#d79bc4" stroke="#0e0b14" stroke-width="2"/>
 
-  <!-- Tooth divider lines -->
-  <path d="M170 275 L164 370" stroke="#1a0a2e" stroke-width="3.5" stroke-linecap="round" fill="none"/>
-  <path d="M213 283 L210 378" stroke="#1a0a2e" stroke-width="3.5" stroke-linecap="round" fill="none"/>
-  <path d="M256 286 L256 382" stroke="#1a0a2e" stroke-width="3.5" stroke-linecap="round" fill="none"/>
-  <path d="M299 283 L302 378" stroke="#1a0a2e" stroke-width="3.5" stroke-linecap="round" fill="none"/>
-  <path d="M342 275 L348 370" stroke="#1a0a2e" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+  <!-- Teeth -->
+  <path d="M156 256 L156 402" stroke="#0e0b14" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+  <path d="M196 256 L196 402" stroke="#0e0b14" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+  <path d="M236 256 L236 402" stroke="#0e0b14" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+  <path d="M276 256 L276 402" stroke="#0e0b14" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+  <path d="M316 256 L316 402" stroke="#0e0b14" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+  <path d="M356 256 L356 402" stroke="#0e0b14" stroke-width="3.5" stroke-linecap="round" fill="none"/>
 </svg>
