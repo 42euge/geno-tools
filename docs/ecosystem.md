@@ -1,6 +1,6 @@
 # Ecosystem
 
-The geno-\* ecosystem is a collection of repos that extend Claude Code with specialized capabilities. geno-tools is the package manager; each skill is its own repo.
+The geno-\* ecosystem is a collection of repos that extend AI coding agents with specialized capabilities. geno-tools is the package manager; each skill is its own repo.
 
 ## Repos
 
@@ -46,8 +46,8 @@ The geno-\* ecosystem is a collection of repos that extend Claude Code with spec
           │              │              │
           └──────────────┼──────────────┘
                          │
-                   Claude Code
-                   (slash commands, skills)
+                   Coding CLIs
+                   (Claude Code, geno-cli, Codex, Gemini CLI)
                          │
                     geno-agents (coordination)
                     geno-msg    (messaging)

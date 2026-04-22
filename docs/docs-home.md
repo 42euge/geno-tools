@@ -2,7 +2,7 @@
 
 # geno-<span>tools</span>
 
-The package manager for Claude Code skillsets.
+The package manager for AI coding agent skillsets.
 Install, fork, experiment, promote — all from one CLI.
 
 <div class="hero-buttons">
@@ -84,4 +84,4 @@ geno-tools promote media exp-1   # merge back to main
 :   Uninstall replays install in reverse. No orphaned files, ever.
 
 :material-puzzle-outline: **Agent-agnostic**
-:   Target adapters for Claude Code today. Codex and Gemini CLI next.
+:   Target adapters for Claude Code, geno-cli, Codex, and Gemini CLI.

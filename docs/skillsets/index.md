@@ -26,7 +26,7 @@ geno-tools install research
 
 When you install a skillset, you get:
 
-- **Slash commands** — markdown files that appear as `/gt-*` commands in Claude Code
+- **Slash commands** — markdown files that appear as `/gt-*` commands in your coding agent
 - **SKILL.md** — an umbrella manifest describing the skillset's capabilities
 - **Runtime scripts** (optional) — Python/shell scripts symlinked for command use
 - **Config defaults** (optional) — copy-once configs that preserve user edits across updates

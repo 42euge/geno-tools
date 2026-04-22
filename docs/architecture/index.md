@@ -20,7 +20,7 @@ A **target** is an agent that geno-tools writes skill files into. The adapter re
 ADAPTERS = {"claude-code": claude_code}
 ```
 
-Each adapter exposes an `install()` function that writes the appropriate files (SKILL.md, slash commands) into the agent's config directory. Currently only Claude Code is supported; Codex and Gemini CLI adapters are planned.
+Each adapter exposes an `install()` function that writes the appropriate files (SKILL.md, slash commands) into the agent's config directory. Supported targets: Claude Code, geno-cli, with Codex and Gemini CLI adapters planned.
 
 For Claude Code, the adapter writes to:
 
