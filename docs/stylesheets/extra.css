@@ -1,0 +1,288 @@
+/* ── Deep purple + orange palette ── */
+
+:root {
+  --md-primary-fg-color: #1a0a2e;
+  --md-primary-fg-color--light: #2d1b4e;
+  --md-primary-fg-color--dark: #0f0619;
+  --md-primary-bg-color: #fff;
+  --md-primary-bg-color--light: #ffffffb3;
+  --md-accent-fg-color: #e8650a;
+  --md-accent-fg-color--transparent: #e8650a1a;
+  --md-accent-bg-color: #fff;
+  --md-accent-bg-color--light: #ffffffb3;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #1a0a2e;
+  --md-primary-fg-color--light: #2d1b4e;
+  --md-primary-fg-color--dark: #0f0619;
+  --md-primary-bg-color: #e8e0f0;
+  --md-primary-bg-color--light: #e8e0f0b3;
+  --md-accent-fg-color: #f0923a;
+  --md-accent-fg-color--transparent: #f0923a1a;
+  --md-default-bg-color: #0e0b14;
+  --md-default-bg-color--light: #161120;
+  --md-default-bg-color--lighter: #1e1830;
+  --md-default-bg-color--lightest: #2a2240;
+  --md-default-fg-color: #e0dce6;
+  --md-default-fg-color--light: #b8b0c8;
+  --md-default-fg-color--lighter: #8a7fa0;
+  --md-default-fg-color--lightest: #5c5470;
+  --md-code-bg-color: #16112080;
+  --md-code-fg-color: #e0dce6;
+  --md-typeset-color: #e0dce6;
+  --md-typeset-a-color: #f0923a;
+  --md-footer-bg-color: #0a0710;
+  --md-footer-bg-color--dark: #060410;
+}
+
+/* ── Header gradient ── */
+
+.md-header {
+  background: linear-gradient(135deg, #1a0a2e 0%, #2d1050 50%, #3a1560 100%);
+}
+
+/* ── Tabs styling ── */
+
+.md-tabs {
+  background: linear-gradient(135deg, #0f0619 0%, #1a0a2e 100%);
+}
+
+.md-tabs__link--active,
+.md-tabs__link:hover {
+  color: #f0923a !important;
+}
+
+/* ── Hero section (home page only) ── */
+
+.md-typeset .hero {
+  text-align: center;
+  padding: 3rem 1rem 2rem;
+  margin: -0.6rem -0.6rem 2rem;
+  background: linear-gradient(160deg, #1a0a2e 0%, #2d1050 40%, #3a1560 70%, #e8650a20 100%);
+  border-radius: 0 0 1.5rem 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.md-typeset .hero::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at 70% 30%, #e8650a15 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.md-typeset .hero h1 {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.md-typeset .hero h1 span {
+  background: linear-gradient(135deg, #f0923a, #e8650a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.md-typeset .hero p {
+  font-size: 1.25rem;
+  color: #b8b0c8;
+  max-width: 600px;
+  margin: 0 auto 2rem;
+}
+
+.md-typeset .hero .hero-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.md-typeset .hero .hero-buttons a {
+  display: inline-block;
+  padding: 0.75rem 2rem;
+  border-radius: 2rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.md-typeset .hero .hero-buttons .btn-primary {
+  background: linear-gradient(135deg, #e8650a, #f0923a);
+  color: #fff;
+  box-shadow: 0 4px 15px #e8650a40;
+}
+
+.md-typeset .hero .hero-buttons .btn-primary:hover {
+  box-shadow: 0 6px 25px #e8650a60;
+  transform: translateY(-2px);
+}
+
+.md-typeset .hero .hero-buttons .btn-secondary {
+  border: 2px solid #e8650a80;
+  color: #f0923a;
+}
+
+.md-typeset .hero .hero-buttons .btn-secondary:hover {
+  background: #e8650a15;
+  border-color: #e8650a;
+}
+
+/* ── Feature cards ── */
+
+.md-typeset .feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.md-typeset .feature-card {
+  background: linear-gradient(135deg, #2d1b4e10, #1a0a2e08);
+  border: 1px solid #2d1b4e30;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+[data-md-color-scheme="slate"] .md-typeset .feature-card {
+  background: linear-gradient(135deg, #2d1b4e30, #1a0a2e20);
+  border-color: #3a156040;
+}
+
+.md-typeset .feature-card:hover {
+  border-color: #e8650a60;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px #e8650a15;
+}
+
+.md-typeset .feature-card .card-icon {
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
+  display: block;
+}
+
+.md-typeset .feature-card h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+}
+
+.md-typeset .feature-card p {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.85;
+}
+
+.md-typeset .feature-card a {
+  color: #e8650a;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.md-typeset .feature-card a:hover {
+  text-decoration: underline;
+}
+
+/* ── Code blocks ── */
+
+.md-typeset code {
+  border-radius: 0.3rem;
+}
+
+.md-typeset pre > code {
+  border-radius: 0.5rem;
+}
+
+[data-md-color-scheme="slate"] .highlight code {
+  border: 1px solid #2d1b4e40;
+}
+
+/* ── Admonitions with orange accents ── */
+
+.md-typeset .admonition.tip,
+.md-typeset details.tip {
+  border-color: #e8650a;
+}
+
+.md-typeset .tip > .admonition-title,
+.md-typeset .tip > summary {
+  background-color: #e8650a15;
+}
+
+.md-typeset .tip > .admonition-title::before,
+.md-typeset .tip > summary::before {
+  background-color: #e8650a;
+}
+
+/* ── Tables ── */
+
+.md-typeset table:not([class]) th {
+  background: linear-gradient(135deg, #1a0a2e, #2d1050);
+  color: #fff;
+}
+
+[data-md-color-scheme="slate"] .md-typeset table:not([class]) th {
+  background: linear-gradient(135deg, #2d1b4e, #3a1560);
+}
+
+/* ── Quick taste section ── */
+
+.md-typeset .quick-taste {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #1a0a2e, #2d1050);
+  border-radius: 1rem;
+  border-left: 4px solid #e8650a;
+}
+
+.md-typeset .quick-taste h2 {
+  color: #fff;
+  margin-top: 0;
+}
+
+/* ── Footer ── */
+
+.md-footer {
+  background: linear-gradient(135deg, #0f0619, #1a0a2e);
+}
+
+/* ── Scrollbar (dark mode) ── */
+
+[data-md-color-scheme="slate"] ::-webkit-scrollbar {
+  width: 8px;
+}
+
+[data-md-color-scheme="slate"] ::-webkit-scrollbar-track {
+  background: #0e0b14;
+}
+
+[data-md-color-scheme="slate"] ::-webkit-scrollbar-thumb {
+  background: #2d1b4e;
+  border-radius: 4px;
+}
+
+[data-md-color-scheme="slate"] ::-webkit-scrollbar-thumb:hover {
+  background: #3a1560;
+}
+
+/* ── Announcement bar ── */
+
+.md-banner {
+  background: linear-gradient(90deg, #e8650a, #f0923a);
+  color: #fff;
+  font-weight: 600;
+}
+
+.md-banner a {
+  color: #fff;
+  text-decoration: underline;
+}

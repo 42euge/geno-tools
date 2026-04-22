@@ -6,46 +6,58 @@ repo_name: 42euge/geno-tools
 
 theme:
   name: material
+  custom_dir: docs/overrides
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: deep purple
-      accent: amber
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: deep purple
-      accent: amber
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
   font:
     text: Inter
     code: JetBrains Mono
+  logo: assets/logo.svg
+  favicon: assets/favicon.png
   icon:
     repo: fontawesome/brands/github
   features:
+    - navigation.tabs
+    - navigation.tabs.sticky
     - navigation.sections
     - navigation.expand
     - navigation.top
+    - navigation.indexes
     - content.code.copy
+    - content.code.annotate
     - search.highlight
+    - search.suggest
     - toc.follow
+    - announce.dismiss
 
 nav:
   - Home: index.md
   - Getting Started: getting-started.md
   - CLI Reference: cli-reference.md
   - Skillsets:
-      - Overview: skillsets/index.md
+      - skillsets/index.md
       - Creating a Skillset: skillsets/creating.md
   - Architecture:
-      - Overview: architecture/index.md
+      - architecture/index.md
       - Disk Layout: architecture/layout.md
       - Variants & Worktrees: architecture/variants.md
   - Ecosystem: ecosystem.md
+
+extra_css:
+  - stylesheets/extra.css
 
 markdown_extensions:
   - admonition
@@ -56,7 +68,17 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.tabbed:
       alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - attr_list
   - md_in_html
+  - def_list
   - toc:
       permalink: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/42euge
+  generator: false
