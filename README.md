@@ -46,14 +46,14 @@ geno-tools remove media [--keep-data]
 | Name | Repo | Status |
 |---|---|---|
 | `media` | [42euge/geno-media](https://github.com/42euge/geno-media) | ✅ extracted |
-| `research` | `42euge/geno-research` | 🚧 pending |
+| `research` | [42euge/geno-research](https://github.com/42euge/geno-research) | ✅ extracted |
 | `taxes` | `42euge/geno-taxes` | 🚧 pending |
 | `kaggle` | `42euge/geno-kaggle` | 🚧 pending |
 | `dev` | `42euge/geno-dev` | 🚧 pending |
 
 ## Legacy (transitional)
 
-Some slash commands still live in this repo's `commands/` — `gt-research`, `gt-config-colab`, `gt-upload-colab`, `gt-upload-kaggle`. These will migrate into `geno-research`, `geno-dev`, and `geno-kaggle` as those repos come online. Lab notes have moved to the [`geno-notes`](https://github.com/42euge/geno-notes) repo (use `/gt-notes`).
+Some slash commands still live in this repo's `commands/` — `gt-start-task`, `gt-rewrite-commit`, `gt-config-colab`, `gt-upload-colab`, `gt-upload-kaggle`. These will migrate into `geno-dev` and `geno-kaggle` as those repos come online. Lab notes have moved to the [`geno-notes`](https://github.com/42euge/geno-notes) repo (use `/gt-notes`).
 
 A legacy `install.sh` is still present to wire up the remaining commands and colab config. It will be removed once everything is extracted.
 
