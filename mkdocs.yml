@@ -1,0 +1,62 @@
+site_name: geno-tools
+site_description: Meta-CLI for installing and managing Claude Code skillsets
+site_url: https://42euge.github.io/geno-tools
+repo_url: https://github.com/42euge/geno-tools
+repo_name: 42euge/geno-tools
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: deep purple
+      accent: amber
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep purple
+      accent: amber
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  font:
+    text: Inter
+    code: JetBrains Mono
+  icon:
+    repo: fontawesome/brands/github
+  features:
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - content.code.copy
+    - search.highlight
+    - toc.follow
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - CLI Reference: cli-reference.md
+  - Skillsets:
+      - Overview: skillsets/index.md
+      - Creating a Skillset: skillsets/creating.md
+  - Architecture:
+      - Overview: architecture/index.md
+      - Disk Layout: architecture/layout.md
+      - Variants & Worktrees: architecture/variants.md
+  - Ecosystem: ecosystem.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
