@@ -45,6 +45,7 @@ theme:
 
 nav:
   - Home: index.md
+  - Overview: docs-home.md
   - Getting Started: getting-started.md
   - CLI Reference: cli-reference.md
   - Skillsets:
@@ -58,6 +59,9 @@ nav:
 
 extra_css:
   - stylesheets/extra.css
+
+extra_javascript:
+  - javascripts/face.js
 
 markdown_extensions:
   - admonition
