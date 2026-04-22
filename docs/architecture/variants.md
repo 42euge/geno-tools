@@ -32,7 +32,7 @@ geno-tools fork media exp-1 --isolated-venv
 geno-tools use media@exp-1
 ```
 
-This repoints the `active` symlink from `main/` to `.worktrees/exp-1/`. The target adapter (Claude Code) picks up the change immediately — slash commands and SKILL.md now come from the variant.
+This repoints the `active` symlink from `main/` to `.worktrees/exp-1/`. The target adapter picks up the change immediately — slash commands and SKILL.md now come from the variant.
 
 #### Cwd-scoped overrides
 

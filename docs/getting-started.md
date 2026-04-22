@@ -47,7 +47,7 @@ Install one:
 geno-tools install media
 ```
 
-This clones the repo, sets up any declared venvs, and wires the skill into Claude Code (slash commands appear immediately).
+This clones the repo, sets up any declared venvs, and wires the skill into your coding agent (slash commands appear immediately).
 
 ## Check what's installed
 
