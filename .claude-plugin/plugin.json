@@ -1,0 +1,12 @@
+{
+  "name": "geno-tools",
+  "description": "Meta-CLI for installing and managing geno-* skillsets — the geno ecosystem orchestrator",
+  "version": "0.1.0",
+  "author": {
+    "name": "42euge"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/42euge/geno-tools"
+  }
+}
