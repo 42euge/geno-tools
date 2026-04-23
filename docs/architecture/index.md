@@ -2,6 +2,15 @@
 
 geno-tools is structured around a few core concepts:
 
+## Dual installation
+
+geno-tools itself can be installed two ways:
+
+- **Claude Code plugin** — `claude /plugin install 42euge/geno-tools` adds slash commands (`/gt-install`, `/gt-ls`, etc.) inside Claude Code
+- **Python CLI** — `pipx install git+https://github.com/42euge/geno-tools` puts the `geno-tools` binary on your PATH
+
+The plugin wraps the CLI, so both paths require the Python package. The ecosystem skillsets geno-tools installs remain skills-based (registered via `npx skills add`).
+
 ## Source resolution
 
 When you run `geno-tools install <name|url|path>`, the source is resolved in order:
@@ -10,22 +19,7 @@ When you run `geno-tools install <name|url|path>`, the source is resolved in ord
 2. **Local directory** — installed from disk
 3. **Git URL** — cloned
 
-For URLs and local paths, the skillset name isn't known until the manifest is read, so install stages into a temporary directory first.
-
-## Target adapters
-
-A **target** is an agent that geno-tools writes skill files into. The adapter registry lives in `genotools/targets/`:
-
-```python
-ADAPTERS = {"claude-code": claude_code}
-```
-
-Each adapter exposes an `install()` function that writes the appropriate files (SKILL.md, slash commands) into the agent's config directory. Supported targets: Claude Code, geno-cli, with Codex and Gemini CLI adapters planned.
-
-For Claude Code, the adapter writes to:
-
-- `~/.claude/skills/geno-{name}/SKILL.md`
-- `~/.claude/commands/*.md`
+For URLs and local paths, the skillset name isn't known upfront. geno-tools does a shallow clone to a staging directory, reads `pyproject.toml` for the project name, then proceeds with the full install.
 
 ## Install flow
 
@@ -33,17 +27,44 @@ For Claude Code, the adapter writes to:
 geno-tools install media
         │
         ├── resolve source (registry → git URL)
-        ├── clone into ~/.geno-tools/geno-media/repo/
-        ├── read genotools.yaml manifest
-        ├── create venv (if declared)
-        ├── symlink runtime scripts (if declared)
-        ├── copy config defaults (if missing)
-        └── run target adapter (write into ~/.claude/)
+        ├── bare clone into ~/.geno-tools/geno-media/.git/
+        ├── create main worktree
+        ├── create venv + editable install (if pyproject.toml exists)
+        ├── symlink [project.scripts] binaries into ~/.local/bin/
+        ├── set active -> main symlink
+        └── npx skills add (register skills with Claude Code)
 ```
+
+On failure at any step, the partially created `~/.geno-tools/geno-{name}/` directory is cleaned up automatically.
 
 ## Uninstall
 
-Removal replays the install in reverse. Every path created during install is recorded, and `remove` walks them backwards — files before directories, directories only removed if empty. This is deterministic by construction: no globbing, no guessing.
+Removal reverses the install:
+
+1. `npx skills remove` — unregister skills from Claude Code
+2. Remove `~/.local/bin/` symlinks that point into this skillset's venv
+3. Delete `~/.geno-tools/geno-{name}/` (or preserve venvs/worktrees with `--keep-data`)
+
+## Plugin structure
+
+The geno-tools repo ships both a Python package and a Claude Code plugin:
+
+```
+geno-tools/
+├── .claude-plugin/plugin.json   # Claude Code plugin manifest
+├── skills/geno-tools/SKILL.md   # umbrella skill describing the meta-CLI
+├── commands/                    # slash commands wrapping the CLI
+│   ├── gt-install.md
+│   ├── gt-remove.md
+│   ├── gt-ls.md
+│   └── gt-update.md
+├── genotools/                   # Python CLI package
+│   ├── cli.py
+│   ├── commands.py
+│   ├── paths.py
+│   └── registry.py
+└── pyproject.toml               # pip/pipx entry point
+```
 
 ## Pages
 

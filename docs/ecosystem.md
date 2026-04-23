@@ -8,7 +8,7 @@ The geno-\* ecosystem is a collection of repos that extend AI coding agents with
 
 | Repo | Description |
 |------|-------------|
-| [geno-tools](https://github.com/42euge/geno-tools) | Meta-CLI — install, update, variant-manage skillsets |
+| [geno-tools](https://github.com/42euge/geno-tools) | Meta-CLI and Claude Code plugin — install, update, variant-manage skillsets |
 | [geno-agents](https://github.com/42euge/geno-agents) | Multi-agent coordination, registration, autonomous loops |
 | [geno-msg](https://github.com/42euge/geno-msg) | Inter-agent messaging |
 | [geno-notes](https://github.com/42euge/geno-notes) | Project journal, task management, timestamped notes |
