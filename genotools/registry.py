@@ -1,19 +1,56 @@
-"""Curated registry of known geno-* skillsets."""
+"""Registry of geno-* skillsets — discovers repos from GitHub."""
 
-_REGISTRY: dict[str, str] = {
-    "agents":   "https://github.com/42euge/geno-agents.git",
-    "media":    "https://github.com/42euge/geno-media.git",
-    "research": "https://github.com/42euge/geno-research.git",
-    "taxes":    "https://github.com/42euge/geno-taxes.git",
-    "kaggle":   "https://github.com/42euge/geno-kaggle.git",
-    "dev":      "https://github.com/42euge/geno-dev.git",
+import json
+import subprocess
+
+OWNER = "42euge"
+PREFIX = "geno-"
+EXCLUDE = {"geno-tools"}
+
+
+def _discover() -> dict[str, str]:
+    """Discover geno-* repos from the GitHub account via `gh` CLI."""
+    try:
+        r = subprocess.run(
+            ["gh", "repo", "list", OWNER,
+             "--json", "name,url",
+             "--limit", "100",
+             "--no-archived"],
+            capture_output=True, text=True, timeout=15,
+        )
+        if r.returncode != 0:
+            return {}
+        repos = json.loads(r.stdout)
+        return {
+            repo["name"].removeprefix(PREFIX): repo["url"] + ".git"
+            for repo in repos
+            if repo["name"].startswith(PREFIX) and repo["name"] not in EXCLUDE
+        }
+    except (FileNotFoundError, subprocess.TimeoutExpired, json.JSONDecodeError):
+        return {}
+
+
+_FALLBACK: dict[str, str] = {
+    "agents":   f"https://github.com/{OWNER}/geno-agents.git",
+    "media":    f"https://github.com/{OWNER}/geno-media.git",
+    "research": f"https://github.com/{OWNER}/geno-research.git",
+    "taxes":    f"https://github.com/{OWNER}/geno-taxes.git",
+    "kaggle":   f"https://github.com/{OWNER}/geno-kaggle.git",
+    "dev":      f"https://github.com/{OWNER}/geno-dev.git",
 }
+
+_cache: dict[str, str] | None = None
 
 
 def available() -> dict[str, str]:
-    return dict(_REGISTRY)
+    global _cache
+    if _cache is None:
+        _cache = _discover()
+        if not _cache:
+            _cache = dict(_FALLBACK)
+    return _cache
 
 
 def resolve(name: str) -> str | None:
     """Return the git URL for a registered skillset name, or None."""
-    return _REGISTRY.get(name)
+    return available().get(name)
