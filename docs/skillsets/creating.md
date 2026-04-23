@@ -131,3 +131,6 @@ _REGISTRY: dict[str, str] = {
     "myskill": "https://github.com/you/geno-myskill.git",
 }
 ```
+
+!!! note "Skillsets vs. plugins"
+    Ecosystem skillsets use the skills format (`SKILL.md` + `commands/*.md`) and are installed via `geno-tools install`. Only geno-tools itself ships as a Claude Code plugin (`.claude-plugin/plugin.json`) to provide the `/gt-install`, `/gt-remove`, `/gt-ls`, and `/gt-update` slash commands.

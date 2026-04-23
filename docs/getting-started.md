@@ -2,11 +2,27 @@
 
 ## Prerequisites
 
-- Python 3.11+
-- [pipx](https://pypa.github.io/pipx/) (recommended) or pip
 - Git
+- Node.js (for `npx skills`)
+- Python 3.11+ (for the CLI install path)
 
 ## Install geno-tools
+
+geno-tools can be installed as a **Claude Code plugin** or as a **standalone CLI** — pick whichever fits your workflow, or use both.
+
+### Option A: Claude Code plugin
+
+```bash
+claude /plugin install 42euge/geno-tools
+```
+
+This gives you `/gt-install`, `/gt-remove`, `/gt-ls`, and `/gt-update` slash commands inside Claude Code. The plugin wraps the CLI, so you still need the CLI on your PATH for the slash commands to work:
+
+```bash
+pipx install git+https://github.com/42euge/geno-tools
+```
+
+### Option B: CLI only
 
 ```bash
 pipx install git+https://github.com/42euge/geno-tools

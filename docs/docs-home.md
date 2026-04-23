@@ -3,7 +3,7 @@
 # geno-<span>tools</span>
 
 The package manager for AI coding agent skillsets.
-Install, fork, experiment, promote — all from one CLI.
+Install, fork, experiment, promote — as a Claude Code plugin or standalone CLI.
 
 <div class="hero-buttons">
 <a href="getting-started/" class="btn-primary">Get Started</a>
@@ -19,7 +19,7 @@ Install, fork, experiment, promote — all from one CLI.
 
 ### Install in seconds
 
-One `pipx install` and you're adding skillsets. Short names resolve from a curated registry.
+Install as a Claude Code plugin or via `pipx`. Short names resolve from a curated registry.
 
 [Get started :material-arrow-right:](getting-started.md)
 </div>
@@ -60,15 +60,30 @@ Fork a skillset, experiment in isolation, promote back to main. Git worktrees un
 
 ## Quick taste
 
-```bash
-pipx install git+https://github.com/42euge/geno-tools
+=== "Claude Code plugin"
 
-geno-tools ls --available        # see the registry
-geno-tools install media         # install geno-media
-geno-tools fork media exp-1      # branch a variant
-geno-tools use media@exp-1       # activate it
-geno-tools promote media exp-1   # merge back to main
-```
+    ```bash
+    claude /plugin install 42euge/geno-tools
+    pipx install git+https://github.com/42euge/geno-tools
+
+    /gt-ls --available               # see the registry
+    /gt-install media                # install geno-media
+    geno-tools fork media exp-1      # branch a variant
+    geno-tools use media@exp-1       # activate it
+    geno-tools promote media exp-1   # merge back to main
+    ```
+
+=== "CLI only"
+
+    ```bash
+    pipx install git+https://github.com/42euge/geno-tools
+
+    geno-tools ls --available        # see the registry
+    geno-tools install media         # install geno-media
+    geno-tools fork media exp-1      # branch a variant
+    geno-tools use media@exp-1       # activate it
+    geno-tools promote media exp-1   # merge back to main
+    ```
 
 </div>
 
