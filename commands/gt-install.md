@@ -30,6 +30,6 @@ This will:
 2. Bare-clone the repo + create a main worktree under `~/.geno-tools/geno-{name}/`
 3. Create an isolated venv and install dependencies if the skillset has a `pyproject.toml`
 4. Symlink CLI binaries into `~/.local/bin/`
-5. Register skills with Claude Code via `npx skills add`
+5. Register skills with all supported agents (Claude Code, Codex, etc.) via `npx skills add`
 
 If the skillset is already installed, report the error and suggest `geno-tools remove <name>` first.
