@@ -30,8 +30,8 @@ which geno-tools >/dev/null 2>&1 || echo "geno-tools CLI not on PATH. Install: p
 
 - `geno-tools ls` — list installed skillsets and their active variant
 - `geno-tools ls --available` — show all registered skillsets in the registry
-- `geno-tools install <name|url|path>` — install a skillset (clone, venv, skills)
-- `geno-tools remove <name> [--keep-data]` — uninstall a skillset
+- `geno-tools install <name|url|path>` — install a skillset (clone, venv, register with all agents)
+- `geno-tools remove <name> [--keep-data]` — uninstall a skillset from all agents
 - `geno-tools update [name]` — pull latest for one or all skillsets
 - `geno-tools doctor` — verify symlinks, worktrees, venvs
 

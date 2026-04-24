@@ -275,10 +275,10 @@ def _remove_bin_symlinks(full: str) -> None:
 
 def _install_skills_via_npx(full: str) -> None:
     active = paths.skillset_active(full)
-    print(f"  installing skills via npx skills (claude-code, global)")
+    print(f"  installing skills via npx skills (all agents, global)")
     subprocess.check_call([
         "npx", "--yes", "skills", "add", str(active),
-        "--agent", "claude-code", "--global", "--skill", "*", "--yes",
+        "--agent", "*", "--global", "--skill", "*", "--yes",
     ])
 
 
