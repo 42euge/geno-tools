@@ -82,7 +82,11 @@ Copy-once files into `~/.geno-tools/geno-{name}/configs/`. Only created if missi
 
 ## SKILL.md
 
-The umbrella manifest that describes your skillset to the agent. Use YAML frontmatter:
+The umbrella manifest that describes your skillset to the agent. Use YAML frontmatter.
+
+!!! tip "Naming convention"
+    All skill names must follow the `{skillset}-{sub-skillset}-{skill-slug}` pattern.
+    Sub-skillsets are always pluralized nouns. See the [Nomenclature](nomenclature.md) spec for details.
 
 ```markdown
 ---

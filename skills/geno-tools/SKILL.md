@@ -2,8 +2,8 @@
 name: geno-tools
 description: >-
   Meta-CLI for installing and managing geno-* skillsets.
-  Use when user says /gt-install, /gt-remove, /gt-ls, /gt-update,
-  or asks about installing/removing/listing geno ecosystem skillsets.
+  Use when user says /gt-install, /gt-remove, /gt-ls, /gt-update, /gt-repos-scaffold,
+  /gt-icons-generate, or asks about installing/removing/listing/creating geno ecosystem skillsets.
 allowed-tools: "Bash(geno-tools *) Bash(python3 -m genotools *)"
 ---
 
@@ -25,6 +25,7 @@ which geno-tools >/dev/null 2>&1 || echo "geno-tools CLI not on PATH. Install: p
 | taxes | Tax document parsing, CPA packet prep |
 | kaggle | Kaggle benchmarks, competition notebooks, discussion scraping |
 | dev | Developer utilities, Colab uploads, commit rewriting |
+| iso | Isolated Docker containers for running Claude Code |
 
 ## Commands
 
