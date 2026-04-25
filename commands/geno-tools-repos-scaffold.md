@@ -1,5 +1,5 @@
 ---
-name: gt-repos-scaffold
+name: geno-tools-repos-scaffold
 description: Scaffold a new geno-ecosystem repository with all required conventions
 argument-hint: "<name> [--description 'short description'] [--python] [--docker]"
 ---

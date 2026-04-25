@@ -2,7 +2,7 @@
 name: geno-tools-repos-scaffold
 description: >-
   Scaffold a new geno-ecosystem repository with all required files and conventions.
-  Use when user says /gt-repos-scaffold or wants to create a new geno-* project.
+  Use when user says /geno-tools-repos-scaffold or wants to create a new geno-* project.
 argument-hint: "<name> [--description 'short description'] [--python] [--docker]"
 license: MIT
 metadata:
@@ -113,7 +113,7 @@ npx skills add 42euge/geno-{name}
 
 | Command | Description |
 |---|---|
-| `/gt-{name}` | {description} |
+| `/geno-{name}` | {description} |
 
 ## Repository structure
 
@@ -182,7 +182,7 @@ capabilities:
 name: geno-{name}
 description: >-
   {description}.
-  Use when user says /gt-{name}.
+  Use when user says /geno-{name}.
 license: MIT
 metadata:
   author: 42euge
@@ -197,7 +197,7 @@ metadata:
 
 | Command | Description |
 |---|---|
-| `/gt-{name}` | {description} |
+| `/geno-{name}` | {description} |
 
 ## Runtime
 

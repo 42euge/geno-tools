@@ -24,23 +24,16 @@ Naming standard for skills across the geno-ecosystem.
 4. **Sub-skillset is always required** — even when a repo has only one skill per group
 5. **Umbrella skill** = just `{skillset}` (e.g., `geno-tools`). Every repo has exactly one.
 
-### `gt-` slash command aliases
+### Slash commands
 
-The `gt-` prefix is a secondary aliasing convention for slash commands. It is not part of the canonical skill name.
+Slash commands use the canonical skill name directly. The command filename in `commands/` must match the skill name:
 
-| Skill type | `gt-` alias pattern |
-|-----------|---------------------|
-| geno-tools' own skills | `/gt-{sub-skillset}-{skill}` |
-| Other skillsets | `/gt-{short-name}-{sub-skillset}-{skill}` |
-
-Examples:
-
-| Canonical skill name | Slash command |
-|---------------------|---------------|
-| `geno-tools-repos-scaffold` | `/gt-repos-scaffold` |
-| `geno-tools-icons-generate` | `/gt-icons-generate` |
-| `geno-dev-tasks-start` | `/gt-dev-tasks-start` |
-| `geno-kaggle-benchmarks-run` | `/gt-kaggle-benchmarks-run` |
+| Canonical skill name | Slash command | Command file |
+|---------------------|---------------|-------------|
+| `geno-tools-repos-scaffold` | `/geno-tools-repos-scaffold` | `geno-tools-repos-scaffold.md` |
+| `geno-tools-icons-generate` | `/geno-tools-icons-generate` | — (skill only) |
+| `geno-dev-tasks-start` | `/geno-dev-tasks-start` | — (skill only) |
+| `geno-kaggle-benchmarks-run` | `/geno-kaggle-benchmarks-run` | — (skill only) |
 
 ## Compliant examples
 
