@@ -75,15 +75,25 @@ On failure at any step, the partially created directory is cleaned up.
 
 ## Skill registration
 
-`npx skills add <active-worktree> --agent claude-code --global --skill '*' --yes` fans SKILL.md and commands into `~/.claude/skills/` and `~/.claude/commands/`.
+`npx skills add <active-worktree> --agent '*' --global --skill '*' --yes` registers SKILL.md and commands with all supported agents (Claude Code, Codex, Cursor, Gemini CLI, etc.).
 
 Uninstall enumerates skills (root SKILL.md + `skills/*/SKILL.md`) and calls `npx skills remove`.
 
 ## Plugin structure (this repo)
 
+geno-tools ships platform-specific plugin manifests following the `obra/superpowers` conventions so it can be installed as a native plugin on each supported CLI:
+
 ```
 geno-tools/
 ├── .claude-plugin/plugin.json   # Claude Code plugin manifest
+├── .codex-plugin/plugin.json    # Codex CLI plugin manifest
+├── .cursor-plugin/plugin.json   # Cursor plugin manifest
+├── .opencode/                   # OpenCode plugin
+│   ├── plugins/geno-tools.js    #   ES module plugin (registers skills path)
+│   └── INSTALL.md               #   installation instructions
+├── gemini-extension.json        # Gemini CLI extension descriptor
+├── GEMINI.md                    # Gemini CLI bootstrap context (@-imports SKILL.md)
+├── package.json                 # npm metadata (entry point for OpenCode plugin)
 ├── skills/geno-tools/SKILL.md   # umbrella skill describing the meta-CLI
 ├── commands/                    # slash commands wrapping the CLI
 │   ├── gt-install.md
@@ -97,6 +107,8 @@ geno-tools/
 │   └── registry.py              # curated registry of known skillsets
 └── pyproject.toml               # pip/pipx entry point
 ```
+
+Skills and commands are platform-agnostic. Each CLI-specific manifest points at the shared `skills/` and `commands/` directories.
 
 ## What a skillset repo needs to provide
 
