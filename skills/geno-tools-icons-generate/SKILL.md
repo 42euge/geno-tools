@@ -1,8 +1,8 @@
 ---
-name: geno-icons
+name: geno-tools-icons-generate
 description: >-
   Generate pixel art icons for geno-ecosystem projects using SD 1.5 + pixel art LoRA.
-  Use when user says /gt-icons, /gt-icons-generate, or wants to create/regenerate/refine
+  Use when user says /gt-icons-generate or wants to create/regenerate/refine
   pixel art icons for geno-* repos.
 argument-hint: "[generate|refine|status] [project-name] [--seeds N] [--prompts 'custom prompt']"
 license: MIT
@@ -11,7 +11,7 @@ metadata:
   version: "0.1.0"
 ---
 
-# geno-icons — Pixel Art Icon Generator
+# geno-tools-icons-generate — Pixel Art Icon Generator
 
 Generate 8-bit pixel art icons for geno-ecosystem projects using Stable Diffusion 1.5 with a pixel art LoRA, running locally on MPS (Apple Silicon).
 
@@ -39,7 +39,7 @@ torch torchvision diffusers transformers accelerate safetensors Pillow peft
 
 Parse the user's arguments to determine the action:
 
-### `/gt-icons generate [project-name]` or `/gt-icons`
+### `/gt-icons-generate [project-name]`
 
 Generate pixel art icon variants for one or all geno-ecosystem projects.
 
@@ -175,7 +175,7 @@ for project, base_prompts in projects.items():
 | obsidian-geno-claude | obsidian crystal + AI glow, dark gem + brain, hexagonal stone, magic orb, crystal shard |
 | obsidian-genovox | crystal + sound waves, speaking stone, gem microphone, voice waveform in crystal |
 
-### `/gt-icons refine <project-name> [--prompts 'custom prompt']`
+### `/gt-icons-generate refine <project-name> [--prompts 'custom prompt']`
 
 Regenerate icons for a single project with custom or adjusted prompts.
 
@@ -184,7 +184,7 @@ Regenerate icons for a single project with custom or adjusted prompts.
 3. Generate a new batch (use seed range 200+ to avoid collisions with prior runs)
 4. Open results and let the user pick
 
-### `/gt-icons status`
+### `/gt-icons-generate status`
 
 Show which projects have icons and which don't:
 ```bash
@@ -199,7 +199,7 @@ for repo in "$REPOS_DIR"/geno-* "$REPOS_DIR"/obsidian-*; do
 done
 ```
 
-### `/gt-icons animate <project-name>`
+### `/gt-icons-generate animate <project-name>`
 
 Generate an animated GIF from the selected icon using AnimateDiff.
 

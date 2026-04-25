@@ -79,35 +79,74 @@ On failure at any step, the partially created directory is cleaned up.
 
 Uninstall enumerates skills (root SKILL.md + `skills/*/SKILL.md`) and calls `npx skills remove`.
 
+## Nomenclature
+
+Skills follow a strict naming hierarchy: `{skillset}-{sub-skillset}-{skill-slug}`.
+
+- **Skillset** = a geno-ecosystem repo (e.g., `geno-tools`, `geno-kaggle`)
+- **Sub-skillset** = pluralized noun grouping, ALWAYS required (e.g., `repos`, `icons`, `tasks`)
+- **Skill slug** = action verb (e.g., `scaffold`, `generate`, `start`)
+- **Umbrella skill** = just the skillset name (e.g., `geno-tools`)
+
+See `docs/skillsets/nomenclature.md` for the full spec and cross-ecosystem migration reference.
+
 ## Plugin structure (this repo)
 
 ```
 geno-tools/
-├── .claude-plugin/plugin.json   # Claude Code plugin manifest
-├── skills/geno-tools/SKILL.md   # umbrella skill describing the meta-CLI
-├── commands/                    # slash commands wrapping the CLI
+├── .claude-plugin/plugin.json               # Claude Code plugin manifest
+├── skills/geno-tools/SKILL.md               # umbrella skill
+├── skills/geno-tools-repos-scaffold/SKILL.md  # repo scaffolding skill
+├── skills/geno-tools-icons-generate/SKILL.md  # icon generation skill
+├── commands/                                # slash commands wrapping the CLI
 │   ├── gt-install.md
 │   ├── gt-remove.md
 │   ├── gt-ls.md
-│   └── gt-update.md
-├── genotools/                   # Python CLI package
-│   ├── cli.py                   # argparse, subcommand routing
-│   ├── commands.py              # install/remove implemented, rest are stubs
-│   ├── paths.py                 # on-disk layout utilities
-│   └── registry.py              # curated registry of known skillsets
-└── pyproject.toml               # pip/pipx entry point
+│   ├── gt-update.md
+│   └── gt-repos-scaffold.md
+├── genotools/                               # Python CLI package
+│   ├── cli.py                               # argparse, subcommand routing
+│   ├── commands.py                          # install/remove implemented, rest are stubs
+│   ├── paths.py                             # on-disk layout utilities
+│   └── registry.py                          # curated registry of known skillsets
+└── pyproject.toml                           # pip/pipx entry point
 ```
 
 ## What a skillset repo needs to provide
 
-Minimum viable `geno-{name}` skillset:
+Every geno-ecosystem repo must have:
+
+| File | Purpose |
+|------|---------|
+| `CLAUDE.md` | Project instructions for agents, including compliance rules |
+| `package.json` | Skills manifest with name, version, skills map |
+| `.geno-agents` | Agent identity: role, description, capabilities |
+| `skills/geno-{name}/SKILL.md` | Umbrella skill with YAML frontmatter |
+| `README.md` | Human-facing docs: install, commands table, repo tree |
+
+Minimum file structure:
 
 ```
 geno-{name}/
+├── CLAUDE.md               # compliance rules + project context
 ├── SKILL.md                # umbrella skill manifest
+├── skills/
+│   └── geno-{name}-{sub-skillset}-{skill}/
+│       └── SKILL.md        # sub-skill (follows nomenclature)
 ├── commands/
 │   └── gt-{name}-*.md      # slash commands (any *.md works)
 └── pyproject.toml           # optional — triggers venv creation if present
 ```
 
 Skillsets use the skills format (not the plugin format). Only geno-tools itself ships as a Claude Code plugin.
+
+### CLAUDE.md compliance section
+
+Every repo's CLAUDE.md must include a Compliance section covering:
+
+1. **Nomenclature** — skill naming rules with repo-specific examples
+2. **Repo structure** — required files table
+3. **SKILL.md frontmatter** — template showing required fields
+4. **Adding a new skill** — checklist of files to update
+
+See `geno-dev/CLAUDE.md` as the reference implementation.

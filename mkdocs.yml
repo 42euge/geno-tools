@@ -51,6 +51,7 @@ nav:
   - Skillsets:
       - skillsets/index.md
       - Creating a Skillset: skillsets/creating.md
+      - Nomenclature: skillsets/nomenclature.md
   - Architecture:
       - architecture/index.md
       - Disk Layout: architecture/layout.md
