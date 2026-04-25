@@ -1,5 +1,5 @@
 ---
-name: gt-update
+name: geno-tools-update
 description: Update geno ecosystem skillsets to their latest version
 allowed-tools: "Bash(geno-tools update *) Bash(python3 -m genotools update *)"
 argument-hint: "[name]  omit to update all"

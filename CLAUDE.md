@@ -4,7 +4,7 @@
 
 ## Dual installation
 
-- **Claude Code plugin**: `.claude-plugin/plugin.json` + `skills/` + `commands/` expose `/gt-install`, `/gt-remove`, `/gt-ls`, `/gt-update` slash commands
+- **Claude Code plugin**: `.claude-plugin/plugin.json` + `skills/` + `commands/` expose `/geno-tools-install`, `/geno-tools-remove`, `/geno-tools-ls`, `/geno-tools-update` slash commands
 - **Python CLI**: `pyproject.toml` → `geno-tools` binary on PATH via pipx/pip
 
 The plugin wraps the CLI — both require the Python package installed.
@@ -23,10 +23,10 @@ geno-tools = "genotools.cli:main"
 
 | Command | Slash command | Status |
 |---------|---------------|--------|
-| `geno-tools ls [--available]` | `/gt-ls` | implemented |
-| `geno-tools install <name\|url\|path> [--here]` | `/gt-install` | implemented |
-| `geno-tools remove <name> [--keep-data]` | `/gt-remove` | implemented |
-| `geno-tools update [name]` | `/gt-update` | stub |
+| `geno-tools ls [--available]` | `/geno-tools-ls` | implemented |
+| `geno-tools install <name\|url\|path> [--here]` | `/geno-tools-install` | implemented |
+| `geno-tools remove <name> [--keep-data]` | `/geno-tools-remove` | implemented |
+| `geno-tools update [name]` | `/geno-tools-update` | stub |
 | `geno-tools dev <name> <path>` | — | stub |
 | `geno-tools fork <name> <variant> [--isolated-venv]` | — | stub |
 | `geno-tools use <name>@<variant> [--here]` | — | stub |
@@ -99,11 +99,11 @@ geno-tools/
 ├── skills/geno-tools-repos-scaffold/SKILL.md  # repo scaffolding skill
 ├── skills/geno-tools-icons-generate/SKILL.md  # icon generation skill
 ├── commands/                                # slash commands wrapping the CLI
-│   ├── gt-install.md
-│   ├── gt-remove.md
-│   ├── gt-ls.md
-│   ├── gt-update.md
-│   └── gt-repos-scaffold.md
+│   ├── geno-tools-install.md
+│   ├── geno-tools-remove.md
+│   ├── geno-tools-ls.md
+│   ├── geno-tools-update.md
+│   └── geno-tools-repos-scaffold.md
 ├── genotools/                               # Python CLI package
 │   ├── cli.py                               # argparse, subcommand routing
 │   ├── commands.py                          # install/remove implemented, rest are stubs
@@ -134,7 +134,7 @@ geno-{name}/
 │   └── geno-{name}-{sub-skillset}-{skill}/
 │       └── SKILL.md        # sub-skill (follows nomenclature)
 ├── commands/
-│   └── gt-{name}-*.md      # slash commands (any *.md works)
+│   └── geno-{name}-*.md    # slash commands (any *.md works)
 └── pyproject.toml           # optional — triggers venv creation if present
 ```
 
