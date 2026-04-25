@@ -2,8 +2,8 @@
 name: geno-tools
 description: >-
   Meta-CLI for installing and managing geno-* skillsets.
-  Use when user says /gt-install, /gt-remove, /gt-ls, /gt-update, /gt-repos-scaffold,
-  /gt-icons-generate, or asks about installing/removing/listing/creating geno ecosystem skillsets.
+  Use when user says /geno-tools-install, /geno-tools-remove, /geno-tools-ls, /geno-tools-update, /geno-tools-repos-scaffold,
+  /geno-tools-icons-generate, or asks about installing/removing/listing/creating geno ecosystem skillsets.
 allowed-tools: "Bash(geno-tools *) Bash(python3 -m genotools *)"
 ---
 

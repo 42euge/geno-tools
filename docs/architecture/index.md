@@ -6,7 +6,7 @@ geno-tools is structured around a few core concepts:
 
 geno-tools itself can be installed two ways:
 
-- **Claude Code plugin** — `claude /plugin install 42euge/geno-tools` adds slash commands (`/gt-install`, `/gt-ls`, etc.) inside Claude Code
+- **Claude Code plugin** — `claude /plugin install 42euge/geno-tools` adds slash commands (`/geno-tools-install`, `/geno-tools-ls`, etc.) inside Claude Code
 - **Python CLI** — `pipx install git+https://github.com/42euge/geno-tools` puts the `geno-tools` binary on your PATH
 
 The plugin wraps the CLI, so both paths require the Python package. The ecosystem skillsets geno-tools installs remain skills-based (registered via `npx skills add`).
@@ -54,10 +54,10 @@ geno-tools/
 ├── .claude-plugin/plugin.json   # Claude Code plugin manifest
 ├── skills/geno-tools/SKILL.md   # umbrella skill describing the meta-CLI
 ├── commands/                    # slash commands wrapping the CLI
-│   ├── gt-install.md
-│   ├── gt-remove.md
-│   ├── gt-ls.md
-│   └── gt-update.md
+│   ├── geno-tools-install.md
+│   ├── geno-tools-remove.md
+│   ├── geno-tools-ls.md
+│   └── geno-tools-update.md
 ├── genotools/                   # Python CLI package
 │   ├── cli.py
 │   ├── commands.py

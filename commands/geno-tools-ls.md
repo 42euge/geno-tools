@@ -1,5 +1,5 @@
 ---
-name: gt-ls
+name: geno-tools-ls
 description: List installed geno ecosystem skillsets or show the available registry
 allowed-tools: "Bash(geno-tools ls *) Bash(python3 -m genotools ls *)"
 argument-hint: "[--available]"

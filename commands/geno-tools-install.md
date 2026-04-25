@@ -1,5 +1,5 @@
 ---
-name: gt-install
+name: geno-tools-install
 description: Install a geno ecosystem skillset from registry, path, or git URL
 allowed-tools: "Bash(geno-tools install *) Bash(python3 -m genotools install *)"
 argument-hint: "<name|url|path>  e.g. 'media', 'kaggle', 'https://github.com/user/geno-foo.git'"

@@ -9,7 +9,7 @@ geno-myskill/
 ├── genotools.yaml      # required — the manifest
 ├── SKILL.md            # umbrella description for the agent
 └── commands/
-    └── gt-myskill.md   # at least one slash command
+    └── geno-myskill.md   # at least one slash command
 ```
 
 ## The manifest — `genotools.yaml`
@@ -93,7 +93,7 @@ The umbrella manifest that describes your skillset to the agent. Use YAML frontm
 name: geno-myskill
 description: >-
   What this skillset does and when to use it.
-  Use when user says /gt-myskill.
+  Use when user says /geno-myskill.
 license: MIT
 metadata:
   author: your-username
@@ -107,7 +107,7 @@ Description, install instructions, command table, runtime notes.
 
 ## Slash commands
 
-Each `.md` file in `commands/` becomes a `/gt-*` slash command. The filename (minus `.md`) is the command name.
+Each `.md` file in `commands/` becomes a slash command. The filename (minus `.md`) is the command name.
 
 Write these as instructions for the agent — what to do when the user invokes the command, what tools to use, what output to produce.
 
@@ -137,4 +137,4 @@ _REGISTRY: dict[str, str] = {
 ```
 
 !!! note "Skillsets vs. plugins"
-    Ecosystem skillsets use the skills format (`SKILL.md` + `commands/*.md`) and are installed via `geno-tools install`. Only geno-tools itself ships as a Claude Code plugin (`.claude-plugin/plugin.json`) to provide the `/gt-install`, `/gt-remove`, `/gt-ls`, and `/gt-update` slash commands.
+    Ecosystem skillsets use the skills format (`SKILL.md` + `commands/*.md`) and are installed via `geno-tools install`. Only geno-tools itself ships as a Claude Code plugin (`.claude-plugin/plugin.json`) to provide the `/geno-tools-install`, `/geno-tools-remove`, `/geno-tools-ls`, and `/geno-tools-update` slash commands.

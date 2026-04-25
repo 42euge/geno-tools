@@ -2,11 +2,11 @@
 
 All commands are invoked as `geno-tools <command> [options]`.
 
-If geno-tools is installed as a Claude Code plugin, the core commands are also available as slash commands: `/gt-install`, `/gt-remove`, `/gt-ls`, `/gt-update`.
+If geno-tools is installed as a Claude Code plugin, the core commands are also available as slash commands: `/geno-tools-install`, `/geno-tools-remove`, `/geno-tools-ls`, `/geno-tools-update`.
 
 ## `ls`
 
-List installed skillsets or the available registry. Slash command: `/gt-ls`.
+List installed skillsets or the available registry. Slash command: `/geno-tools-ls`.
 
 ```bash
 geno-tools ls                # installed skillsets + active variant
@@ -23,7 +23,7 @@ geno-tools ls --available    # curated registry
 
 ## `install`
 
-Install a skillset from the registry, a git URL, or a local path. Slash command: `/gt-install`.
+Install a skillset from the registry, a git URL, or a local path. Slash command: `/geno-tools-install`.
 
 ```bash
 geno-tools install media
@@ -130,7 +130,7 @@ geno-tools promote media exp-1
 
 ## `update`
 
-Pull latest changes on the main worktree. Slash command: `/gt-update`.
+Pull latest changes on the main worktree. Slash command: `/geno-tools-update`.
 
 ```bash
 geno-tools update media    # update one
@@ -149,7 +149,7 @@ Skips skillsets in `dev` mode (the source is already live).
 
 ## `remove`
 
-Uninstall a skillset. Replays the install in reverse — deterministic, no orphaned files. Slash command: `/gt-remove`.
+Uninstall a skillset. Replays the install in reverse — deterministic, no orphaned files. Slash command: `/geno-tools-remove`.
 
 ```bash
 geno-tools remove media

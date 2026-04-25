@@ -1,5 +1,5 @@
 ---
-name: gt-remove
+name: geno-tools-remove
 description: Uninstall a geno ecosystem skillset
 allowed-tools: "Bash(geno-tools remove *) Bash(python3 -m genotools remove *)"
 argument-hint: "<name> [--keep-data]"
