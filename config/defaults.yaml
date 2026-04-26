@@ -1,0 +1,25 @@
+# ~/.geno/config.yaml — geno ecosystem user configuration
+#
+# Copy this file to ~/.geno/config.yaml and customize.
+
+# Aliases control how slash commands are named when materialized
+# into Claude Code (or other agents) during `geno-tools install`.
+#
+# command_prefix: the short prefix for slash commands.
+#   "gt" (default) → /gt-install, /gt-media-audiobook-create
+#   "geno" → /geno-install, /geno-media-audiobook-create
+#   "" (empty) → /install, /media-audiobook-create
+aliases:
+  command_prefix: "gt"
+
+# Workspace layout (used by geno-dev-workspaces-init)
+workspaces:
+  mode: color
+  base_path: "~"
+  color:
+    default: code-red
+    folders:
+      - code-red
+      - code-blue
+      - code-purp
+      - code-indigo

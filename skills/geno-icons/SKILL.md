@@ -2,8 +2,7 @@
 name: geno-icons
 description: >-
   Generate pixel art icons for geno-ecosystem projects using SD 1.5 + pixel art LoRA.
-  Use when user says /gt-icons, /gt-icons-generate, or wants to create/regenerate/refine
-  pixel art icons for geno-* repos.
+  Use when user wants to create, regenerate, or refine pixel art icons for geno-* repos.
 argument-hint: "[generate|refine|status] [project-name] [--seeds N] [--prompts 'custom prompt']"
 license: MIT
 metadata:
@@ -39,7 +38,7 @@ torch torchvision diffusers transformers accelerate safetensors Pillow peft
 
 Parse the user's arguments to determine the action:
 
-### `/gt-icons generate [project-name]` or `/gt-icons`
+### `/geno-icons generate [project-name]` or `/geno-icons`
 
 Generate pixel art icon variants for one or all geno-ecosystem projects.
 
@@ -175,7 +174,7 @@ for project, base_prompts in projects.items():
 | obsidian-geno-claude | obsidian crystal + AI glow, dark gem + brain, hexagonal stone, magic orb, crystal shard |
 | obsidian-genovox | crystal + sound waves, speaking stone, gem microphone, voice waveform in crystal |
 
-### `/gt-icons refine <project-name> [--prompts 'custom prompt']`
+### `/geno-icons refine <project-name> [--prompts 'custom prompt']`
 
 Regenerate icons for a single project with custom or adjusted prompts.
 
@@ -184,7 +183,7 @@ Regenerate icons for a single project with custom or adjusted prompts.
 3. Generate a new batch (use seed range 200+ to avoid collisions with prior runs)
 4. Open results and let the user pick
 
-### `/gt-icons status`
+### `/geno-icons status`
 
 Show which projects have icons and which don't:
 ```bash
@@ -199,7 +198,7 @@ for repo in "$REPOS_DIR"/geno-* "$REPOS_DIR"/obsidian-*; do
 done
 ```
 
-### `/gt-icons animate <project-name>`
+### `/geno-icons animate <project-name>`
 
 Generate an animated GIF from the selected icon using AnimateDiff.
 
