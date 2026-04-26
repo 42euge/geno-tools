@@ -1,21 +1,49 @@
 # geno-tools
 
-Meta-CLI for installing and managing [Claude Code](https://docs.anthropic.com/en/docs/claude-code) skillsets in the `geno-*` ecosystem.
+Meta-CLI for installing and managing coding agent skillsets in the `geno-*` ecosystem. Works with Claude Code, Codex, Gemini CLI, Cursor, and OpenCode.
 
 ## What it does
 
-`geno-tools` installs/uninstalls/dev-links curated skillset repos (each a `geno-{name}` repo with its own `genotools.yaml` manifest) into agent targets — Claude Code first, Codex and Gemini CLI to follow. Inspired by [vercel-labs/skills](https://github.com/vercel-labs/skills), specialized for this ecosystem:
+`geno-tools` installs/uninstalls/dev-links curated skillset repos (each a `geno-{name}` repo) into any supported coding agent. Inspired by [vercel-labs/skills](https://github.com/vercel-labs/skills) and [obra/superpowers](https://github.com/obra/superpowers), specialized for this ecosystem:
 
 - **Curated registry** — short names (`media`, `research`, `taxes`, …) resolve to git URLs
-- **Declarative install** — each skillset's `genotools.yaml` declares its venv deps, runtime symlinks, and config defaults
+- **Multi-agent** — skills register with all agents via `npx skills add --agent '*'`
 - **Per-skillset venvs** — isolated at `~/.geno-tools/geno-{name}/venvs/`
-- **Copy-once configs** — user edits preserved across updates
 - **Dev-link** — point at a local checkout for meta-improvement
 
 ## Install
 
+### Python CLI (required for all platforms)
+
 ```bash
 pipx install git+https://github.com/42euge/geno-tools
+```
+
+### Claude Code
+
+```bash
+claude /plugin install 42euge/geno-tools
+```
+
+### Codex CLI
+
+Clone and symlink skills into `~/.agents/skills/geno-tools`, then install the Python CLI above.
+
+### Gemini CLI
+
+```bash
+gemini extensions install https://github.com/42euge/geno-tools
+```
+
+### Cursor
+
+Install via plugin manager or clone to your Cursor plugins directory.
+
+### OpenCode
+
+Add to `opencode.json`:
+```json
+{ "plugins": ["geno-tools@git+https://github.com/42euge/geno-tools.git"] }
 ```
 
 ## Usage
