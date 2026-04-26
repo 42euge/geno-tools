@@ -4,7 +4,7 @@
 
 ## Dual installation
 
-- **Claude Code plugin**: `.claude-plugin/plugin.json` + `skills/` + `commands/` expose `/gt-install`, `/gt-remove`, `/gt-ls`, `/gt-update` slash commands
+- **Claude Code plugin**: `.claude-plugin/plugin.json` + `skills/` expose the geno-tools skill
 - **Python CLI**: `pyproject.toml` → `geno-tools` binary on PATH via pipx/pip
 
 The plugin wraps the CLI — both require the Python package installed.
@@ -21,17 +21,28 @@ geno-tools = "genotools.cli:main"
 
 ## Subcommands
 
-| Command | Slash command | Status |
-|---------|---------------|--------|
-| `geno-tools ls [--available]` | `/gt-ls` | implemented |
-| `geno-tools install <name\|url\|path> [--here]` | `/gt-install` | implemented |
-| `geno-tools remove <name> [--keep-data]` | `/gt-remove` | implemented |
-| `geno-tools update [name]` | `/gt-update` | stub |
-| `geno-tools dev <name> <path>` | — | stub |
-| `geno-tools fork <name> <variant> [--isolated-venv]` | — | stub |
-| `geno-tools use <name>@<variant> [--here]` | — | stub |
-| `geno-tools promote <name> <variant>` | — | stub |
-| `geno-tools doctor` | — | stub |
+| Command | Status |
+|---------|--------|
+| `geno-tools ls [--available]` | implemented |
+| `geno-tools install <name\|url\|path> [--here]` | implemented |
+| `geno-tools remove <name> [--keep-data]` | implemented |
+| `geno-tools update [name]` | stub |
+| `geno-tools dev <name> <path>` | stub |
+| `geno-tools fork <name> <variant> [--isolated-venv]` | stub |
+| `geno-tools use <name>@<variant> [--here]` | stub |
+| `geno-tools promote <name> <variant>` | stub |
+| `geno-tools doctor` | stub |
+
+## Command prefix aliasing
+
+The `gt-` prefix on slash commands (e.g., `/gt-install`) is a **user preference**, not baked into skillset repos. It's configured in `~/.geno/config.yaml`:
+
+```yaml
+aliases:
+  command_prefix: "gt"   # gt-install, gt-media-audiobook-create, etc.
+```
+
+See `config/defaults.yaml` for the full schema. The prefix is read at install time by `genotools/config.py` and applied when materializing slash commands.
 
 ## Source resolution (`commands._resolve_source`)
 
@@ -52,7 +63,7 @@ geno-tools install media
     ├── _create_venv_if_needed()         # venv + pip install deps + editable install
     ├── _materialize_bin_symlinks()       # ~/.local/bin/ symlinks to venv binaries
     ├── active -> main symlink
-    └── _install_skills_via_npx()        # npx skills add (claude-code, global)
+    └── _install_skills_via_npx()        # npx skills add (all agents, global)
 ```
 
 On failure at any step, the partially created directory is cleaned up.
@@ -75,7 +86,7 @@ On failure at any step, the partially created directory is cleaned up.
 
 ## Skill registration
 
-`npx skills add <active-worktree> --agent '*' --global --skill '*' --yes` registers SKILL.md and commands with all supported agents (Claude Code, Codex, Cursor, Gemini CLI, etc.).
+`npx skills add <active-worktree> --agent '*' --global --skill '*' --yes` registers SKILL.md with all supported agents (Claude Code, Codex, Cursor, Gemini CLI, etc.).
 
 Uninstall enumerates skills (root SKILL.md + `skills/*/SKILL.md`) and calls `npx skills remove`.
 
@@ -95,20 +106,17 @@ geno-tools/
 ├── GEMINI.md                    # Gemini CLI bootstrap context (@-imports SKILL.md)
 ├── package.json                 # npm metadata (entry point for OpenCode plugin)
 ├── skills/geno-tools/SKILL.md   # umbrella skill describing the meta-CLI
-├── commands/                    # slash commands wrapping the CLI
-│   ├── gt-install.md
-│   ├── gt-remove.md
-│   ├── gt-ls.md
-│   └── gt-update.md
+├── config/defaults.yaml         # reference config with aliases schema
 ├── genotools/                   # Python CLI package
 │   ├── cli.py                   # argparse, subcommand routing
 │   ├── commands.py              # install/remove implemented, rest are stubs
+│   ├── config.py                # user config from ~/.geno/config.yaml
 │   ├── paths.py                 # on-disk layout utilities
 │   └── registry.py              # curated registry of known skillsets
 └── pyproject.toml               # pip/pipx entry point
 ```
 
-Skills and commands are platform-agnostic. Each CLI-specific manifest points at the shared `skills/` and `commands/` directories.
+Skills are platform-agnostic. Each CLI-specific manifest points at the shared `skills/` directory.
 
 ## What a skillset repo needs to provide
 
@@ -118,7 +126,7 @@ Minimum viable `geno-{name}` skillset:
 geno-{name}/
 ├── SKILL.md                # umbrella skill manifest
 ├── commands/
-│   └── gt-{name}-*.md      # slash commands (any *.md works)
+│   └── {name}-*.md         # slash commands (any *.md works)
 └── pyproject.toml           # optional — triggers venv creation if present
 ```
 
