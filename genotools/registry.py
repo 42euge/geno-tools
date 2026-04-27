@@ -34,7 +34,6 @@ _FALLBACK: dict[str, str] = {
     "agents":   f"https://github.com/{OWNER}/geno-agents.git",
     "media":    f"https://github.com/{OWNER}/geno-media.git",
     "research": f"https://github.com/{OWNER}/geno-research.git",
-    "taxes":    f"https://github.com/{OWNER}/geno-taxes.git",
     "kaggle":   f"https://github.com/{OWNER}/geno-kaggle.git",
     "dev":      f"https://github.com/{OWNER}/geno-dev.git",
 }

@@ -22,7 +22,6 @@ which geno-tools >/dev/null 2>&1 || echo "geno-tools CLI not on PATH. Install: p
 | agents | Agent coordination, presence, and multi-agent networking |
 | media | Audiobooks (Kokoro TTS), animated videos (Manim), podcasts |
 | research | Wiki-based research notes, paper generation, repo docs |
-| taxes | Tax document parsing, CPA packet prep |
 | kaggle | Kaggle benchmarks, competition notebooks, discussion scraping |
 | dev | Developer utilities, Colab uploads, commit rewriting |
 
