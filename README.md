@@ -13,21 +13,27 @@ Meta-CLI for installing and managing coding agent skillsets in the `geno-*` ecos
 
 ## Install
 
-### Python CLI (required for all platforms)
-
-```bash
-pipx install git+https://github.com/42euge/geno-tools
-```
+geno-tools ships as a native plugin/extension on each supported coding CLI. Pick the snippet for the CLI you use — every path bootstraps `~/.geno/` from `config/defaults.yaml` on first session start.
 
 ### Claude Code
 
 ```bash
-claude /plugin install 42euge/geno-tools
+# inside a Claude Code session
+/plugin marketplace add 42euge/geno-tools
+/plugin install geno-tools@geno-tools
 ```
+
+The first command registers this repo as a marketplace (reads `.claude-plugin/marketplace.json`); the second installs the plugin defined in `.claude-plugin/plugin.json`. Verify with `/plugin list`.
 
 ### Codex CLI
 
-Clone and symlink skills into `~/.agents/skills/geno-tools`, then install the Python CLI above.
+```bash
+# inside a Codex CLI session
+/plugin marketplace add 42euge/geno-tools
+/plugins
+```
+
+The marketplace catalog at `.agents/plugins/marketplace.json` exposes the plugin; pick `geno-tools` from the `/plugins` browser and toggle it on. (Plugins are cached at `~/.codex/plugins/cache/geno-tools/geno-tools/<version>/`.)
 
 ### Gemini CLI
 
@@ -35,16 +41,32 @@ Clone and symlink skills into `~/.agents/skills/geno-tools`, then install the Py
 gemini extensions install https://github.com/42euge/geno-tools
 ```
 
+Gemini clones the repo into `~/.gemini/extensions/geno-tools/`, reads `gemini-extension.json`, and registers the bundled `skills/`, `commands/`, and `hooks/hooks.json`. Restart the CLI to pick it up. Update later with `gemini extensions update geno-tools`.
+
 ### Cursor
 
-Install via plugin manager or clone to your Cursor plugins directory.
+Install via Cursor's plugin manager (it reads `.cursor-plugin/plugin.json`), or clone the repo into your Cursor plugins directory.
 
 ### OpenCode
 
 Add to `opencode.json`:
+
 ```json
 { "plugins": ["geno-tools@git+https://github.com/42euge/geno-tools.git"] }
 ```
+
+Then restart OpenCode — the bundled plugin in `.opencode/plugins/geno-tools.js` registers the skills path on startup.
+
+### Verify
+
+In any CLI, the slash commands appear immediately after install:
+
+```
+/gt-ls --available     # list registry
+/gt-install geno-<name>
+```
+
+If `geno-tools` isn't on PATH after a plugin install (some CLIs don't auto-symlink the venv binary), the `/gt-*` slash commands will surface an install hint pointing back to the plugin install for that CLI.
 
 ## Usage
 

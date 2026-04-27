@@ -9,7 +9,7 @@ import sys
 import tomllib
 from pathlib import Path
 
-from genotools import discovery, paths, registry
+from genotools import config, discovery, paths, registry
 
 SYSTEM_BIN = Path.home() / ".local" / "bin"
 
@@ -67,6 +67,8 @@ def _ls(args: argparse.Namespace) -> int:
 def _install(args: argparse.Namespace) -> int:
     if args.here:
         return _todo(f"install --here {args.name}: cwd alias materialization")
+
+    config.ensure_dir()
 
     source, name = _resolve_source(args.name)
     if name is None:
