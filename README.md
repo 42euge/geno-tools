@@ -49,13 +49,14 @@ Add to `opencode.json`:
 ## Usage
 
 ```bash
-geno-tools ls --available                # registry
-geno-tools install media                 # install geno-media
-geno-tools dev media ~/src/geno-media    # link a local dev checkout
-geno-tools ls                            # installed
-geno-tools doctor                        # verify links, venvs, targets
-geno-tools update media
-geno-tools remove media [--keep-data]
+geno-tools ls --available                  # registry
+geno-tools install <slug>                  # install by short slug from the registry
+geno-tools install <git-url>               # install any compliant repo by URL
+geno-tools dev <slug> ~/src/<repo>         # link a local dev checkout
+geno-tools ls                              # installed
+geno-tools doctor                          # verify links, venvs, targets
+geno-tools update [<slug>]                 # update one or all
+geno-tools remove <slug> [--keep-data]
 ```
 
 ## Layout
@@ -98,7 +99,11 @@ A minimum viable skillset only needs a root `SKILL.md` and a `commands/` directo
 
 ## Existing geno-* repos
 
-Skillsets currently published under the public `geno-*` namespace:
+All public repos in the `geno-*` namespace, grouped by role.
+
+### Skillsets
+
+Installable by short slug via `geno-tools install <slug>`:
 
 | Slug | Repo | Description |
 |------|------|-------------|
@@ -106,20 +111,35 @@ Skillsets currently published under the public `geno-*` namespace:
 | `media` | [42euge/geno-media](https://github.com/42euge/geno-media) | Audiobooks (Kokoro TTS), animated videos (Manim), podcasts |
 | `research` | [42euge/geno-research](https://github.com/42euge/geno-research) | Wiki-based research, paper generation, repo documentation |
 | `kaggle` | [42euge/geno-kaggle](https://github.com/42euge/geno-kaggle) | Kaggle benchmarking, notebook upload, discussion scraping |
-| `dev` | [42euge/geno-dev](https://github.com/42euge/geno-dev) | Developer utilities (planned) |
+| `dev` | [42euge/geno-dev](https://github.com/42euge/geno-dev) | Developer/infrastructure skills — task execution, commit rewriting, Colab upload plumbing |
 
-Supporting repos in the same ecosystem (not skillsets — they're services, agents, or integrations consumed by skillsets):
+### Coordination and state
+
+Services consumed by skillsets to coordinate sessions and persist state:
 
 | Repo | Description |
 |------|-------------|
-| [geno-msg](https://github.com/42euge/geno-msg) | Inter-agent messaging |
-| [geno-notes](https://github.com/42euge/geno-notes) | Project journal, task management, timestamped notes |
-| [geno-mon](https://github.com/42euge/geno-mon) | Agent monitoring |
-| [geno-bot](https://github.com/42euge/geno-bot) | Bluesky companion bot |
-| [geno-colab](https://github.com/42euge/geno-colab) | Google Colab integration |
-| [geno-bench](https://github.com/42euge/geno-bench) | Benchmarking infrastructure |
-| [geno-term](https://github.com/42euge/geno-term) | Terminal utilities |
-| [geno-vla](https://github.com/42euge/geno-vla) | Vision-language-action experiments |
+| [42euge/geno-msg](https://github.com/42euge/geno-msg) | Inter-agent messaging — file-based storage, CLI, MCP server, and hooks for cross-session communication |
+| [42euge/geno-notes](https://github.com/42euge/geno-notes) | Project journal with two-scope storage for tasks, journal, plans, and audit log |
+| [42euge/geno-mon](https://github.com/42euge/geno-mon) | Agent observability for insight into agentic harnesses |
+
+### Runtime and tooling
+
+Lower-level building blocks that power skillsets and the agent itself:
+
+| Repo | Description |
+|------|-------------|
+| [42euge/geno-cli](https://github.com/42euge/geno-cli) | Agentic coding assistant TUI powered by Gemma 4 via Ollama |
+| [42euge/geno-iso](https://github.com/42euge/geno-iso) | Isolated Docker containers for running Claude Code |
+| [42euge/geno-term](https://github.com/42euge/geno-term) | Terminal automation for Claude Code session recovery with iTerm2 tabs and panes |
+| [42euge/geno-vla](https://github.com/42euge/geno-vla) | Vision-Language-Action MCP server for Claude Code with smart browser automation |
+| [42euge/geno-bench](https://github.com/42euge/geno-bench) | Mine Claude Code session logs for failure patterns and turn observed failures into benchmark tasks |
+
+### Meta
+
+| Repo | Description |
+|------|-------------|
+| [42euge/geno-tools](https://github.com/42euge/geno-tools) | This repo — installer/manager for everything above. Also ships the bundled `geno-icons` skill for pixel-art project icons. |
 
 ## Enterprise: private skillsets, public tooling
 
