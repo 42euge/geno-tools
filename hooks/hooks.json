@@ -1,0 +1,21 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/init-geno-dir.sh"
+          },
+          {
+            "name": "geno-tools-init",
+            "type": "command",
+            "command": "${extensionPath}/scripts/init-geno-dir.sh",
+            "timeout": 5000
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -3,7 +3,7 @@
 # geno-<span>tools</span>
 
 The package manager for AI coding agent skillsets.
-Install, fork, experiment, promote — as a Claude Code plugin or standalone CLI.
+Install, fork, experiment, promote — as a native plugin in your coding agent.
 
 <div class="hero-buttons">
 <a href="getting-started/" class="btn-primary">Get Started</a>
@@ -19,7 +19,7 @@ Install, fork, experiment, promote — as a Claude Code plugin or standalone CLI
 
 ### Install in seconds
 
-Install as a Claude Code plugin or via `pipx`. Short names resolve from a curated registry.
+Install as a Claude Code plugin or its equivalent on Codex, Cursor, Gemini CLI, or OpenCode. Short names resolve from a curated registry.
 
 [Get started :material-arrow-right:](getting-started.md)
 </div>
@@ -60,29 +60,28 @@ Fork a skillset, experiment in isolation, promote back to main. Git worktrees un
 
 ## Quick taste
 
-=== "Claude Code plugin"
+=== "Claude Code"
 
     ```bash
     claude /plugin install 42euge/geno-tools
-    pipx install git+https://github.com/42euge/geno-tools
 
     /gt-ls --available                       # see the registry
     /gt-install geno-<name>                  # install a skillset
-    geno-tools fork geno-<name> exp-1        # branch a variant
-    geno-tools use geno-<name>@exp-1         # activate it
-    geno-tools promote geno-<name> exp-1     # merge back to main
+    /gt-fork geno-<name> exp-1               # branch a variant
+    /gt-use geno-<name>@exp-1                # activate it
+    /gt-promote geno-<name> exp-1            # merge back to main
     ```
 
-=== "CLI only"
+=== "Gemini CLI"
 
     ```bash
-    pipx install git+https://github.com/42euge/geno-tools
+    gemini extensions install https://github.com/42euge/geno-tools
 
-    geno-tools ls --available                # see the registry
-    geno-tools install geno-<name>           # install a skillset
-    geno-tools fork geno-<name> exp-1        # branch a variant
-    geno-tools use geno-<name>@exp-1         # activate it
-    geno-tools promote geno-<name> exp-1     # merge back to main
+    /gt-ls --available                       # see the registry
+    /gt-install geno-<name>                  # install a skillset
+    /gt-fork geno-<name> exp-1               # branch a variant
+    /gt-use geno-<name>@exp-1                # activate it
+    /gt-promote geno-<name> exp-1            # merge back to main
     ```
 
 </div>
