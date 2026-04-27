@@ -20,7 +20,6 @@ The geno-\* ecosystem is a collection of repos that extend AI coding agents with
 |------|-------------|
 | [geno-media](https://github.com/42euge/geno-media) | Audiobooks (Kokoro TTS), animated videos (Manim), podcasts, TTS/STT config |
 | [geno-research](https://github.com/42euge/geno-research) | Wiki-based research, paper generation, repo documentation |
-| [geno-taxes](https://github.com/42euge/geno-taxes) | Tax document parsing, YAML organizers, CPA packet prep |
 | [geno-kaggle](https://github.com/42euge/geno-kaggle) | Kaggle benchmarking, notebook upload, discussion scraping |
 
 ### Other

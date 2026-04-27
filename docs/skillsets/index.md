@@ -11,7 +11,6 @@ These skillsets are built into the geno-tools registry and can be installed by s
 | `agents` | [geno-agents](https://github.com/42euge/geno-agents) | Agent coordination, registration, status updates, autonomous loops |
 | `media` | [geno-media](https://github.com/42euge/geno-media) | Audiobooks (Kokoro TTS), animated videos (Manim), podcasts, TTS/STT |
 | `research` | [geno-research](https://github.com/42euge/geno-research) | Wiki-based research, paper generation, repo documentation |
-| `taxes` | [geno-taxes](https://github.com/42euge/geno-taxes) | Tax document parsing, CPA packet prep, filing checklists |
 | `kaggle` | [geno-kaggle](https://github.com/42euge/geno-kaggle) | Kaggle benchmarking, notebook upload, competition discussion scraping |
 | `dev` | [geno-dev](https://github.com/42euge/geno-dev) | Developer utilities (planned) |
 
