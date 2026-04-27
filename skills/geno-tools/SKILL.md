@@ -17,7 +17,7 @@ which geno-tools >/dev/null 2>&1 || echo "geno-tools CLI not on PATH. Install: p
 
 ## Available Skillsets
 
-Install by full repo name (e.g. `geno-tools install geno-media`):
+Install by full repo name (e.g. `geno-tools install geno-<name>`):
 
 | Repo | Description |
 |------|-------------|
@@ -39,6 +39,6 @@ Install by full repo name (e.g. `geno-tools install geno-media`):
 ## Source Resolution
 
 The `<repo>` argument resolves in order:
-1. Registered repo name (e.g. `geno-media`) -> git URL. Bare slug (`media`) is also accepted for backwards compatibility.
+1. Registered repo name (e.g. `geno-<name>`) -> git URL. Bare slug (e.g. `<name>`) is also accepted for backwards compatibility.
 2. Local directory path
 3. Git URL (https:// or git@)

@@ -26,14 +26,14 @@ geno-tools ls --available    # curated registry
 Install a skillset from the registry, a git URL, or a local path. Slash command: `/gt-install`.
 
 ```bash
-geno-tools install geno-media
+geno-tools install geno-<name>
 geno-tools install https://github.com/someone/geno-custom.git
 geno-tools install ./local-skillset
 ```
 
 **Source resolution order:**
 
-1. Registered repo name (e.g. `geno-media` -> git URL from registry; legacy bare slugs like `media` still resolve)
+1. Registered repo name (e.g. `geno-<name>` -> git URL from registry; legacy bare slugs like `media` still resolve)
 2. Local directory path
 3. Git URL (`https://`, `git@`, or `*.git`)
 
@@ -50,7 +50,7 @@ geno-tools install ./local-skillset
 Symlink a local checkout as the main worktree. For active development on a skillset.
 
 ```bash
-geno-tools dev geno-media ~/src/geno-media
+geno-tools dev geno-<name> ~/src/geno-<name>
 ```
 
 If the skillset is already installed, it's removed first (configs preserved). The local path becomes a symlink target — edits take effect immediately.
@@ -59,7 +59,7 @@ If the skillset is already installed, it's removed first (configs preserved). Th
 
 | Arg | Description |
 |-----|-------------|
-| `name` | Full repo name (e.g. `geno-media`) |
+| `name` | Full repo name (e.g. `geno-<name>`) |
 | `path` | Path to local checkout |
 
 ---
@@ -69,8 +69,8 @@ If the skillset is already installed, it's removed first (configs preserved). Th
 Create a variant worktree branched off main. Use this to experiment without touching the primary install.
 
 ```bash
-geno-tools fork geno-media exp-1
-geno-tools fork geno-media exp-1 --isolated-venv
+geno-tools fork geno-<name> exp-1
+geno-tools fork geno-<name> exp-1 --isolated-venv
 ```
 
 **Arguments:**
@@ -93,15 +93,15 @@ geno-tools fork geno-media exp-1 --isolated-venv
 Switch the active variant for a skillset.
 
 ```bash
-geno-tools use geno-media@exp-1          # global: repoint active symlink
-geno-tools use geno-media@exp-1 --here   # cwd-only override
+geno-tools use geno-<name>@exp-1          # global: repoint active symlink
+geno-tools use geno-<name>@exp-1 --here   # cwd-only override
 ```
 
 **Arguments:**
 
 | Arg | Description |
 |-----|-------------|
-| `spec` | `<name>@<variant>` format (e.g. `geno-media@exp-1`) |
+| `spec` | `<name>@<variant>` format (e.g. `geno-<name>@exp-1`) |
 
 **Options:**
 
@@ -116,7 +116,7 @@ geno-tools use geno-media@exp-1 --here   # cwd-only override
 Merge a variant back into main. Does not push upstream.
 
 ```bash
-geno-tools promote geno-media exp-1
+geno-tools promote geno-<name> exp-1
 ```
 
 **Arguments:**
@@ -133,7 +133,7 @@ geno-tools promote geno-media exp-1
 Pull latest changes on the main worktree. Slash command: `/gt-update`.
 
 ```bash
-geno-tools update geno-media    # update one
+geno-tools update geno-<name>    # update one
 geno-tools update               # update all
 ```
 
@@ -152,8 +152,8 @@ Skips skillsets in `dev` mode (the source is already live).
 Uninstall a skillset. Replays the install in reverse — deterministic, no orphaned files. Slash command: `/gt-remove`.
 
 ```bash
-geno-tools remove geno-media
-geno-tools remove geno-media --keep-data
+geno-tools remove geno-<name>
+geno-tools remove geno-<name> --keep-data
 ```
 
 **Arguments:**

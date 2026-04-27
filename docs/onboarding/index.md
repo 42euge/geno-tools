@@ -26,7 +26,7 @@ The checklist is the same. The reviewer changes.
 3. **Push to a public git remote.** Anyone can already install it via direct URL at this point: `geno-tools install https://github.com/you/your-skillset.git`.
 4. **Open a registry PR.** Add `"<repo-name>": "<git-url>"` to `genotools/registry.py` and the corresponding row to `docs/skillsets/index.md` and the README's existing-repos table.
 5. **Pass the audit.** A maintainer runs through [the audit checklist](audit.md) and either approves, requests changes, or closes the PR.
-6. **Ship.** Once merged, `geno-tools install <repo-name>` resolves to your repo for everyone (e.g. `geno-tools install geno-media`).
+6. **Ship.** Once merged, `geno-tools install <repo-name>` resolves to your repo for everyone.
 
 ## Onboarding an enterprise (private) skillset
 

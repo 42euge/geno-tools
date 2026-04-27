@@ -17,8 +17,7 @@ These skillsets are built into the geno-tools registry and can be installed by f
 Install any of them:
 
 ```bash
-geno-tools install geno-media
-geno-tools install geno-research
+geno-tools install geno-<name>
 ```
 
 ## What a skillset provides

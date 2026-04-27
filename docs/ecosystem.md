@@ -40,7 +40,7 @@ The geno-\* ecosystem is a collection of repos that extend AI coding agents with
                          │
           ┌──────────────┼──────────────┐
           │              │              │
-     geno-media    geno-research   geno-kaggle  ...
+     geno-<name>   geno-<name>   geno-<name>  ...   (skillsets)
           │              │              │
           └──────────────┼──────────────┘
                          │

@@ -66,11 +66,11 @@ Fork a skillset, experiment in isolation, promote back to main. Git worktrees un
     claude /plugin install 42euge/geno-tools
     pipx install git+https://github.com/42euge/geno-tools
 
-    /gt-ls --available                    # see the registry
-    /gt-install geno-media                # install geno-media
-    geno-tools fork geno-media exp-1      # branch a variant
-    geno-tools use geno-media@exp-1       # activate it
-    geno-tools promote geno-media exp-1   # merge back to main
+    /gt-ls --available                       # see the registry
+    /gt-install geno-<name>                  # install a skillset
+    geno-tools fork geno-<name> exp-1        # branch a variant
+    geno-tools use geno-<name>@exp-1         # activate it
+    geno-tools promote geno-<name> exp-1     # merge back to main
     ```
 
 === "CLI only"
@@ -78,11 +78,11 @@ Fork a skillset, experiment in isolation, promote back to main. Git worktrees un
     ```bash
     pipx install git+https://github.com/42euge/geno-tools
 
-    geno-tools ls --available             # see the registry
-    geno-tools install geno-media         # install geno-media
-    geno-tools fork geno-media exp-1      # branch a variant
-    geno-tools use geno-media@exp-1       # activate it
-    geno-tools promote geno-media exp-1   # merge back to main
+    geno-tools ls --available                # see the registry
+    geno-tools install geno-<name>           # install a skillset
+    geno-tools fork geno-<name> exp-1        # branch a variant
+    geno-tools use geno-<name>@exp-1         # activate it
+    geno-tools promote geno-<name> exp-1     # merge back to main
     ```
 
 </div>
