@@ -28,7 +28,23 @@ geno-tools = "genotools.cli:main"
 | `geno-tools fork <name> <variant> [--isolated-venv]` | stub |
 | `geno-tools use <name>@<variant> [--here]` | stub |
 | `geno-tools promote <name> <variant>` | stub |
+| `geno-tools deps <name>` | implemented |
 | `geno-tools doctor` | stub |
+
+## Dependency management
+
+Skillsets declare dependencies via `requires:` in `genotools.yaml`:
+
+```yaml
+name: geno-career
+requires:
+  - geno-notes
+  - geno-specs
+```
+
+During `geno-tools install`, dependencies are resolved from the registry and installed recursively before the target skillset. Already-installed deps are skipped. Circular dependencies are detected and reported.
+
+`geno-tools deps <name>` prints the dependency tree for an installed skillset.
 
 ## Command prefix aliasing
 
@@ -123,6 +139,7 @@ Minimum viable `geno-{name}` skillset:
 ```
 geno-{name}/
 ├── SKILL.md                # umbrella skill manifest
+├── genotools.yaml          # optional — install manifest with requires:
 ├── commands/
 │   └── {name}-*.md         # slash commands (any *.md works)
 └── pyproject.toml           # optional — triggers venv creation if present
