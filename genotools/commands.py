@@ -9,6 +9,8 @@ import sys
 import tomllib
 from pathlib import Path
 
+import yaml
+
 from genotools import paths, registry
 
 SYSTEM_BIN = Path.home() / ".local" / "bin"
@@ -24,6 +26,7 @@ def dispatch(args: argparse.Namespace) -> int:
         "promote": _promote,
         "update": _update,
         "remove": _remove,
+        "deps": _deps,
         "doctor": _doctor,
     }
     return handlers[args.cmd](args)
@@ -57,27 +60,57 @@ def _ls(args: argparse.Namespace) -> int:
     return 0
 
 
+# ── manifest ───────────────────────────────────────────────────────────────
+
+def _read_manifest(full: str) -> dict:
+    worktree = paths.skillset_worktree(full, "main")
+    manifest = worktree / "genotools.yaml"
+    if not manifest.exists():
+        return {}
+    try:
+        return yaml.safe_load(manifest.read_text()) or {}
+    except Exception:
+        return {}
+
+
+def _get_requires(full: str) -> list[str]:
+    manifest = _read_manifest(full)
+    raw = manifest.get("requires", [])
+    if not isinstance(raw, list):
+        return []
+    return [str(r) for r in raw]
+
+
 # ── install ─────────────────────────────────────────────────────────────────
 
 def _install(args: argparse.Namespace) -> int:
     if args.here:
         return _todo(f"install --here {args.name}: cwd alias materialization")
+    return _install_one(args.name, installing=set())
 
-    source, name = _resolve_source(args.name)
+
+def _install_one(name_or_source: str, *, installing: set[str]) -> int:
+    source, name = _resolve_source(name_or_source)
     if name is None:
         name = _peek_repo_name(source)
     full = paths.normalize(name)
 
     if paths.skillset_root(full).exists():
-        print(f"already installed: {full} "
-              f"(remove first: geno-tools remove {paths.short(full)})", file=sys.stderr)
+        print(f"already installed: {full}")
+        return 0
+
+    if full in installing:
+        print(f"  circular dependency detected: {full}; skipping",
+              file=sys.stderr)
         return 1
+    installing.add(full)
 
     print(f"installing {full} from {source}")
     root = paths.skillset_root(full)
     root.mkdir(parents=True)
     try:
         _clone_and_worktree(source, full)
+        _install_requires(full, installing)
         scripts = _create_venv_if_needed(full)
         _materialize_bin_symlinks(full, scripts)
         paths.skillset_active(full).symlink_to("main")
@@ -88,6 +121,23 @@ def _install(args: argparse.Namespace) -> int:
 
     print(f"installed {full}")
     return 0
+
+
+def _install_requires(full: str, installing: set[str]) -> None:
+    requires = _get_requires(full)
+    if not requires:
+        return
+    print(f"  {full} requires: {', '.join(requires)}")
+    for dep in requires:
+        dep_full = paths.normalize(dep)
+        if paths.skillset_root(dep_full).exists():
+            continue
+        print(f"  installing dependency: {dep}")
+        rc = _install_one(dep, installing=installing)
+        if rc != 0:
+            raise SystemExit(
+                f"failed to install dependency {dep} required by {full}"
+            )
 
 
 # ── remove ──────────────────────────────────────────────────────────────────
@@ -308,6 +358,38 @@ def _enumerate_skills(full: str) -> list[str]:
             if p.is_dir() and (p / "SKILL.md").exists()
         ))
     return names
+
+
+# ── deps ───────────────────────────────────────────────────────────────────
+
+def _deps(args: argparse.Namespace) -> int:
+    full = paths.normalize(args.name)
+    if not paths.skillset_root(full).exists():
+        print(f"not installed: {full}", file=sys.stderr)
+        return 1
+
+    _print_dep_tree(full, indent=0, seen=set())
+    return 0
+
+
+def _print_dep_tree(full: str, indent: int, seen: set[str]) -> None:
+    prefix = "  " * indent
+    installed = paths.skillset_root(full).exists()
+    marker = "" if installed else " (missing)"
+    print(f"{prefix}{full}{marker}")
+
+    if full in seen:
+        if _get_requires(full):
+            print(f"{prefix}  (circular, skipped)")
+        return
+    seen.add(full)
+
+    if not installed:
+        return
+
+    for dep in _get_requires(full):
+        dep_full = paths.normalize(dep)
+        _print_dep_tree(dep_full, indent + 1, seen)
 
 
 # ── stubs (later phases) ────────────────────────────────────────────────────

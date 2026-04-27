@@ -37,6 +37,7 @@ _FALLBACK: dict[str, str] = {
     "taxes":    f"https://github.com/{OWNER}/geno-taxes.git",
     "kaggle":   f"https://github.com/{OWNER}/geno-kaggle.git",
     "dev":      f"https://github.com/{OWNER}/geno-dev.git",
+    "specs":    f"https://github.com/{OWNER}/geno-specs.git",
 }
 
 _cache: dict[str, str] | None = None
