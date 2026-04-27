@@ -3,13 +3,11 @@
   "description": "Meta-CLI for installing and managing geno-* skillsets — the geno ecosystem orchestrator",
   "version": "0.1.0",
   "author": {
-    "name": "42euge"
+    "name": "42euge",
+    "url": "https://github.com/42euge"
   },
   "homepage": "https://github.com/42euge/geno-tools",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/42euge/geno-tools"
-  },
+  "repository": "https://github.com/42euge/geno-tools",
   "license": "MIT",
   "keywords": [
     "skillsets",
