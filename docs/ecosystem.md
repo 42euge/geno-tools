@@ -21,18 +21,17 @@ The geno-\* ecosystem is a collection of repos that extend AI coding agents with
 | [geno-media](https://github.com/42euge/geno-media) | Audiobooks (Kokoro TTS), animated videos (Manim), podcasts, TTS/STT config |
 | [geno-research](https://github.com/42euge/geno-research) | Wiki-based research, paper generation, repo documentation |
 | [geno-kaggle](https://github.com/42euge/geno-kaggle) | Kaggle benchmarking, notebook upload, discussion scraping |
+| [geno-dev](https://github.com/42euge/geno-dev) | Developer/infrastructure skills — task execution, commit rewriting, Colab plumbing |
 
-### Other
+### Runtime and tooling
 
 | Repo | Description |
 |------|-------------|
-| [geno-bot](https://github.com/42euge/geno-bot) | Bluesky companion bot (geno42) |
-| [geno-colab](https://github.com/42euge/geno-colab) | Google Colab integration |
-| [geno-bench](https://github.com/42euge/geno-bench) | Benchmarking infrastructure |
-| [geno-term](https://github.com/42euge/geno-term) | Terminal utilities |
-| [geno-vla](https://github.com/42euge/geno-vla) | Vision-language-action experiments |
-| [obsidian-geno-claude](https://github.com/42euge/obsidian-geno-claude) | Obsidian plugin for Claude integration |
-| [obsidian-genovox](https://github.com/42euge/obsidian-genovox) | Obsidian voice plugin |
+| [geno-cli](https://github.com/42euge/geno-cli) | Agentic coding assistant TUI powered by Gemma 4 via Ollama |
+| [geno-iso](https://github.com/42euge/geno-iso) | Isolated Docker containers for running Claude Code |
+| [geno-term](https://github.com/42euge/geno-term) | Terminal automation for Claude Code session recovery with iTerm2 tabs and panes |
+| [geno-vla](https://github.com/42euge/geno-vla) | Vision-Language-Action MCP server for Claude Code with smart browser automation |
+| [geno-bench](https://github.com/42euge/geno-bench) | Mine Claude Code session logs for failure patterns and turn observed failures into benchmark tasks |
 
 ## How it fits together
 

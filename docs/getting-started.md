@@ -52,7 +52,6 @@ geno-tools ls --available
   agents       https://github.com/42euge/geno-agents.git
   media        https://github.com/42euge/geno-media.git
   research     https://github.com/42euge/geno-research.git
-  taxes        https://github.com/42euge/geno-taxes.git
   kaggle       https://github.com/42euge/geno-kaggle.git
   dev          https://github.com/42euge/geno-dev.git
 ```

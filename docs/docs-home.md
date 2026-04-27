@@ -39,7 +39,7 @@ Install as a Claude Code plugin or via `pipx`. Short names resolve from a curate
 
 ### Skillset ecosystem
 
-Media, research, taxes, kaggle, agents — each a self-contained repo with a declarative manifest.
+Media, research, kaggle, agents — each a self-contained repo with a declarative manifest.
 
 [Browse skillsets :material-arrow-right:](skillsets/index.md)
 </div>
