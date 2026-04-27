@@ -12,12 +12,6 @@ In your `opencode.json`:
 }
 ```
 
-## 2. Install the Python CLI
-
-```bash
-pipx install git+https://github.com/42euge/geno-tools.git
-```
-
-## 3. Restart OpenCode
+## 2. Restart OpenCode
 
 The plugin registers geno-tools skills automatically on startup.
