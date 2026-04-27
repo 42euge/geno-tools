@@ -162,17 +162,14 @@ for project, base_prompts in projects.items():
 | geno-media | film camera, microphone, music note + headphones, video player, speaker, paintbrush |
 | geno-research | magnifying glass + book, telescope, laboratory flask, open book with glowing pages, microscope |
 | geno-kaggle | trophy cup, medal, bar chart with arrow, podium, leaderboard |
-| geno-taxes | calculator, stack of coins, filing cabinet, receipt with checkmark, money bag, piggy bank |
 | geno-bench | stopwatch, speedometer, racing car, lightning bolt + clock, progress bar |
-| geno-bot | cute robot waving, chatbot with speech bubble, friendly android, mechanical bird, pixel pet |
-| geno-colab | cloud with lightning, notebook in clouds, hands shaking, puzzle pieces, cloud server |
+| geno-cli | retro TUI window, terminal with sparkles, prompt cursor in a chat bubble, command line wand |
+| geno-iso | shipping container, sealed glass dome, isolation chamber, padlocked box, sandbox border |
 | geno-mon | eye with alert, security camera, heartbeat monitor, radar screen, shield with eye, watchtower |
 | geno-msg | speech bubble, envelope with lightning, chat bubbles, megaphone, carrier pigeon, walkie talkie |
 | geno-notes | notepad with pencil, sticky notes, journal with bookmark, clipboard, quill pen + scroll |
 | geno-term | terminal with cursor, command prompt, CRT monitor, keyboard, matrix rain, retro monitor |
 | geno-vla | eye + neural network, camera lens + AI brain, robotic arm, AR glasses, scanner beam |
-| obsidian-geno-claude | obsidian crystal + AI glow, dark gem + brain, hexagonal stone, magic orb, crystal shard |
-| obsidian-genovox | crystal + sound waves, speaking stone, gem microphone, voice waveform in crystal |
 
 ### `/geno-icons refine <project-name> [--prompts 'custom prompt']`
 

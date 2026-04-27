@@ -49,17 +49,17 @@ geno-tools ls --available
 ```
 
 ```
-  agents       https://github.com/42euge/geno-agents.git
-  media        https://github.com/42euge/geno-media.git
-  research     https://github.com/42euge/geno-research.git
-  kaggle       https://github.com/42euge/geno-kaggle.git
-  dev          https://github.com/42euge/geno-dev.git
+  geno-agents              https://github.com/42euge/geno-agents.git
+  geno-media               https://github.com/42euge/geno-media.git
+  geno-research            https://github.com/42euge/geno-research.git
+  geno-kaggle              https://github.com/42euge/geno-kaggle.git
+  geno-dev                 https://github.com/42euge/geno-dev.git
 ```
 
 Install one:
 
 ```bash
-geno-tools install media
+geno-tools install geno-media
 ```
 
 This clones the repo, sets up any declared venvs, and wires the skill into your coding agent (slash commands appear immediately).
@@ -79,7 +79,7 @@ geno-tools ls
 If you're hacking on a skillset, use `dev` to symlink your local checkout instead of cloning:
 
 ```bash
-geno-tools dev media ~/src/geno-media
+geno-tools dev geno-media ~/src/geno-media
 ```
 
 Edits to your local checkout take effect immediately — no reinstall needed.
