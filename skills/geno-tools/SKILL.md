@@ -26,6 +26,12 @@ which geno-tools >/dev/null 2>&1 || echo "geno-tools CLI not on PATH. Install: p
 | kaggle | Kaggle benchmarks, competition notebooks, discussion scraping |
 | dev | Developer utilities, Colab uploads, commit rewriting |
 
+## Infrastructure Skills
+
+| Skill | Description |
+|-------|-------------|
+| geno-data-workspaces-init | Create data workspaces for personal/life skills (taxes, remodel, career) |
+
 ## Commands
 
 - `geno-tools ls` — list installed skillsets and their active variant
