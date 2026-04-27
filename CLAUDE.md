@@ -1,13 +1,10 @@
 # geno-tools — skillset manager for the geno ecosystem
 
-`geno-tools` is a meta-CLI and Claude Code plugin (Python, `pipx install geno-tools`) that installs sibling `geno-{name}` repos as coding agent skillsets. It handles cloning, venvs, bin symlinks, and skill registration via `npx skills`.
+`geno-tools` is a meta-CLI and Claude Code plugin that installs sibling `geno-{name}` repos as coding agent skillsets. It handles cloning, venvs, bin symlinks, and skill registration via `npx skills`.
 
-## Dual installation
+## Installation
 
-- **Claude Code plugin**: `.claude-plugin/plugin.json` + `skills/` expose the geno-tools skill
-- **Python CLI**: `pyproject.toml` → `geno-tools` binary on PATH via pipx/pip
-
-The plugin wraps the CLI — both require the Python package installed.
+geno-tools is distributed exclusively as a coding-agent plugin — there is no pipx/pip path. Each supported CLI installs it via its native plugin mechanism (`claude /plugin install`, `gemini extensions install`, OpenCode `plugins`, the Cursor plugin manager, or Codex symlink). `.claude-plugin/plugin.json` + the shared `skills/` directory expose the geno-tools skill across all platforms.
 
 ## Entry point
 
@@ -114,7 +111,7 @@ geno-tools/
 │   ├── config.py                # user config from ~/.geno/config.yaml
 │   ├── paths.py                 # on-disk layout utilities
 │   └── registry.py              # curated registry of known skillsets
-└── pyproject.toml               # pip/pipx entry point
+└── pyproject.toml               # Python package metadata
 ```
 
 Skills are platform-agnostic. Each CLI-specific manifest points at the shared `skills/` directory.

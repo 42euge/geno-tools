@@ -13,11 +13,7 @@ Meta-CLI for installing and managing coding agent skillsets in the `geno-*` ecos
 
 ## Install
 
-### Python CLI (required for all platforms)
-
-```bash
-pipx install git+https://github.com/42euge/geno-tools
-```
+geno-tools installs as a native plugin on each supported coding agent.
 
 ### Claude Code
 
@@ -27,7 +23,7 @@ claude /plugin install 42euge/geno-tools
 
 ### Codex CLI
 
-Clone and symlink skills into `~/.agents/skills/geno-tools`, then install the Python CLI above.
+Clone and symlink skills into `~/.agents/skills/geno-tools`.
 
 ### Gemini CLI
 

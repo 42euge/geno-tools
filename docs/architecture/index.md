@@ -4,16 +4,15 @@ geno-tools is structured around a few core concepts:
 
 ## Multi-agent installation
 
-geno-tools can be installed as a native plugin on any supported coding CLI:
+geno-tools is installed as a native plugin on each supported coding CLI:
 
 - **Claude Code** — `claude /plugin install 42euge/geno-tools`
 - **Codex CLI** — clone + symlink to `~/.agents/skills/geno-tools`
 - **Cursor** — install via plugin manager
 - **Gemini CLI** — `gemini extensions install https://github.com/42euge/geno-tools`
 - **OpenCode** — add `"geno-tools@git+https://github.com/42euge/geno-tools.git"` to `opencode.json` plugins
-- **Python CLI** — `pipx install git+https://github.com/42euge/geno-tools` puts the `geno-tools` binary on your PATH
 
-All plugin paths wrap the Python CLI, so they require the Python package installed. The ecosystem skillsets geno-tools installs are registered with all agents via `npx skills add --agent '*'`.
+Each plugin manifest points at the shared `skills/` directory and the bundled Python package, so a plugin install is sufficient — there is no separate pipx/pip step. The ecosystem skillsets geno-tools manages are registered with all agents via `npx skills add --agent '*'`.
 
 ## Source resolution
 
@@ -76,7 +75,7 @@ geno-tools/
 │   ├── commands.py
 │   ├── paths.py
 │   └── registry.py
-└── pyproject.toml               # pip/pipx entry point
+└── pyproject.toml               # Python package metadata
 ```
 
 Skills and commands are shared across all platforms. Each CLI has its own manifest that points at these shared directories.
