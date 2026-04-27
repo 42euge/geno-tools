@@ -1,4 +1,8 @@
-"""Registry of geno-* skillsets — discovers repos from GitHub."""
+"""Registry of geno-* skillsets — discovers repos from GitHub.
+
+Registry keys are the full repo name (e.g. ``geno-<name>``). For backwards
+compatibility the resolver also accepts the bare slug (``<name>``).
+"""
 
 import json
 import subprocess
@@ -22,7 +26,7 @@ def _discover() -> dict[str, str]:
             return {}
         repos = json.loads(r.stdout)
         return {
-            repo["name"].removeprefix(PREFIX): repo["url"] + ".git"
+            repo["name"]: repo["url"] + ".git"
             for repo in repos
             if repo["name"].startswith(PREFIX) and repo["name"] not in EXCLUDE
         }
@@ -31,12 +35,11 @@ def _discover() -> dict[str, str]:
 
 
 _FALLBACK: dict[str, str] = {
-    "agents":   f"https://github.com/{OWNER}/geno-agents.git",
-    "media":    f"https://github.com/{OWNER}/geno-media.git",
-    "research": f"https://github.com/{OWNER}/geno-research.git",
-    "taxes":    f"https://github.com/{OWNER}/geno-taxes.git",
-    "kaggle":   f"https://github.com/{OWNER}/geno-kaggle.git",
-    "dev":      f"https://github.com/{OWNER}/geno-dev.git",
+    "geno-agents":   f"https://github.com/{OWNER}/geno-agents.git",
+    "geno-media":    f"https://github.com/{OWNER}/geno-media.git",
+    "geno-research": f"https://github.com/{OWNER}/geno-research.git",
+    "geno-kaggle":   f"https://github.com/{OWNER}/geno-kaggle.git",
+    "geno-dev":      f"https://github.com/{OWNER}/geno-dev.git",
 }
 
 _cache: dict[str, str] | None = None
@@ -52,5 +55,14 @@ def available() -> dict[str, str]:
 
 
 def resolve(name: str) -> str | None:
-    """Return the git URL for a registered skillset name, or None."""
-    return available().get(name)
+    """Return the git URL for a registered skillset name, or None.
+
+    Accepts the canonical full repo name (e.g. ``geno-<name>``) and, for
+    backwards compatibility, the bare slug (e.g. ``<name>``).
+    """
+    repos = available()
+    if name in repos:
+        return repos[name]
+    if not name.startswith(PREFIX):
+        return repos.get(f"{PREFIX}{name}")
+    return None

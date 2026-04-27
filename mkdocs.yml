@@ -51,6 +51,9 @@ nav:
   - Skillsets:
       - skillsets/index.md
       - Creating a Skillset: skillsets/creating.md
+  - Onboarding:
+      - onboarding/index.md
+      - Audit Process: onboarding/audit.md
   - Architecture:
       - architecture/index.md
       - Disk Layout: architecture/layout.md

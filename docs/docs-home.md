@@ -39,7 +39,7 @@ Install as a Claude Code plugin or via `pipx`. Short names resolve from a curate
 
 ### Skillset ecosystem
 
-Media, research, taxes, kaggle, agents — each a self-contained repo with a declarative manifest.
+Media, research, kaggle, agents — each a self-contained repo with a declarative manifest.
 
 [Browse skillsets :material-arrow-right:](skillsets/index.md)
 </div>
@@ -66,11 +66,11 @@ Fork a skillset, experiment in isolation, promote back to main. Git worktrees un
     claude /plugin install 42euge/geno-tools
     pipx install git+https://github.com/42euge/geno-tools
 
-    /gt-ls --available               # see the registry
-    /gt-install media                # install geno-media
-    geno-tools fork media exp-1      # branch a variant
-    geno-tools use media@exp-1       # activate it
-    geno-tools promote media exp-1   # merge back to main
+    /gt-ls --available                       # see the registry
+    /gt-install geno-<name>                  # install a skillset
+    geno-tools fork geno-<name> exp-1        # branch a variant
+    geno-tools use geno-<name>@exp-1         # activate it
+    geno-tools promote geno-<name> exp-1     # merge back to main
     ```
 
 === "CLI only"
@@ -78,11 +78,11 @@ Fork a skillset, experiment in isolation, promote back to main. Git worktrees un
     ```bash
     pipx install git+https://github.com/42euge/geno-tools
 
-    geno-tools ls --available        # see the registry
-    geno-tools install media         # install geno-media
-    geno-tools fork media exp-1      # branch a variant
-    geno-tools use media@exp-1       # activate it
-    geno-tools promote media exp-1   # merge back to main
+    geno-tools ls --available                # see the registry
+    geno-tools install geno-<name>           # install a skillset
+    geno-tools fork geno-<name> exp-1        # branch a variant
+    geno-tools use geno-<name>@exp-1         # activate it
+    geno-tools promote geno-<name> exp-1     # merge back to main
     ```
 
 </div>

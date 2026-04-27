@@ -6,11 +6,33 @@
 # into Claude Code (or other agents) during `geno-tools install`.
 #
 # command_prefix: the short prefix for slash commands.
-#   "gt" (default) → /gt-install, /gt-media-audiobook-create
-#   "geno" → /geno-install, /geno-media-audiobook-create
-#   "" (empty) → /install, /media-audiobook-create
+#   "gt" (default) → /gt-install, /gt-<skillset>-<command>
+#   "geno" → /geno-install, /geno-<skillset>-<command>
+#   "" (empty) → /install, /<skillset>-<command>
 aliases:
   command_prefix: "gt"
+
+# Discovery: where to look for candidate skillset repos.
+# Each source is a provider that can list repos in some org/group/project.
+# A repo is considered installable when (a) its name matches `prefix*`
+# and (b) it has a SKILL.md at root.
+#
+# `auth_env` names an environment variable holding the token — never paste
+# tokens into this file directly.
+discovery:
+  sources:
+    - kind: github
+      org: 42euge          # discovers public geno-* repos
+    # - kind: github
+    #   org: acme-corp
+    #   base_url: https://github.acme.com/api/v3
+    #   prefix: acme-
+    #   auth_env: ACME_GITHUB_TOKEN
+    # - kind: gitlab
+    #   group: platform/skillsets
+    #   base_url: https://gitlab.acme.com
+    #   prefix: acme-
+    #   auth_env: ACME_GITLAB_TOKEN
 
 # Workspace layout (used by geno-dev-workspaces-init)
 workspaces:

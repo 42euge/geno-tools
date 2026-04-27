@@ -112,7 +112,7 @@ Write these as instructions for the agent — what to do when the user invokes t
 Use `dev` to link your local checkout:
 
 ```bash
-geno-tools dev myskill ~/src/geno-myskill
+geno-tools dev geno-myskill ~/src/geno-myskill
 ```
 
 Edits take effect immediately. When you're happy, push to a git remote and others can install it:
@@ -126,9 +126,9 @@ geno-tools install https://github.com/you/geno-myskill.git
 To add your skillset to the built-in registry, submit a PR adding an entry to `genotools/registry.py`:
 
 ```python
-_REGISTRY: dict[str, str] = {
+_FALLBACK: dict[str, str] = {
     # ...existing entries...
-    "myskill": "https://github.com/you/geno-myskill.git",
+    "geno-myskill": "https://github.com/you/geno-myskill.git",
 }
 ```
 
