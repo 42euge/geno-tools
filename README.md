@@ -6,7 +6,7 @@ Meta-CLI for installing and managing coding agent skillsets in the `geno-*` ecos
 
 `geno-tools` installs/uninstalls/dev-links curated skillset repos (each a `geno-{name}` repo) into any supported coding agent. Inspired by [vercel-labs/skills](https://github.com/vercel-labs/skills) and [obra/superpowers](https://github.com/obra/superpowers), specialized for this ecosystem:
 
-- **Curated registry** — full repo names (`geno-media`, `geno-research`, `geno-kaggle`, …) resolve to git URLs
+- **Curated registry** — full repo names (`geno-<name>`, e.g. those listed below) resolve to git URLs
 - **Multi-agent** — skills register with all agents via `npx skills add --agent '*'`
 - **Per-skillset venvs** — isolated at `~/.geno-tools/geno-{name}/venvs/`
 - **Dev-link** — point at a local checkout for meta-improvement
@@ -48,7 +48,7 @@ Add to `opencode.json`:
 
 ## Usage
 
-Skillsets are referenced by their full repo name (e.g. `geno-media`) so the same form works whether the entry comes from the public registry, a private mirror, or a direct git URL.
+Skillsets are referenced by their full repo name (e.g. `geno-<name>` in the public namespace, or `acme-<name>` for a private one) so the same form works whether the entry comes from the public registry, a private mirror, or a direct git URL.
 
 ```bash
 geno-tools ls --available                       # registry
@@ -76,14 +76,13 @@ geno-tools remove geno-<name> [--keep-data]
 
 A **skillset** is a self-contained git repo named `{prefix}-{slug}` that geno-tools knows how to clone, sandbox, link, and register with any supported coding agent. The prefix is the org/brand namespace; the slug names the domain.
 
-- `geno-media` — public skillset under the `geno` namespace covering media (TTS, video, podcasts)
-- `geno-research` — public skillset for wiki-style research notes and paper generation
-- `acme-finance` — hypothetical private skillset under an `acme` namespace
+- `geno-<name>` — public skillset under the `geno` namespace (see [the registry](#existing-geno--repos) for current ones)
+- `acme-<name>` — hypothetical private skillset under an `acme` namespace
 
 Inside each skillset:
 
 - `SKILL.md` at the root — the umbrella manifest the agent loads first
-- `skills/<subskill>/SKILL.md` — **subskillsets**, each scoped to one focused capability (e.g. `geno-media` ships subskillsets for `audiobook-create`, `video-manim`, `podcast-cohost`). geno-tools registers all of them in one shot via `npx skills add --skill '*'`.
+- `skills/<subskill>/SKILL.md` — **subskillsets**, each scoped to one focused capability (a single skillset typically ships several). geno-tools registers all of them in one shot via `npx skills add --skill '*'`.
 - `commands/*.md` — slash commands surfaced as `/{configured-prefix}-*` in the agent
 - Optional `pyproject.toml`, runtime scripts, and copy-once configs
 
@@ -93,7 +92,7 @@ Subskillsets keep individual SKILL.md files small and tightly scoped, while the 
 
 There are three ways to make a skillset installable through `geno-tools install`:
 
-1. **Curated registry** — submit a PR adding `"<repo-name>": "<git-url>"` to `genotools/registry.py`. After that, `geno-tools install <repo-name>` works for everyone (e.g. `geno-tools install geno-media`).
+1. **Curated registry** — submit a PR adding `"<repo-name>": "<git-url>"` to `genotools/registry.py`. After that, `geno-tools install <repo-name>` works for everyone.
 2. **Direct git URL** — anyone can install any compliant repo without a registry entry: `geno-tools install https://github.com/you/your-skillset.git`. This is the recommended path for private, internal, or experimental skillsets.
 3. **Local dev link** — `geno-tools dev <repo-name> ~/src/<repo-name>` to iterate on a checkout without committing.
 
@@ -154,7 +153,7 @@ How it works in practice:
 1. **Pick your namespace**. Use your company slug as the prefix (`acme-`, `globex-`, etc.). All internal skillsets share that prefix the way public ones share `geno-`.
 2. **Host privately**. Put the repos in your own GitHub Enterprise / GitLab / Bitbucket / private mirror. geno-tools resolves any git URL — there is no central registry it has to call out to.
 3. **Run geno-tools internally**. Pin the upstream OSS release, fork it, or vendor it. The CLI is plain Python, has no telemetry, and the install flow only talks to the git remote you point it at.
-4. **Mix public and private freely**. A developer can run `geno-tools install geno-media` (public) alongside `geno-tools install git@github.acme.com:platform/acme-finance.git` (private) on the same machine. They share `~/.geno-tools/`, the same venv strategy, and the same slash-command surface in Claude Code / Codex / Cursor / Gemini CLI / OpenCode.
+4. **Mix public and private freely**. A developer can run `geno-tools install geno-<name>` (public) alongside `geno-tools install git@github.acme.com:platform/acme-<name>.git` (private) on the same machine. They share `~/.geno-tools/`, the same venv strategy, and the same slash-command surface in Claude Code / Codex / Cursor / Gemini CLI / OpenCode.
 
 The result: sensitive prompts, datasets, and domain knowledge stay inside the company boundary, while the runtime, the file format, and the multi-agent integrations are the same fast-moving open-source code everyone else uses. You inherit upstream improvements without giving up control of your skill content.
 

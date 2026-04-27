@@ -13,7 +13,7 @@ def main(argv: list[str] | None = None) -> int:
     p_ls.add_argument("--available", action="store_true", help="list registry")
 
     p_install = sub.add_parser("install", help="install a skillset")
-    p_install.add_argument("name", help="full repo name (e.g. geno-media), git URL, or local path")
+    p_install.add_argument("name", help="full repo name (e.g. geno-<name>), git URL, or local path")
     p_install.add_argument("--here", action="store_true",
                            help="materialize cwd alias symlinks for this skillset")
 
@@ -28,7 +28,7 @@ def main(argv: list[str] | None = None) -> int:
                         help="create a fresh venv for this variant instead of sharing")
 
     p_use = sub.add_parser("use", help="select a variant")
-    p_use.add_argument("spec", help="<name>@<variant> (e.g. geno-media@exp-1)")
+    p_use.add_argument("spec", help="<name>@<variant> (e.g. geno-<name>@exp-1)")
     p_use.add_argument("--here", action="store_true",
                        help="cwd-only override; otherwise repoint global active symlink")
 

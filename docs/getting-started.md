@@ -59,7 +59,7 @@ geno-tools ls --available
 Install one:
 
 ```bash
-geno-tools install geno-media
+geno-tools install geno-<name>
 ```
 
 This clones the repo, sets up any declared venvs, and wires the skill into your coding agent (slash commands appear immediately).
@@ -71,7 +71,7 @@ geno-tools ls
 ```
 
 ```
-  geno-media               active: main
+  geno-<name>              active: main
 ```
 
 ## Develop a skillset locally
@@ -79,7 +79,7 @@ geno-tools ls
 If you're hacking on a skillset, use `dev` to symlink your local checkout instead of cloning:
 
 ```bash
-geno-tools dev geno-media ~/src/geno-media
+geno-tools dev geno-<name> ~/src/geno-<name>
 ```
 
 Edits to your local checkout take effect immediately — no reinstall needed.

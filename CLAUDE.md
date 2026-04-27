@@ -48,7 +48,7 @@ See `config/defaults.yaml` for the full schema. The prefix is read at install ti
 
 `<name|url|path>` resolves in this order:
 
-1. **Registered repo name** → git URL from `genotools/registry.py` (currently `geno-agents`, `geno-media`, `geno-research`, `geno-kaggle`, `geno-dev`). Bare slugs like `media` are accepted as a backwards-compat fallback.
+1. **Registered repo name** → git URL from `genotools/registry.py` (currently `geno-agents`, `geno-media`, `geno-research`, `geno-kaggle`, `geno-dev`). Bare slugs (the part after `geno-`) are also accepted as a backwards-compat fallback.
 2. **Existing local directory** → installed from disk.
 3. **Git URL** (`http(s)://`, `git@`, or `*.git`) → cloned.
 4. **Discovery sources** (`genotools/discovery.py`) → repos found in `~/.geno/config.yaml` `discovery.sources` (GitHub Enterprise, GitLab, etc.) that match the configured prefix and have a top-level `SKILL.md`.

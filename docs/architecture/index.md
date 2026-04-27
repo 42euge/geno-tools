@@ -19,19 +19,20 @@ All plugin paths wrap the Python CLI, so they require the Python package install
 
 When you run `geno-tools install <name|url|path>`, the source is resolved in order:
 
-1. **Registered short name** — looked up in `genotools/registry.py`
+1. **Registered repo name** — looked up in `genotools/registry.py`
 2. **Local directory** — installed from disk
 3. **Git URL** — cloned
+4. **Discovery sources** — repos found in configured GitHub / GitLab / etc. groups (see `genotools/discovery.py`)
 
 For URLs and local paths, the skillset name isn't known upfront. geno-tools does a shallow clone to a staging directory, reads `pyproject.toml` for the project name, then proceeds with the full install.
 
 ## Install flow
 
 ```
-geno-tools install media
+geno-tools install geno-<name>
         │
         ├── resolve source (registry → git URL)
-        ├── bare clone into ~/.geno-tools/geno-media/.git/
+        ├── bare clone into ~/.geno-tools/geno-<name>/.git/
         ├── create main worktree
         ├── create venv + editable install (if pyproject.toml exists)
         ├── symlink [project.scripts] binaries into ~/.local/bin/
@@ -39,7 +40,7 @@ geno-tools install media
         └── npx skills add --agent '*' (register skills with all agents)
 ```
 
-On failure at any step, the partially created `~/.geno-tools/geno-{name}/` directory is cleaned up automatically.
+On failure at any step, the partially created `~/.geno-tools/geno-<name>/` directory is cleaned up automatically.
 
 ## Uninstall
 
@@ -47,7 +48,7 @@ Removal reverses the install:
 
 1. `npx skills remove` — unregister skills from all agents
 2. Remove `~/.local/bin/` symlinks that point into this skillset's venv
-3. Delete `~/.geno-tools/geno-{name}/` (or preserve venvs/worktrees with `--keep-data`)
+3. Delete `~/.geno-tools/geno-<name>/` (or preserve venvs/worktrees with `--keep-data`)
 
 ## Plugin structure
 

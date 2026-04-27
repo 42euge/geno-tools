@@ -1,7 +1,7 @@
 """Registry of geno-* skillsets — discovers repos from GitHub.
 
-Registry keys are the full repo name (e.g. ``geno-media``). For backwards
-compatibility the resolver also accepts the bare slug (``media``).
+Registry keys are the full repo name (e.g. ``geno-<name>``). For backwards
+compatibility the resolver also accepts the bare slug (``<name>``).
 """
 
 import json
@@ -57,8 +57,8 @@ def available() -> dict[str, str]:
 def resolve(name: str) -> str | None:
     """Return the git URL for a registered skillset name, or None.
 
-    Accepts the canonical full repo name (``geno-media``) and, for backwards
-    compatibility, the bare slug (``media``).
+    Accepts the canonical full repo name (e.g. ``geno-<name>``) and, for
+    backwards compatibility, the bare slug (e.g. ``<name>``).
     """
     repos = available()
     if name in repos:
