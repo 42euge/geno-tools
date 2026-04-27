@@ -4,21 +4,21 @@ A **skillset** is a self-contained repo that adds capabilities to an AI coding a
 
 ## Registry
 
-These skillsets are built into the geno-tools registry and can be installed by short name:
+These skillsets are built into the geno-tools registry and can be installed by full repo name:
 
-| Name | Repo | Description |
-|------|------|-------------|
-| `agents` | [geno-agents](https://github.com/42euge/geno-agents) | Agent coordination, registration, status updates, autonomous loops |
-| `media` | [geno-media](https://github.com/42euge/geno-media) | Audiobooks (Kokoro TTS), animated videos (Manim), podcasts, TTS/STT |
-| `research` | [geno-research](https://github.com/42euge/geno-research) | Wiki-based research, paper generation, repo documentation |
-| `kaggle` | [geno-kaggle](https://github.com/42euge/geno-kaggle) | Kaggle benchmarking, notebook upload, competition discussion scraping |
-| `dev` | [geno-dev](https://github.com/42euge/geno-dev) | Developer utilities (planned) |
+| Repo | Description |
+|------|-------------|
+| [geno-agents](https://github.com/42euge/geno-agents) | Agent coordination, registration, status updates, autonomous loops |
+| [geno-media](https://github.com/42euge/geno-media) | Audiobooks (Kokoro TTS), animated videos (Manim), podcasts, TTS/STT |
+| [geno-research](https://github.com/42euge/geno-research) | Wiki-based research, paper generation, repo documentation |
+| [geno-kaggle](https://github.com/42euge/geno-kaggle) | Kaggle benchmarking, notebook upload, competition discussion scraping |
+| [geno-dev](https://github.com/42euge/geno-dev) | Developer utilities (planned) |
 
 Install any of them:
 
 ```bash
-geno-tools install media
-geno-tools install research
+geno-tools install geno-media
+geno-tools install geno-research
 ```
 
 ## What a skillset provides

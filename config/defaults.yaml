@@ -12,6 +12,28 @@
 aliases:
   command_prefix: "gt"
 
+# Discovery: where to look for candidate skillset repos.
+# Each source is a provider that can list repos in some org/group/project.
+# A repo is considered installable when (a) its name matches `prefix*`
+# and (b) it has a SKILL.md at root.
+#
+# `auth_env` names an environment variable holding the token — never paste
+# tokens into this file directly.
+discovery:
+  sources:
+    - kind: github
+      org: 42euge          # discovers public geno-* repos
+    # - kind: github
+    #   org: acme-corp
+    #   base_url: https://github.acme.com/api/v3
+    #   prefix: acme-
+    #   auth_env: ACME_GITHUB_TOKEN
+    # - kind: gitlab
+    #   group: platform/skillsets
+    #   base_url: https://gitlab.acme.com
+    #   prefix: acme-
+    #   auth_env: ACME_GITLAB_TOKEN
+
 # Workspace layout (used by geno-dev-workspaces-init)
 workspaces:
   mode: color

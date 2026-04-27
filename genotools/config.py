@@ -12,6 +12,11 @@ _DEFAULTS = {
     "aliases": {
         "command_prefix": "gt",
     },
+    "discovery": {
+        "sources": [
+            {"kind": "github", "org": "42euge"},
+        ],
+    },
 }
 
 

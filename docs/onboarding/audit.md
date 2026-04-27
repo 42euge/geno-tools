@@ -68,7 +68,7 @@ For enterprise, capture the result as a signed artifact (PR description, interna
 ### 6. Filesystem and host impact
 
 - [ ] Install touches only `~/.geno-tools/<repo>/` for state. Anything outside that path is opt-in and documented.
-- [ ] Removal (`geno-tools remove <slug>`) cleans up everything the install added (caveat: `--keep-data` is allowed to retain user data).
+- [ ] Removal (`geno-tools remove <repo-name>`) cleans up everything the install added (caveat: `--keep-data` is allowed to retain user data).
 - [ ] No silent modifications to `~/.zshrc`, `~/.bashrc`, `~/.config/`, etc.
 - [ ] No `sudo` invocations.
 
@@ -87,7 +87,7 @@ For enterprise, capture the result as a signed artifact (PR description, interna
 
 ### 9. Removal contract
 
-- [ ] `geno-tools remove <slug>` runs to completion with no errors.
+- [ ] `geno-tools remove <repo-name>` runs to completion with no errors.
 - [ ] After removal: `~/.geno-tools/<repo>/` is gone (or empty, if `--keep-data`), `~/.local/bin/` symlinks owned by this skillset are gone, and `npx skills remove` reports the skill removed from every agent it was registered with.
 
 ### 10. Sign-off
