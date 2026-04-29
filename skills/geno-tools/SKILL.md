@@ -27,6 +27,12 @@ Install by full repo name (e.g. `geno-tools install geno-<name>`):
 | geno-kaggle | Kaggle benchmarks, competition notebooks, discussion scraping |
 | geno-dev | Developer utilities, Colab uploads, commit rewriting |
 
+## Infrastructure Skills
+
+| Skill | Description |
+|-------|-------------|
+| geno-data-workspaces-init | Create data workspaces for personal/life skills (taxes, remodel, career) |
+
 ## Commands
 
 - `geno-tools ls` — list installed skillsets and their active variant
