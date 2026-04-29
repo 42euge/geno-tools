@@ -13,7 +13,7 @@ def main(argv: list[str] | None = None) -> int:
     p_ls.add_argument("--available", action="store_true", help="list registry")
 
     p_install = sub.add_parser("install", help="install a skillset")
-    p_install.add_argument("name", help="short name (e.g. taxes), full name (geno-taxes), git URL, or local path")
+    p_install.add_argument("name", help="full repo name (e.g. geno-<name>), git URL, or local path")
     p_install.add_argument("--here", action="store_true",
                            help="materialize cwd alias symlinks for this skillset")
 
@@ -28,7 +28,7 @@ def main(argv: list[str] | None = None) -> int:
                         help="create a fresh venv for this variant instead of sharing")
 
     p_use = sub.add_parser("use", help="select a variant")
-    p_use.add_argument("spec", help="<name>@<variant> (e.g. taxes@exp-1)")
+    p_use.add_argument("spec", help="<name>@<variant> (e.g. geno-<name>@exp-1)")
     p_use.add_argument("--here", action="store_true",
                        help="cwd-only override; otherwise repoint global active symlink")
 
@@ -48,6 +48,10 @@ def main(argv: list[str] | None = None) -> int:
     p_deps.add_argument("name", help="skillset name")
 
     sub.add_parser("doctor", help="verify symlinks, worktrees, venvs")
+
+    p_disc = sub.add_parser("discover", help="list candidate skillsets from configured sources")
+    p_disc.add_argument("--dry-run", action="store_true",
+                        help="print candidates without installing (default behavior)")
 
     args = parser.parse_args(argv)
 

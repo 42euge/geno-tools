@@ -11,7 +11,7 @@ from pathlib import Path
 
 import yaml
 
-from genotools import paths, registry
+from genotools import config, discovery, paths, registry
 
 SYSTEM_BIN = Path.home() / ".local" / "bin"
 
@@ -28,6 +28,7 @@ def dispatch(args: argparse.Namespace) -> int:
         "remove": _remove,
         "deps": _deps,
         "doctor": _doctor,
+        "discover": _discover,
     }
     return handlers[args.cmd](args)
 
@@ -37,7 +38,11 @@ def dispatch(args: argparse.Namespace) -> int:
 def _ls(args: argparse.Namespace) -> int:
     if args.available:
         for name, url in registry.available().items():
-            print(f"  {name:<12} {url}")
+            print(f"  {name:<24} {url}")
+        for name, url in discovery.candidates_by_name().items():
+            if name in registry.available():
+                continue
+            print(f"  {name:<24} {url}  (discovered)")
         return 0
 
     if not paths.ROOT.exists():
@@ -86,6 +91,7 @@ def _get_requires(full: str) -> list[str]:
 def _install(args: argparse.Namespace) -> int:
     if args.here:
         return _todo(f"install --here {args.name}: cwd alias materialization")
+    config.ensure_dir()
     return _install_one(args.name, installing=set())
 
 
@@ -182,9 +188,13 @@ def _resolve_source(name_or_source: str) -> tuple[str, str | None]:
        or name_or_source.endswith(".git"):
         return name_or_source, None
 
+    discovered = discovery.candidates_by_name()
+    if name_or_source in discovered:
+        return discovered[name_or_source], name_or_source
+
     raise SystemExit(
         f"unknown skillset: {name_or_source} "
-        f"(not in registry, not a path, not a git URL)"
+        f"(not in registry, not in discovery sources, not a path, not a git URL)"
     )
 
 
@@ -416,6 +426,23 @@ def _update(args: argparse.Namespace) -> int:
 
 def _doctor(_: argparse.Namespace) -> int:
     return _todo("doctor")
+
+
+def _discover(_: argparse.Namespace) -> int:
+    srcs = discovery.sources()
+    if not srcs:
+        print("no discovery sources configured (~/.geno/config.yaml: discovery.sources)")
+        return 0
+
+    found = discovery.candidates()
+    if not found:
+        print("no candidates found across configured sources")
+        return 0
+
+    for c in found:
+        marker = "" if c.has_skill_md else "  (no SKILL.md — skipped)"
+        print(f"  [{c.source}] {c.name:<32} {c.url}{marker}")
+    return 0
 
 
 def _todo(msg: str) -> int:

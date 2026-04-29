@@ -12,19 +12,20 @@ allowed-tools: "Bash(geno-tools *) Bash(python3 -m genotools *)"
 Orchestrator for the geno-* ecosystem. Manages installation, removal, and updates of skillset repos.
 
 ```!
-which geno-tools >/dev/null 2>&1 || echo "geno-tools CLI not on PATH. Install: pipx install git+https://github.com/42euge/geno-tools.git"
+which geno-tools >/dev/null 2>&1 || echo "geno-tools CLI not on PATH. Install via your coding agent's plugin manager (e.g. 'claude /plugin install 42euge/geno-tools' or 'gemini extensions install https://github.com/42euge/geno-tools')."
 ```
 
 ## Available Skillsets
 
-| Name | Description |
+Install by full repo name (e.g. `geno-tools install geno-<name>`):
+
+| Repo | Description |
 |------|-------------|
-| agents | Agent coordination, presence, and multi-agent networking |
-| media | Audiobooks (Kokoro TTS), animated videos (Manim), podcasts |
-| research | Wiki-based research notes, paper generation, repo docs |
-| taxes | Tax document parsing, CPA packet prep |
-| kaggle | Kaggle benchmarks, competition notebooks, discussion scraping |
-| dev | Developer utilities, Colab uploads, commit rewriting |
+| geno-agents | Agent coordination, presence, and multi-agent networking |
+| geno-media | Audiobooks (Kokoro TTS), animated videos (Manim), podcasts |
+| geno-research | Wiki-based research notes, paper generation, repo docs |
+| geno-kaggle | Kaggle benchmarks, competition notebooks, discussion scraping |
+| geno-dev | Developer utilities, Colab uploads, commit rewriting |
 
 ## Infrastructure Skills
 
@@ -36,14 +37,14 @@ which geno-tools >/dev/null 2>&1 || echo "geno-tools CLI not on PATH. Install: p
 
 - `geno-tools ls` — list installed skillsets and their active variant
 - `geno-tools ls --available` — show all registered skillsets in the registry
-- `geno-tools install <name|url|path>` — install a skillset (clone, venv, register with all agents)
-- `geno-tools remove <name> [--keep-data]` — uninstall a skillset from all agents
-- `geno-tools update [name]` — pull latest for one or all skillsets
+- `geno-tools install <repo|url|path>` — install a skillset (clone, venv, register with all agents)
+- `geno-tools remove <repo> [--keep-data]` — uninstall a skillset from all agents
+- `geno-tools update [repo]` — pull latest for one or all skillsets
 - `geno-tools doctor` — verify symlinks, worktrees, venvs
 
 ## Source Resolution
 
-The `<name>` argument resolves in order:
-1. Registry short name (e.g. `media`) -> git URL
+The `<repo>` argument resolves in order:
+1. Registered repo name (e.g. `geno-<name>`) -> git URL. Bare slug (e.g. `<name>`) is also accepted for backwards compatibility.
 2. Local directory path
 3. Git URL (https:// or git@)
