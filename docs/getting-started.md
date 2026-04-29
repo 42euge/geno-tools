@@ -4,83 +4,76 @@
 
 - Git
 - Node.js (for `npx skills`)
-- Python 3.11+ (for the CLI install path)
+- Python 3.11+
 
 ## Install geno-tools
 
-geno-tools can be installed as a **Claude Code plugin** or as a **standalone CLI** — pick whichever fits your workflow, or use both.
+geno-tools is installed as a native plugin in your coding agent. Pick the manifest that matches the CLI you use:
 
-### Option A: Claude Code plugin
+### Claude Code
 
 ```bash
 claude /plugin install 42euge/geno-tools
 ```
 
-This gives you `/gt-install`, `/gt-remove`, `/gt-ls`, and `/gt-update` slash commands inside Claude Code. The plugin wraps the CLI, so you still need the CLI on your PATH for the slash commands to work:
+This gives you `/gt-install`, `/gt-remove`, `/gt-ls`, and `/gt-update` slash commands inside Claude Code.
+
+### Gemini CLI
 
 ```bash
-pipx install git+https://github.com/42euge/geno-tools
+gemini extensions install https://github.com/42euge/geno-tools
 ```
 
-### Option B: CLI only
+### Codex CLI / Cursor / OpenCode
 
-```bash
-pipx install git+https://github.com/42euge/geno-tools
+See the [README](https://github.com/42euge/geno-tools#install) for the per-agent install snippet.
+
+Verify the install by listing the registry from inside your agent:
+
 ```
-
-Or with pip:
-
-```bash
-pip install git+https://github.com/42euge/geno-tools
-```
-
-Verify the install:
-
-```bash
-geno-tools --version
+/gt-ls --available
 ```
 
 ## Install your first skillset
 
 List what's available in the registry:
 
-```bash
-geno-tools ls --available
+```
+/gt-ls --available
 ```
 
 ```
-  agents       https://github.com/42euge/geno-agents.git
-  media        https://github.com/42euge/geno-media.git
-  research     https://github.com/42euge/geno-research.git
-  taxes        https://github.com/42euge/geno-taxes.git
-  kaggle       https://github.com/42euge/geno-kaggle.git
-  dev          https://github.com/42euge/geno-dev.git
+  geno-agents              https://github.com/42euge/geno-agents.git
+  geno-media               https://github.com/42euge/geno-media.git
+  geno-research            https://github.com/42euge/geno-research.git
+  geno-kaggle              https://github.com/42euge/geno-kaggle.git
+  geno-dev                 https://github.com/42euge/geno-dev.git
 ```
 
 Install one:
 
-```bash
-geno-tools install media
+```
+/gt-install geno-<name>
 ```
 
 This clones the repo, sets up any declared venvs, and wires the skill into your coding agent (slash commands appear immediately).
 
 ## Check what's installed
 
-```bash
-geno-tools ls
+```
+/gt-ls
 ```
 
 ```
-  geno-media               active: main
+  geno-<name>              active: main
 ```
 
 ## Develop a skillset locally
 
 If you're hacking on a skillset, use `dev` to symlink your local checkout instead of cloning:
 
-```bash
-geno-tools dev media ~/src/geno-media
+```
+/gt-dev geno-<name> ~/src/geno-<name>
 ```
 
 Edits to your local checkout take effect immediately — no reinstall needed.

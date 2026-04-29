@@ -1,13 +1,10 @@
 # geno-tools — skillset manager for the geno ecosystem
 
-`geno-tools` is a meta-CLI and Claude Code plugin (Python, `pipx install geno-tools`) that installs sibling `geno-{name}` repos as coding agent skillsets. It handles cloning, venvs, bin symlinks, and skill registration via `npx skills`.
+`geno-tools` is a meta-CLI and Claude Code plugin that installs sibling `geno-{name}` repos as coding agent skillsets. It handles cloning, venvs, bin symlinks, and skill registration via `npx skills`.
 
-## Dual installation
+## Installation
 
-- **Claude Code plugin**: `.claude-plugin/plugin.json` + `skills/` expose the geno-tools skill
-- **Python CLI**: `pyproject.toml` → `geno-tools` binary on PATH via pipx/pip
-
-The plugin wraps the CLI — both require the Python package installed.
+geno-tools is distributed exclusively as a coding-agent plugin — there is no pipx/pip path. Each supported CLI installs it via its native plugin mechanism (`claude /plugin install`, `gemini extensions install`, OpenCode `plugins`, the Cursor plugin manager, or Codex symlink). `.claude-plugin/plugin.json` + the shared `skills/` directory expose the geno-tools skill across all platforms.
 
 ## Entry point
 
@@ -64,9 +61,10 @@ See `config/defaults.yaml` for the full schema. The prefix is read at install ti
 
 `<name|url|path>` resolves in this order:
 
-1. **Registered short name** → git URL from `genotools/registry.py` (currently `agents`, `media`, `research`, `taxes`, `kaggle`, `dev`).
+1. **Registered repo name** → git URL from `genotools/registry.py` (currently `geno-agents`, `geno-media`, `geno-research`, `geno-kaggle`, `geno-dev`). Bare slugs (the part after `geno-`) are also accepted as a backwards-compat fallback.
 2. **Existing local directory** → installed from disk.
 3. **Git URL** (`http(s)://`, `git@`, or `*.git`) → cloned.
+4. **Discovery sources** (`genotools/discovery.py`) → repos found in `~/.geno/config.yaml` `discovery.sources` (GitHub Enterprise, GitLab, etc.) that match the configured prefix and have a top-level `SKILL.md`.
 
 For URLs and paths the skillset name isn't known upfront. A shallow clone to `~/.geno-tools/.staging/` reads `pyproject.toml` for the project name, then the full install proceeds.
 
@@ -129,7 +127,7 @@ geno-tools/
 │   ├── config.py                # user config from ~/.geno/config.yaml
 │   ├── paths.py                 # on-disk layout utilities
 │   └── registry.py              # curated registry of known skillsets
-└── pyproject.toml               # pip/pipx entry point
+└── pyproject.toml               # Python package metadata
 ```
 
 Skills are platform-agnostic. Each CLI-specific manifest points at the shared `skills/` directory.

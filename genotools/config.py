@@ -2,17 +2,40 @@
 
 from __future__ import annotations
 
+import shutil
 import yaml
 from pathlib import Path
 
 CONFIG_DIR = Path.home() / ".geno"
 CONFIG_FILE = CONFIG_DIR / "config.yaml"
 
+_DEFAULTS_SOURCE = Path(__file__).resolve().parent.parent / "config" / "defaults.yaml"
+
 _DEFAULTS = {
     "aliases": {
         "command_prefix": "gt",
     },
+    "discovery": {
+        "sources": [
+            {"kind": "github", "org": "42euge"},
+        ],
+    },
 }
+
+
+def ensure_dir() -> Path:
+    """Create ~/.geno/ (and seed config.yaml from defaults) if missing.
+
+    Called on install so a fresh machine ends up with the expected user
+    config directory without any extra setup step.
+    """
+    CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+    if not CONFIG_FILE.exists():
+        if _DEFAULTS_SOURCE.exists():
+            shutil.copyfile(_DEFAULTS_SOURCE, CONFIG_FILE)
+        else:
+            CONFIG_FILE.write_text(yaml.safe_dump(_DEFAULTS, sort_keys=False))
+    return CONFIG_DIR
 
 
 def load() -> dict:
