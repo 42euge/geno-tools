@@ -44,6 +44,9 @@ def main(argv: list[str] | None = None) -> int:
     p_rm.add_argument("--keep-data", action="store_true",
                       help="preserve venvs/ and worktrees")
 
+    p_deps = sub.add_parser("deps", help="show dependency tree for a skillset")
+    p_deps.add_argument("name", help="skillset name")
+
     sub.add_parser("doctor", help="verify symlinks, worktrees, venvs")
 
     p_disc = sub.add_parser("discover", help="list candidate skillsets from configured sources")
