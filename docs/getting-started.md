@@ -21,7 +21,7 @@ Inside a Claude Code session:
 
 The first command registers this repo as a marketplace (reads `.claude-plugin/marketplace.json`); the second installs the plugin defined in `.claude-plugin/plugin.json`. The SessionStart hook then runs `scripts/bootstrap.sh`, which materializes `~/.geno/config.yaml` and pipx-installs the `geno-tools` CLI if it isn't already on PATH. Verify with `/plugin list`.
 
-This gives you `/gt-install`, `/gt-remove`, `/gt-ls`, and `/gt-update` slash commands inside Claude Code.
+This gives you `/geno-tools install`, `/geno-tools remove`, `/geno-tools ls`, and `/geno-tools update` slash commands inside your coding agent. The command prefix is [user-configurable](skillsets/creating.md#command-prefix-aliasing).
 
 ### Gemini CLI
 
@@ -39,7 +39,7 @@ See the [README](https://github.com/42euge/geno-tools#install) for the per-agent
 Verify the install by listing the registry from inside your agent:
 
 ```
-/gt-ls --available
+/geno-tools ls --available
 ```
 
 ## Install your first skillset
@@ -47,7 +47,7 @@ Verify the install by listing the registry from inside your agent:
 List what's available in the registry:
 
 ```
-/gt-ls --available
+/geno-tools ls --available
 ```
 
 ```
@@ -61,7 +61,7 @@ List what's available in the registry:
 Install one:
 
 ```
-/gt-install geno-<name>
+/geno-tools install geno-<name>
 ```
 
 This clones the repo, sets up any declared venvs, and wires the skill into your coding agent (slash commands appear immediately).
@@ -69,7 +69,7 @@ This clones the repo, sets up any declared venvs, and wires the skill into your 
 ## Check what's installed
 
 ```
-/gt-ls
+/geno-tools ls
 ```
 
 ```
@@ -81,7 +81,7 @@ This clones the repo, sets up any declared venvs, and wires the skill into your 
 If you're hacking on a skillset, use `dev` to symlink your local checkout instead of cloning:
 
 ```
-/gt-dev geno-<name> ~/src/geno-<name>
+/geno-tools dev geno-<name> ~/src/geno-<name>
 ```
 
 Edits to your local checkout take effect immediately — no reinstall needed.
