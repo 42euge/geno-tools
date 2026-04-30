@@ -21,7 +21,7 @@ The checklist is the same. The reviewer changes.
 
 ## Onboarding a public skillset
 
-1. **Author the repo.** Follow [Creating a Skillset](../skillsets/creating.md). Minimum viable: a root `SKILL.md` and a `commands/` directory.
+1. **Author the repo.** Follow [Creating a Skillset](../skillsets/creating.md). Minimum viable: a `genotools.yaml`, a root `SKILL.md`, a `GENO.md`, and a `skills/` directory.
 2. **Self-test.** `geno-tools dev <repo-name> ~/src/<repo-name>` to install from a local checkout, then exercise every slash command.
 3. **Push to a public git remote.** Anyone can already install it via direct URL at this point: `geno-tools install https://github.com/you/your-skillset.git`.
 4. **Open a registry PR.** Add `"<repo-name>": "<git-url>"` to `genotools/registry.py` and the corresponding row to `docs/skillsets/index.md` and the README's existing-repos table.

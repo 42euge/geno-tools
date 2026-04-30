@@ -41,13 +41,15 @@ For enterprise, capture the result as a signed artifact (PR description, interna
 - [ ] `allowed-tools` (when present) is the minimum needed. Reject blanket `Bash(*)` if the skill only needs a few commands.
 - [ ] Subskillsets under `skills/<subskill>/SKILL.md` follow the same rules. Each is audited individually.
 
-### 3. Slash commands (`commands/*.md`)
+### 3. Skills (`skills/*/SKILL.md`)
 
-- [ ] Filenames follow the prefix convention so users see consistent `/{prefix}-*` naming.
-- [ ] No command shells out via untrusted input without quoting/escaping.
-- [ ] No command writes outside `~/.geno-tools/{repo}/`, the user's working directory, or explicit user-confirmed paths.
-- [ ] No command touches another skillset's directory.
-- [ ] Side-effecting commands (network calls, deletes, pushes, sends) require user confirmation in the prompt.
+- [ ] Skill directory names follow the [nomenclature](../skillsets/nomenclature.md) convention: `{skillset}-{sub-skillset}-{skill}`.
+- [ ] The `name` field in each SKILL.md frontmatter matches its directory name.
+- [ ] All slash command references in `description` fields and body content use the canonical `geno-` prefix, not aliased prefixes like `gt-`. The command prefix is [user-configurable](../skillsets/creating.md#command-prefix-aliasing) and applied at install time.
+- [ ] No skill shells out via untrusted input without quoting/escaping.
+- [ ] No skill writes outside `~/.geno-tools/{repo}/`, the user's working directory, or explicit user-confirmed paths.
+- [ ] No skill touches another skillset's directory.
+- [ ] Side-effecting skills (network calls, deletes, pushes, sends) require user confirmation in the prompt.
 
 ### 4. Code, dependencies, and runtime
 
@@ -111,6 +113,6 @@ For minor updates already covered by a previous full audit, run a delta audit:
 
 1. `git diff <last-audited-ref>..<new-ref>` — confirm only docs/comment changes.
 2. `git diff -- pyproject.toml requirements*.txt` — confirm no dep changes.
-3. `git diff -- 'SKILL.md' 'skills/**/SKILL.md' 'commands/**'` — confirm no prompt or command changes.
+3. `git diff -- 'SKILL.md' 'skills/**/SKILL.md'` — confirm no prompt or skill changes.
 
 If any of those return non-trivial diffs, escalate to a full audit.

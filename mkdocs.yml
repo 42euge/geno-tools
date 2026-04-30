@@ -51,6 +51,7 @@ nav:
   - Skillsets:
       - skillsets/index.md
       - Creating a Skillset: skillsets/creating.md
+      - Nomenclature: skillsets/nomenclature.md
   - Onboarding:
       - onboarding/index.md
       - Audit Process: onboarding/audit.md
