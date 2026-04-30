@@ -1,5 +1,6 @@
 {
   "name": "geno-tools",
+  "description": "Installer and meta-CLI for the geno-* skillset ecosystem",
   "owner": {
     "name": "42euge",
     "url": "https://github.com/42euge"
