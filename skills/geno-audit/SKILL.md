@@ -132,6 +132,7 @@ If `commands/` contains content that hasn't been migrated to `skills/` yet, migr
 - An umbrella skill exists at `skills/{skillset}/SKILL.md`
 - Every directory under `skills/` contains a `SKILL.md`
 - No `commands/` directory exists — if found, migrate contents to `skills/` and delete it
+- **Monolithic CLI check**: if the skillset has a CLI backend (`[project.scripts]` in `pyproject.toml` or a standalone bin script) with multiple subcommands, it must have corresponding sub-skillset skill directories under `skills/` beyond the umbrella. To check: (a) find the CLI entry point from `[project.scripts]` and inspect it for `add_parser` / `add_command` / `app.command` / `@cli.command` calls (argparse, click, typer) to count subcommands; (b) count directories under `skills/` that contain a `SKILL.md` and subtract 1 for the umbrella. A skillset with ≥ 3 CLI subcommands and 0 sub-skillset skill directories **fails**. A comment in `CLAUDE.md` or `GENO.md` claiming the repo is a "single-skill skillset" does not exempt it from this check. **Correct pattern**: geno-dev (`geno-dev-tasks-start`, `geno-dev-commits-rewrite`, `geno-dev-loops-cruise`, `geno-dev-sessions-fork`, etc. — 9 sub-skills for 9 functional groups). **Failure example**: geno-notes (18 CLI subcommands — add, start, done, abandon, note, inbox, triage, list, show, search, promote, reindex, compile, lint, site, path, scope, init — but only the umbrella skill under `skills/`).
 
 **Recommended:**
 - All skill directory names follow the `{skillset}-{sub-skillset}-{skill}` pattern
