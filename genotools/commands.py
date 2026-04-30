@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import sys
 import tomllib
+from dataclasses import dataclass
 from pathlib import Path
 
 import yaml
@@ -430,7 +431,173 @@ def _promote(args: argparse.Namespace) -> int:
 
 
 def _update(args: argparse.Namespace) -> int:
-    return _todo(f"update {args.name or '<all>'}")
+    if args.name:
+        full = paths.normalize(args.name)
+        if not paths.skillset_root(full).exists():
+            print(f"not installed: {full}", file=sys.stderr)
+            return 1
+        results = [_update_one(full)]
+    else:
+        if not paths.ROOT.exists():
+            print("no skillsets installed")
+            return 0
+        installed = sorted(
+            p.name for p in paths.ROOT.iterdir()
+            if p.is_dir() and p.name.startswith("geno-")
+            and p.name not in ("geno-bootstrap",)
+        )
+        if not installed:
+            print("no skillsets installed")
+            return 0
+        results = [_update_one(full) for full in installed]
+
+    _print_update_summary(results)
+    return 1 if any(r.status == "error" for r in results) else 0
+
+
+@dataclass
+class _UpdateResult:
+    name: str
+    status: str  # "updated" | "up-to-date" | "skipped" | "error"
+    detail: str = ""
+    old_rev: str = ""
+    new_rev: str = ""
+
+
+def _update_one(full: str) -> _UpdateResult:
+    bare = paths.skillset_git(full)
+    worktree = paths.skillset_worktree(full, "main")
+
+    if not worktree.exists():
+        return _UpdateResult(full, "error", "main worktree missing")
+
+    if worktree.is_symlink():
+        return _UpdateResult(full, "skipped", "dev mode (local symlink)")
+
+    try:
+        status = subprocess.check_output(
+            ["git", "-C", str(worktree), "status", "--porcelain"],
+            text=True,
+        ).strip()
+    except subprocess.CalledProcessError:
+        return _UpdateResult(full, "error", "git status failed")
+
+    if status:
+        return _UpdateResult(full, "skipped", "dirty worktree")
+
+    default_branch = _detect_default_branch(bare)
+
+    try:
+        current_branch = subprocess.check_output(
+            ["git", "-C", str(worktree), "branch", "--show-current"],
+            text=True,
+        ).strip()
+    except subprocess.CalledProcessError:
+        return _UpdateResult(full, "error", "cannot detect branch")
+
+    if current_branch != default_branch:
+        return _UpdateResult(
+            full, "skipped",
+            f"on branch '{current_branch}', not '{default_branch}'",
+        )
+
+    try:
+        old_rev = subprocess.check_output(
+            ["git", "-C", str(worktree), "rev-parse", "HEAD"],
+            text=True,
+        ).strip()
+    except subprocess.CalledProcessError:
+        old_rev = ""
+
+    print(f"  fetching {full}...")
+    try:
+        subprocess.check_call(
+            ["git", "-C", str(bare), "fetch", "--quiet", "origin"],
+        )
+    except subprocess.CalledProcessError:
+        return _UpdateResult(full, "error", "git fetch failed")
+
+    try:
+        subprocess.check_call(
+            ["git", "-C", str(worktree), "pull", "--ff-only", "--quiet",
+             "origin", default_branch],
+        )
+    except subprocess.CalledProcessError:
+        return _UpdateResult(full, "error", "git pull --ff-only failed (diverged?)")
+
+    try:
+        new_rev = subprocess.check_output(
+            ["git", "-C", str(worktree), "rev-parse", "HEAD"],
+            text=True,
+        ).strip()
+    except subprocess.CalledProcessError:
+        new_rev = ""
+
+    if old_rev == new_rev:
+        return _UpdateResult(full, "up-to-date", old_rev=old_rev[:8])
+
+    _maybe_reinstall_venv(full, old_rev, new_rev)
+    _install_skills_via_npx(full)
+
+    return _UpdateResult(full, "updated", old_rev=old_rev[:8], new_rev=new_rev[:8])
+
+
+def _maybe_reinstall_venv(full: str, old_rev: str, new_rev: str) -> None:
+    worktree = paths.skillset_worktree(full, "main")
+    if not (worktree / "pyproject.toml").exists():
+        return
+
+    try:
+        changed = subprocess.check_output(
+            ["git", "-C", str(worktree), "diff", "--name-only",
+             old_rev, new_rev],
+            text=True,
+        )
+    except subprocess.CalledProcessError:
+        changed = "pyproject.toml"
+
+    if "pyproject.toml" not in changed:
+        return
+
+    venv_dir = paths.skillset_venvs(full) / "default"
+    if not venv_dir.exists():
+        _create_venv_if_needed(full)
+        return
+
+    print(f"  pyproject.toml changed; reinstalling venv...")
+    pip = venv_dir / "bin" / "pip"
+    try:
+        subprocess.check_call(
+            [str(pip), "install", "--quiet", "-e", str(worktree)]
+        )
+    except subprocess.CalledProcessError as e:
+        print(f"  warn: venv reinstall failed for {full}: {e}",
+              file=sys.stderr)
+
+
+def _print_update_summary(results: list[_UpdateResult]) -> None:
+    updated = [r for r in results if r.status == "updated"]
+    up_to_date = [r for r in results if r.status == "up-to-date"]
+    skipped = [r for r in results if r.status == "skipped"]
+    errors = [r for r in results if r.status == "error"]
+
+    print()
+    if updated:
+        print(f"updated ({len(updated)}):")
+        for r in updated:
+            print(f"  {r.name:<24} {r.old_rev} -> {r.new_rev}")
+    if up_to_date:
+        print(f"already up-to-date ({len(up_to_date)}):")
+        for r in up_to_date:
+            print(f"  {r.name}")
+    if skipped:
+        print(f"skipped ({len(skipped)}):")
+        for r in skipped:
+            print(f"  {r.name:<24} {r.detail}")
+    if errors:
+        print(f"errors ({len(errors)}):")
+        for r in errors:
+            print(f"  {r.name:<24} {r.detail}")
 
 
 def _doctor(_: argparse.Namespace) -> int:
