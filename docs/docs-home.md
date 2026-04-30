@@ -63,7 +63,8 @@ Fork a skillset, experiment in isolation, promote back to main. Git worktrees un
 === "Claude Code"
 
     ```bash
-    claude /plugin install 42euge/geno-tools
+    /plugin marketplace add 42euge/geno-tools
+    /plugin install geno-tools@geno-tools
 
     /gt-ls --available                       # see the registry
     /gt-install geno-<name>                  # install a skillset
@@ -76,6 +77,7 @@ Fork a skillset, experiment in isolation, promote back to main. Git worktrees un
 
     ```bash
     gemini extensions install https://github.com/42euge/geno-tools
+    bash ~/.gemini/extensions/geno-tools/scripts/bootstrap.sh
 
     /gt-ls --available                       # see the registry
     /gt-install geno-<name>                  # install a skillset
