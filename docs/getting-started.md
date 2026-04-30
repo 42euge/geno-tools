@@ -8,13 +8,18 @@
 
 ## Install geno-tools
 
-geno-tools is installed as a native plugin in your coding agent. Pick the manifest that matches the CLI you use:
+geno-tools is installed as a native plugin in your coding agent. Pick the manifest that matches the CLI you use. On Claude Code and OpenCode the plugin's startup hook auto-installs the `geno-tools` shell command onto PATH (via `pipx`, falling back to `pip install --user`); on Gemini CLI / Codex / Cursor you run the same bootstrap script once by hand.
 
 ### Claude Code
 
-```bash
-claude /plugin install 42euge/geno-tools
+Inside a Claude Code session:
+
 ```
+/plugin marketplace add 42euge/geno-tools
+/plugin install geno-tools@geno-tools
+```
+
+The first command registers this repo as a marketplace (reads `.claude-plugin/marketplace.json`); the second installs the plugin defined in `.claude-plugin/plugin.json`. The SessionStart hook then runs `scripts/bootstrap.sh`, which materializes `~/.geno/config.yaml` and pipx-installs the `geno-tools` CLI if it isn't already on PATH. Verify with `/plugin list`.
 
 This gives you `/gt-install`, `/gt-remove`, `/gt-ls`, and `/gt-update` slash commands inside Claude Code.
 
@@ -22,11 +27,14 @@ This gives you `/gt-install`, `/gt-remove`, `/gt-ls`, and `/gt-update` slash com
 
 ```bash
 gemini extensions install https://github.com/42euge/geno-tools
+bash ~/.gemini/extensions/geno-tools/scripts/bootstrap.sh
 ```
+
+The bootstrap step is one-time — Gemini extensions don't expose a startup hook for arbitrary commands, so it has to run by hand.
 
 ### Codex CLI / Cursor / OpenCode
 
-See the [README](https://github.com/42euge/geno-tools#install) for the per-agent install snippet.
+See the [README](https://github.com/42euge/geno-tools#install) for the per-agent install snippet. OpenCode runs `scripts/bootstrap.sh` automatically on plugin load; Codex and Cursor need a one-time `bash <plugin-root>/scripts/bootstrap.sh`.
 
 Verify the install by listing the registry from inside your agent:
 

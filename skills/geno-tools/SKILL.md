@@ -12,7 +12,7 @@ allowed-tools: "Bash(geno-tools *) Bash(python3 -m genotools *)"
 Orchestrator for the geno-* ecosystem. Manages installation, removal, and updates of skillset repos.
 
 ```!
-which geno-tools >/dev/null 2>&1 || echo "geno-tools CLI not on PATH. Install via your coding agent's plugin manager (e.g. 'claude /plugin install 42euge/geno-tools' or 'gemini extensions install https://github.com/42euge/geno-tools')."
+which geno-tools >/dev/null 2>&1 || echo "geno-tools CLI not on PATH. The plugin's SessionStart hook (Claude Code) and OpenCode plugin loader run scripts/bootstrap.sh automatically. On Gemini CLI / Codex / Cursor, run 'bash \$PLUGIN_ROOT/scripts/bootstrap.sh' once (\$PLUGIN_ROOT is e.g. ~/.gemini/extensions/geno-tools)."
 ```
 
 ## Available Skillsets

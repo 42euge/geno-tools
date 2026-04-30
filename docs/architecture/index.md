@@ -6,13 +6,13 @@ geno-tools is structured around a few core concepts:
 
 geno-tools is installed as a native plugin on each supported coding CLI:
 
-- **Claude Code** — `claude /plugin install 42euge/geno-tools`
+- **Claude Code** — `/plugin marketplace add 42euge/geno-tools` then `/plugin install geno-tools@geno-tools`
 - **Codex CLI** — clone + symlink to `~/.agents/skills/geno-tools`
 - **Cursor** — install via plugin manager
 - **Gemini CLI** — `gemini extensions install https://github.com/42euge/geno-tools`
 - **OpenCode** — add `"geno-tools@git+https://github.com/42euge/geno-tools.git"` to `opencode.json` plugins
 
-Each plugin manifest points at the shared `skills/` directory and the bundled Python package, so a plugin install is sufficient — there is no separate pipx/pip step. The ecosystem skillsets geno-tools manages are registered with all agents via `npx skills add --agent '*'`.
+Each plugin manifest points at the shared `skills/` directory and the bundled Python package. On Claude Code (SessionStart hook) and OpenCode (plugin loader), the bundled `scripts/bootstrap.sh` self-installs the `geno-tools` shell command onto PATH via `pipx` (with a `pip install --user` fallback) the first time the agent loads the plugin — no separate pipx step. On Gemini CLI / Codex / Cursor, whose plugin formats don't expose a startup hook for arbitrary commands, the install instructions show a one-time `bash <plugin-root>/scripts/bootstrap.sh` invocation. The ecosystem skillsets geno-tools manages are registered with all agents via `npx skills add --agent '*'`.
 
 ## Source resolution
 
