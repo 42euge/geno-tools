@@ -66,11 +66,11 @@ Fork a skillset, experiment in isolation, promote back to main. Git worktrees un
     /plugin marketplace add 42euge/geno-tools
     /plugin install geno-tools@geno-tools
 
-    /gt-ls --available                       # see the registry
-    /gt-install geno-<name>                  # install a skillset
-    /gt-fork geno-<name> exp-1               # branch a variant
-    /gt-use geno-<name>@exp-1                # activate it
-    /gt-promote geno-<name> exp-1            # merge back to main
+    /geno-tools ls --available               # see the registry
+    /geno-tools install geno-<name>          # install a skillset
+    /geno-tools fork geno-<name> exp-1       # branch a variant
+    /geno-tools use geno-<name>@exp-1        # activate it
+    /geno-tools promote geno-<name> exp-1    # merge back to main
     ```
 
 === "Gemini CLI"
@@ -79,11 +79,11 @@ Fork a skillset, experiment in isolation, promote back to main. Git worktrees un
     gemini extensions install https://github.com/42euge/geno-tools
     bash ~/.gemini/extensions/geno-tools/scripts/bootstrap.sh
 
-    /gt-ls --available                       # see the registry
-    /gt-install geno-<name>                  # install a skillset
-    /gt-fork geno-<name> exp-1               # branch a variant
-    /gt-use geno-<name>@exp-1                # activate it
-    /gt-promote geno-<name> exp-1            # merge back to main
+    /geno-tools ls --available               # see the registry
+    /geno-tools install geno-<name>          # install a skillset
+    /geno-tools fork geno-<name> exp-1       # branch a variant
+    /geno-tools use geno-<name>@exp-1        # activate it
+    /geno-tools promote geno-<name> exp-1    # merge back to main
     ```
 
 </div>

@@ -2,8 +2,8 @@
 name: geno-tools-open-docs
 description: >-
   Open the current repo's GitHub Pages documentation site in the default browser.
-  Use when user says /geno-tools-open-docs, /gt-open-docs, or asks to
-  open/view the docs website.
+  Use when user says /geno-tools-open-docs or asks to open/view the
+  docs website.
 allowed-tools: "Bash(open *) Bash(gh api *) Bash(git *)"
 license: MIT
 metadata:

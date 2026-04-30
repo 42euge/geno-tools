@@ -24,8 +24,9 @@ geno-tools install geno-<name>
 
 When you install a skillset, you get:
 
-- **Slash commands** — markdown files that appear as `/gt-*` commands in your coding agent
+- **Skills** — `SKILL.md` files under `skills/` that register as slash commands in your coding agent (the command prefix is [user-configurable](creating.md#command-prefix-aliasing))
 - **SKILL.md** — an umbrella manifest describing the skillset's capabilities
+- **GENO.md** — agent instructions, the single source of truth read by all supported coding agents
 - **Runtime scripts** (optional) — Python/shell scripts symlinked for command use
 - **Config defaults** (optional) — copy-once configs that preserve user edits across updates
 - **Isolated venvs** (optional) — Python dependencies that don't pollute your system
