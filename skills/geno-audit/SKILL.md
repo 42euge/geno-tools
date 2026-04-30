@@ -443,6 +443,21 @@ This rule applies to install commands. For the general rule about slash command 
 
 ---
 
+## Ecosystem Freshness
+
+Installed skillsets should stay on the latest main branch. Stale installs lead to agents using outdated skill definitions, missing features, and broken cross-skillset interactions. `geno-tools update` pulls the latest main for all installed skillsets (or a specific one) and re-registers skills.
+
+### Audit checks
+
+**Recommended:**
+- Run `geno-tools update` as part of the audit to ensure the target repo's installed copy (if any) is on the latest main. If the installed copy is behind origin, the audit should note how many commits behind it is.
+- If the target repo's `main` worktree at `~/.geno-tools/geno-{name}/main/` has a dirty working tree or is on a non-default branch, warn that the install is in a non-standard state.
+
+**Info:**
+- Report the current installed revision (short SHA) and the date of the last commit on main. Stale installs older than 30 days get an INFO note.
+
+---
+
 ## Command Prefix Aliasing in Repo Source
 
 Slash commands in the geno ecosystem use a configurable prefix. Users set their preferred prefix in `~/.geno/config.yaml`:
@@ -563,7 +578,7 @@ A repo's `GENO.md` should contain a skills table showing what skills *this* repo
 
 2. **Detect the repo name.** Use the directory basename.
 
-3. **Run all checks.** For each section (`.geno` Convention, Manifest, SKILL.md, Skill Nomenclature, Agent Instruction Files, Documentation, Repo Hygiene, Agent-Agnostic Language, Installation Compliance, Command Prefix Aliasing in Repo Source, Single Source of Truth Enforcement), check every item at every tier. For each check, determine PASS, FAIL, WARN, or INFO and collect a short reason for non-PASS results.
+3. **Run all checks.** For each section (`.geno` Convention, Manifest, SKILL.md, Skill Nomenclature, Agent Instruction Files, Documentation, Repo Hygiene, Agent-Agnostic Language, Installation Compliance, Ecosystem Freshness, Command Prefix Aliasing in Repo Source, Single Source of Truth Enforcement), check every item at every tier. For each check, determine PASS, FAIL, WARN, or INFO and collect a short reason for non-PASS results.
 
 4. **Parse YAML carefully.** Use Python for YAML parsing:
    ```bash

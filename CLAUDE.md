@@ -25,7 +25,7 @@ geno-tools = "genotools.cli:main"
 | `geno-tools ls [--available]` | implemented |
 | `geno-tools install <name\|url\|path> [--here]` | implemented |
 | `geno-tools remove <name> [--keep-data]` | implemented |
-| `geno-tools update [name]` | stub |
+| `geno-tools update [name]` | implemented |
 | `geno-tools dev <name> <path>` | stub |
 | `geno-tools fork <name> <variant> [--isolated-venv]` | stub |
 | `geno-tools use <name>@<variant> [--here]` | stub |
