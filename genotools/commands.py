@@ -334,12 +334,15 @@ def _remove_bin_symlinks(full: str) -> None:
 # ── npx skills ──────────────────────────────────────────────────────────────
 
 def _install_skills_via_npx(full: str) -> None:
-    active = paths.skillset_active(full)
-    print(f"  installing skills via npx skills (all agents, global)")
-    subprocess.check_call([
-        "npx", "--yes", "skills", "add", str(active),
-        "--agent", "*", "--global", "--skill", "*", "--yes",
-    ])
+    skill_dirs = _enumerate_skill_dirs(full)
+    if not skill_dirs:
+        return
+    print(f"  installing {len(skill_dirs)} skill(s) via npx skills (all agents, global)")
+    for skill_dir in skill_dirs:
+        subprocess.check_call([
+            "npx", "--yes", "skills", "add", str(skill_dir),
+            "--agent", "*", "--global", "--yes",
+        ])
 
 
 def _uninstall_skills_via_npx(full: str) -> None:
@@ -354,20 +357,26 @@ def _uninstall_skills_via_npx(full: str) -> None:
     )
 
 
-def _enumerate_skills(full: str) -> list[str]:
+def _enumerate_skill_dirs(full: str) -> list[Path]:
     active = paths.skillset_active(full)
-    names: list[str] = []
-    # Root-level SKILL.md → the skill name is the skillset name itself.
+    dirs: list[Path] = []
     if (active / "SKILL.md").exists():
-        names.append(full)
-    # Sub-skills in a skills/ directory.
+        dirs.append(active)
     skills_dir = active / "skills"
     if skills_dir.exists():
-        names.extend(sorted(
-            p.name for p in skills_dir.iterdir()
-            if p.is_dir() and (p / "SKILL.md").exists()
+        dirs.extend(sorted(
+            (p for p in skills_dir.iterdir()
+             if p.is_dir() and (p / "SKILL.md").exists()),
+            key=lambda p: p.name,
         ))
-    return names
+    return dirs
+
+
+def _enumerate_skills(full: str) -> list[str]:
+    return [
+        d.name if d != paths.skillset_active(full) else full
+        for d in _enumerate_skill_dirs(full)
+    ]
 
 
 # ── deps ───────────────────────────────────────────────────────────────────

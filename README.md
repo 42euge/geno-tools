@@ -59,14 +59,16 @@ Then restart OpenCode — the bundled plugin in `.opencode/plugins/geno-tools.js
 
 ### Verify
 
-In any CLI, the slash commands appear immediately after install:
+After install, the following skills appear as slash commands:
 
 ```
-/gt-ls --available     # list registry
-/gt-install geno-<name>
+/geno-tools            # list, install, remove skillsets
+/geno-onboarding       # guided onboarding for new skillsets
+/geno-icons            # generate pixel art project icons
 ```
 
-If `geno-tools` isn't on PATH after a plugin install (some CLIs don't auto-symlink the venv binary), the `/gt-*` slash commands will surface an install hint pointing back to the plugin install for that CLI.
+To use the CLI directly: `geno-tools ls --available`, `geno-tools install geno-<name>`.
+If `geno-tools` isn't on PATH, the skill will surface an install hint.
 
 ## Usage
 
