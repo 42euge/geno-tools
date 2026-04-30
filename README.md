@@ -2,6 +2,8 @@
 
 Meta-CLI for installing and managing coding agent skillsets in the `geno-*` ecosystem. Works with Claude Code, Codex, Gemini CLI, Cursor, and OpenCode.
 
+**Website:** <https://42euge.github.io/geno-tools>
+
 ## What it does
 
 `geno-tools` installs/uninstalls/dev-links curated skillset repos (each a `geno-{name}` repo) into any supported coding agent. Inspired by [vercel-labs/skills](https://github.com/vercel-labs/skills) and [obra/superpowers](https://github.com/obra/superpowers), specialized for this ecosystem:
@@ -13,7 +15,9 @@ Meta-CLI for installing and managing coding agent skillsets in the `geno-*` ecos
 
 ## Install
 
-geno-tools ships as a native plugin/extension on each supported coding CLI. Pick the snippet for the CLI you use — every path bootstraps `~/.geno/` from `config/defaults.yaml` on first session start.
+geno-tools ships as a native plugin/extension on each supported coding CLI. Pick the snippet for the CLI you use — every path bootstraps `~/.geno/` from `config/defaults.yaml` and self-installs the `geno-tools` shell command onto PATH (via `pipx`, falling back to `pip install --user`) the first time the agent loads the plugin.
+
+The bootstrap lives at `scripts/bootstrap.sh`. CLIs that expose a startup hook for arbitrary commands (Claude Code, OpenCode) run it automatically. The others (Gemini CLI, Codex, Cursor) need a one-time `bash <plugin-root>/scripts/bootstrap.sh` invocation, shown inline below.
 
 ### Claude Code
 
@@ -23,7 +27,7 @@ geno-tools ships as a native plugin/extension on each supported coding CLI. Pick
 /plugin install geno-tools@geno-tools
 ```
 
-The first command registers this repo as a marketplace (reads `.claude-plugin/marketplace.json`); the second installs the plugin defined in `.claude-plugin/plugin.json`. Verify with `/plugin list`.
+The first command registers this repo as a marketplace (reads `.claude-plugin/marketplace.json`); the second installs the plugin defined in `.claude-plugin/plugin.json`. The SessionStart hook in `hooks/hooks.json` then runs `scripts/bootstrap.sh` automatically — no separate pipx step required. Verify with `/plugin list`.
 
 ### Codex CLI
 
@@ -31,21 +35,28 @@ The first command registers this repo as a marketplace (reads `.claude-plugin/ma
 # inside a Codex CLI session
 /plugin marketplace add 42euge/geno-tools
 /plugins
+# in your shell, once the plugin is on disk:
+bash ~/.codex/plugins/cache/geno-tools/geno-tools/*/scripts/bootstrap.sh
 ```
 
-The marketplace catalog at `.agents/plugins/marketplace.json` exposes the plugin; pick `geno-tools` from the `/plugins` browser and toggle it on. (Plugins are cached at `~/.codex/plugins/cache/geno-tools/geno-tools/<version>/`.)
+The marketplace catalog at `.agents/plugins/marketplace.json` exposes the plugin; pick `geno-tools` from the `/plugins` browser and toggle it on. (Plugins are cached at `~/.codex/plugins/cache/geno-tools/geno-tools/<version>/`.) Codex doesn't expose a portable startup hook for arbitrary commands, so run `bootstrap.sh` once — it's idempotent on later invocations.
 
 ### Gemini CLI
 
 ```bash
 gemini extensions install https://github.com/42euge/geno-tools
+bash ~/.gemini/extensions/geno-tools/scripts/bootstrap.sh
 ```
 
-Gemini clones the repo into `~/.gemini/extensions/geno-tools/`, reads `gemini-extension.json`, and registers the bundled `skills/`, `commands/`, and `hooks/hooks.json`. Restart the CLI to pick it up. Update later with `gemini extensions update geno-tools`.
+Gemini clones the repo into `~/.gemini/extensions/geno-tools/`, reads `gemini-extension.json`, and registers the bundled `skills/`, `commands/`, and `hooks/hooks.json`. Restart the CLI to pick it up. Update later with `gemini extensions update geno-tools`. Gemini extensions don't run arbitrary startup commands, so the one-time `bootstrap.sh` invocation is what puts `geno-tools` on PATH.
 
 ### Cursor
 
-Install via Cursor's plugin manager (it reads `.cursor-plugin/plugin.json`), or clone the repo into your Cursor plugins directory.
+Install via Cursor's plugin manager (it reads `.cursor-plugin/plugin.json`), or clone the repo into your Cursor plugins directory. Then run the bootstrap once from wherever the plugin landed:
+
+```bash
+bash <cursor-plugins-dir>/geno-tools/scripts/bootstrap.sh
+```
 
 ### OpenCode
 
@@ -55,7 +66,7 @@ Add to `opencode.json`:
 { "plugins": ["geno-tools@git+https://github.com/42euge/geno-tools.git"] }
 ```
 
-Then restart OpenCode — the bundled plugin in `.opencode/plugins/geno-tools.js` registers the skills path on startup.
+Then restart OpenCode — the bundled plugin in `.opencode/plugins/geno-tools.js` registers the skills path and spawns `scripts/bootstrap.sh` on startup, so the `geno-tools` CLI appears on PATH without any extra step.
 
 ### Verify
 
@@ -68,7 +79,7 @@ After install, the following skills appear as slash commands:
 ```
 
 To use the CLI directly: `geno-tools ls --available`, `geno-tools install geno-<name>`.
-If `geno-tools` isn't on PATH, the skill will surface an install hint.
+If `geno-tools` isn't on PATH (because the bootstrap log shows pipx/pip is missing — see `~/.geno/bootstrap.log`), install pipx (`python3 -m pip install --user pipx`) and re-run `scripts/bootstrap.sh` from the plugin directory.
 
 ## Usage
 

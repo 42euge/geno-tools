@@ -4,7 +4,9 @@
 
 ## Installation
 
-geno-tools is distributed exclusively as a coding-agent plugin — there is no pipx/pip path. Each supported CLI installs it via its native plugin mechanism (`claude /plugin install`, `gemini extensions install`, OpenCode `plugins`, the Cursor plugin manager, or Codex symlink). `.claude-plugin/plugin.json` + the shared `skills/` directory expose the geno-tools skill across all platforms.
+geno-tools is distributed as a coding-agent plugin. Each supported CLI installs it via its native plugin mechanism (`claude /plugin install`, `gemini extensions install`, OpenCode `plugins`, the Cursor plugin manager, or Codex `/plugins`). `.claude-plugin/plugin.json` + the shared `skills/` directory expose the geno-tools skill across all platforms.
+
+The plugin's `scripts/bootstrap.sh` self-installs the `geno-tools` shell command onto PATH (pipx preferred, `pip install --user` fallback) so users never have to run pipx by hand. Claude Code (`hooks/hooks.json` SessionStart hook) and OpenCode (`.opencode/plugins/geno-tools.js`) run it automatically on session start; Gemini CLI / Codex / Cursor don't expose a startup hook for arbitrary commands, so their docs show a one-time `bash <plugin-root>/scripts/bootstrap.sh` invocation. The script is idempotent — it no-ops if `geno-tools` is already on PATH.
 
 ## Entry point
 
