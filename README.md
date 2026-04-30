@@ -70,13 +70,15 @@ Then restart OpenCode — the bundled plugin in `.opencode/plugins/geno-tools.js
 
 ### Verify
 
-In any CLI, the slash commands appear immediately after install:
+After install, the following skills appear as slash commands:
 
 ```
-/gt-ls --available     # list registry
-/gt-install geno-<name>
+/geno-tools            # list, install, remove skillsets
+/geno-onboarding       # guided onboarding for new skillsets
+/geno-icons            # generate pixel art project icons
 ```
 
+To use the CLI directly: `geno-tools ls --available`, `geno-tools install geno-<name>`.
 If `geno-tools` isn't on PATH (because the bootstrap log shows pipx/pip is missing — see `~/.geno/bootstrap.log`), install pipx (`python3 -m pip install --user pipx`) and re-run `scripts/bootstrap.sh` from the plugin directory.
 
 ## Usage
