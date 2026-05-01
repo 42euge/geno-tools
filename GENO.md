@@ -1,6 +1,9 @@
-# geno-tools — Skillset Manager for the Geno Ecosystem
+# geno-tools — Agent-Agnostic Meta Package Manager for AI Coding Agents
 
-`geno-tools` is a meta-CLI and coding-agent plugin that installs sibling `geno-{name}` repos as coding agent skillsets. It handles cloning, venvs, bin symlinks, dependency resolution, and skill registration across all supported agents (Claude Code, Gemini CLI, Codex, OpenCode, Cursor).
+`geno-tools` is an agent-agnostic meta package manager for AI coding agents. It discovers skills from open-source and private ecosystems, absorbs external skill systems (Vercel Labs Skills, Superpowers, Ralphy Loop plugins) into a unified framework, and manages their lifecycle across all supported agents (Claude Code, Gemini CLI, Codex, OpenCode, Cursor). A meta-harness layer evaluates and refines skill variations over time, while built-in auditing ensures capabilities evolve safely.
+
+@./VISION.md
+@./TENETS.md
 
 ## Skills
 
@@ -173,3 +176,5 @@ geno-{name}/
 geno-tools ships platform-specific plugin manifests following the `obra/superpowers` conventions so it can be installed as a native plugin on each supported CLI. Skills are platform-agnostic; each CLI-specific manifest points at the shared `skills/` directory.
 
 Skill registration uses `npx skills add <active-worktree> --agent '*' --global --skill '*' --yes`. Uninstall enumerates skills (root SKILL.md + `skills/*/SKILL.md`) and calls `npx skills remove`.
+
+This absorption layer is what makes geno-tools a meta-harness rather than just a CLI — external skill systems (Superpowers conventions, Vercel Labs Skills backend) are normalized into the same `SKILL.md` + `genotools.yaml` contract.

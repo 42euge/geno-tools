@@ -1,17 +1,19 @@
 # geno-tools
 
-Meta-CLI for installing and managing coding agent skillsets in the `geno-*` ecosystem. Works with Claude Code, Codex, Gemini CLI, Cursor, and OpenCode.
+Agent-agnostic meta package manager for AI coding agents. Discovers, absorbs, evaluates, and governs skills across Claude Code, Codex, Gemini CLI, Cursor, and OpenCode.
 
 **Website:** <https://42euge.github.io/geno-tools>
 
 ## What it does
 
-`geno-tools` installs/uninstalls/dev-links curated skillset repos (each a `geno-{name}` repo) into any supported coding agent. Inspired by [vercel-labs/skills](https://github.com/vercel-labs/skills) and [obra/superpowers](https://github.com/obra/superpowers), specialized for this ecosystem:
+`geno-tools` discovers skills from open-source registries and private ecosystems, absorbs external skill systems ([vercel-labs/skills](https://github.com/vercel-labs/skills), [obra/superpowers](https://github.com/obra/superpowers), Ralphy Loop plugins) into a unified framework, and manages their full lifecycle:
 
-- **Curated registry** — full repo names (`geno-<name>`, e.g. those listed below) resolve to git URLs
-- **Multi-agent** — skills register with all agents via `npx skills add --agent '*'`
+- **Discovery** — find candidate skills from a curated registry, GitHub/GitLab/Bitbucket orgs, private mirrors, or any git URL
+- **Absorption** — normalize heterogeneous skill formats into `SKILL.md` + `genotools.yaml`; register with all agents via a single `geno-tools install`
+- **Meta-harness** — `fork`/`use`/`promote` with git worktrees to evaluate, refine, and iterate on skill variations in isolation
+- **Auditing** — built-in compliance scanning gates every onboarding path (prompt injection, dependency hygiene, filesystem/network boundaries)
 - **Per-skillset venvs** — isolated at `~/.geno-tools/geno-{name}/venvs/`
-- **Dev-link** — point at a local checkout for meta-improvement
+- **Zero telemetry** — local execution, no call-home
 
 ## Install
 
