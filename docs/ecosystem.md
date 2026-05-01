@@ -1,6 +1,6 @@
 # Ecosystem
 
-The geno-\* ecosystem is a collection of repos that extend AI coding agents with specialized capabilities. geno-tools is the package manager; each skill is its own repo.
+The geno-\* ecosystem is a collection of repos that extend AI coding agents with specialized capabilities. geno-tools is the agent-agnostic meta package manager at the center: it discovers skills, absorbs external skill systems, evaluates variants via the meta-harness, governs compliance through auditing, and lets capabilities evolve safely.
 
 ## Repos
 
@@ -36,21 +36,39 @@ The geno-\* ecosystem is a collection of repos that extend AI coding agents with
 ## How it fits together
 
 ```
-                    geno-tools (package manager)
-                         │
-          ┌──────────────┼──────────────┐
-          │              │              │
-     geno-<name>   geno-<name>   geno-<name>  ...   (skillsets)
-          │              │              │
-          └──────────────┼──────────────┘
-                         │
-                   Coding CLIs
-                   (Claude Code, geno-cli, Codex, Gemini CLI)
-                         │
-                    geno-agents (coordination)
-                    geno-msg    (messaging)
-                    geno-notes  (project state)
-                    geno-mon    (monitoring)
+              ┌──────────────────────────────────────┐
+              │          geno-tools                   │
+              │    (meta package manager)             │
+              └──────────────┬───────────────────────-┘
+                             │
+        discover ──→ absorb ──→ evaluate ──→ govern ──→ evolve
+           │            │          │            │          │
+      registry.py    install    fork/use    geno-audit  promote
+      discovery.py   normalize  worktrees   audit.md    merge → main
+                             │
+              ┌──────────────┼──────────────┐
+              │              │              │
+         geno-<name>   geno-<name>   geno-<name>  ...
+              │              │              │
+              └──────────────┼──────────────┘
+                             │
+                       Coding CLIs
+           (Claude Code, Codex, Gemini CLI, Cursor, OpenCode)
+                             │
+                  geno-agents (coordination)
+                  geno-msg    (messaging)
+                  geno-notes  (project state)
+                  geno-mon    (monitoring)
 ```
 
 Each skillset is independent — install only what you need. The coordination layer (agents, msg, notes, mon) is optional but enables multi-agent workflows.
+
+## External skill systems
+
+geno-tools absorbs skills from external systems into the unified `SKILL.md` + `genotools.yaml` framework:
+
+- **[Vercel Labs Skills](https://github.com/vercel-labs/skills)** — the backend skill registration layer; `npx skills add` registers skills with all agents
+- **[obra/superpowers](https://github.com/obra/superpowers)** — plugin manifest conventions that geno-tools follows for cross-agent compatibility
+- **Ralphy Loop** — external plugin ecosystem whose skills can be ingested and normalized through `geno-tools install`
+
+Skills from any of these origins are managed the same way once absorbed: same install path, same variant system, same audit checklist, same removal contract.
