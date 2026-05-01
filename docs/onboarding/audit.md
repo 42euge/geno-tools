@@ -7,11 +7,11 @@ A skillset is allowed to inject prompts into the agent's context, run shell comm
 ## When to run the audit
 
 - **Initial onboarding** — first inclusion in the registry (public) or internal mirror (enterprise).
-- **Major version bump** — any release that changes `SKILL.md` content, adds slash commands, changes `pyproject.toml` dependencies, or modifies runtime symlinks.
+- **Major or minor version bump** — any release that adds or removes skills, changes `SKILL.md` prompt content, adds slash commands, changes `pyproject.toml` dependencies, or modifies runtime symlinks. See [Versioning](../skillsets/creating.md#versioning) for what constitutes each bump level.
 - **Maintainer change** — when ownership transfers to a new author.
 - **Periodic re-audit** — every 6 months for high-traffic skillsets, opportunistically for the rest.
 
-A patch-level update that only touches docs or already-audited prompt content does not require a full re-audit.
+A patch-level update (bug fixes, doc-only changes, wording improvements) does not require a full re-audit — use the [lightweight re-audit](#lightweight-re-audit) instead.
 
 ## How to run it
 

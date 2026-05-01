@@ -83,6 +83,31 @@ Copy-once files into `~/.geno-tools/geno-{name}/configs/`. Only created if missi
 | `src` | Path relative to repo root |
 | `dst` | Path relative to configs dir |
 
+## Versioning
+
+The `version` field in `genotools.yaml` is the canonical version for every skillset. If other files also carry a version — `pyproject.toml` (`project.version`), `package.json` (`version`), or a Python `__init__.py` (`__version__`) — they must all match. When bumping, update `genotools.yaml` first, then sync the rest.
+
+### What to bump
+
+| Change type | Bump | Examples |
+|-------------|------|----------|
+| Bug fix, typo, wording improvement in skill instructions | PATCH (0.0.x) | Fix broken bash snippet in SKILL.md, clarify ambiguous instruction |
+| Doc-only changes with no behavior impact | PATCH | Update getting-started.md, add architecture doc |
+| New skill added | MINOR (0.x.0) | Add `geno-{name}-reports-generate` skill |
+| Existing skill behavior significantly expanded | MINOR | Add new workflow steps to an existing skill |
+| New config options, runtime scripts, or dependencies | MINOR | Add a `runtime:` entry, add a pip dep to `venv.deps` |
+| Removed skill or slash command | MAJOR (x.0.0) | Delete a `skills/` directory |
+| Renamed slash command | MAJOR | Change a skill's `name` field |
+| Incompatible manifest changes | MAJOR | Restructure `genotools.yaml` format |
+
+### When NOT to bump
+
+Not every commit needs a version bump. If you're making a series of related changes on a branch before merging, bump once in the final commit of the series. The version in `main` should always reflect the latest released state.
+
+### What GENO.md should say
+
+Individual repos must not restate the full versioning policy — that lives here in geno-tools. Instead, their `GENO.md` Conventions section should include a brief **Versioning** item that tells agents: (1) the canonical version lives in `genotools.yaml`, (2) which other files (if any) also contain versions and must stay in sync, and (3) to bump the version when adding/removing skills or changing behavior.
+
 ## Skills — `skills/`
 
 Skills are defined as `SKILL.md` files under `skills/`. Each skill lives in its own directory. The directory name must match the `name` field in the SKILL.md frontmatter.
@@ -141,6 +166,7 @@ The root `SKILL.md` at the repo root is the umbrella manifest. It describes the 
     - SKILL.md frontmatter format
     - Checklist for adding a new skill
     - Command prefix aliasing (see below)
+    - Versioning: which files contain the version and when to bump (see [Versioning](#versioning))
 
 ### Per-agent pointer files
 

@@ -95,6 +95,26 @@ The local `.geno/` directory at the repo or workspace root holds per-workspace s
 
 ---
 
+## Versioning
+
+The `version` field in `genotools.yaml` is the canonical version for every skillset. When a repo also has `pyproject.toml`, `package.json`, or a Python `__init__.py` with version fields, they must all agree. The audit checks consistency and detects unreleased work that may warrant a bump.
+
+### Audit checks
+
+**Required:**
+- `genotools.yaml` `version` is a valid semver string (MAJOR.MINOR.PATCH)
+
+**Recommended:**
+- If `pyproject.toml` exists and has `project.version`, it matches `genotools.yaml` version
+- If `package.json` exists and has `version`, it matches `genotools.yaml` version
+- If root `SKILL.md` has `metadata.version` in frontmatter, it matches `genotools.yaml` version
+- If a Python `__init__.py` in the package root has `__version__`, it matches `genotools.yaml` version
+
+**Info:**
+- If skills have been added or removed since the last git tag (compare `skills/` directories against the most recent tag), note that a version bump may be warranted
+
+---
+
 ## Umbrella Skill — `SKILL.md`
 
 `SKILL.md` at the repo root is the umbrella manifest that describes the skillset to Claude Code and other agents. When `geno-tools install` runs `npx skills add`, this file is what gets registered — it tells the agent what the skillset does, when to use it, and what tools it's allowed to call. A skillset without a valid `SKILL.md` will install on disk but won't be usable by any agent.
@@ -198,6 +218,7 @@ Rather than maintaining duplicate content across `CLAUDE.md`, `GEMINI.md`, `AGEN
    - **SKILL.md frontmatter**: required fields and format for new skills
    - **Adding a new skill**: step-by-step checklist (create directory under `skills/`, write SKILL.md with frontmatter, update umbrella description, update docs, update this file's skills table)
    - **Command prefix aliasing**: slash commands in repo source files must always use the canonical `geno-` prefix (e.g. `/geno-{name}-tasks-start`). The prefix users type (`/gt-`, `/geno-`, or bare `/`) is configured per-installation in `~/.geno/config.yaml` and applied at install time by `geno-tools install`. Never hardcode an aliased prefix like `gt-` in SKILL.md descriptions, GENO.md, or any committed file.
+   - **Versioning**: which files contain the version number (always `genotools.yaml`; plus any others like `pyproject.toml` or `package.json`) and the rule that the version must be bumped when adding/removing skills or changing behavior
 
 #### Recommended sections
 
@@ -257,6 +278,7 @@ This way, updating `GENO.md` updates every agent at once. No content lives in th
 - `GENO.md` Conventions section mentions command prefix aliasing — at minimum, states that source files use canonical `geno-` prefixed names for slash commands, not aliased prefixes
 - `GENO.md` Conventions section includes skill creation guidance — at minimum, a checklist for adding a new skill
 - `GENO.md` skills table uses canonical `/geno-{name}-*` slash command names, not aliased forms like `/gt-*`
+- `GENO.md` Conventions section includes versioning guidance — at minimum, identifies which files contain the version and states that the version should be bumped when skills are added, removed, or behavior changes
 
 ---
 
