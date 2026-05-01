@@ -33,6 +33,7 @@ Install by full repo name (e.g. `geno-tools install geno-<name>`):
 |-------|-------------|
 | geno-data-workspaces-init | Create data workspaces for personal/life skills (taxes, remodel, career) |
 | geno-skills-create | Scaffold a new skill in a geno ecosystem repo |
+| geno-skills-install | Install skills from a local repo checkout globally |
 
 ## Commands
 
