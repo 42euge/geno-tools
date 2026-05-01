@@ -11,9 +11,10 @@
 | geno-icons | — | /geno-icons |
 | geno-onboarding | — | /geno-onboarding |
 | geno-data-workspaces-init | — | /geno-data-workspaces-init |
-| geno-tools-update | — | /geno-tools-update |
 | geno-skills-create | — | /geno-skills-create |
+| geno-skills-install | — | /geno-skills-install |
 | geno-tools-open-docs | — | /geno-tools-open-docs |
+| geno-tools-update | — | /geno-tools-update |
 
 ## Repo structure
 
@@ -42,6 +43,7 @@ geno-tools/
 │   ├── geno-onboarding/SKILL.md   #   skillset onboarding wizard
 │   ├── geno-data-workspaces-init/SKILL.md  # data workspace scaffolder
 │   ├── geno-skills-create/SKILL.md #  skill scaffolder
+│   ├── geno-skills-install/SKILL.md #  local skill installer
 │   ├── geno-tools-update/SKILL.md #   ecosystem updater
 │   └── geno-tools-open-docs/SKILL.md      # docs site opener
 ├── config/defaults.yaml           # reference config with aliases schema
