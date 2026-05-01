@@ -1,1 +1,1 @@
-@./skills/geno-tools/SKILL.md
+@./GENO.md
