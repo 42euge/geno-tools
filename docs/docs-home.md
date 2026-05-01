@@ -2,8 +2,8 @@
 
 # geno-<span>tools</span>
 
-The package manager for AI coding agent skillsets.
-Install, fork, experiment, promote — as a native plugin in your coding agent.
+The agent-agnostic meta package manager for AI coding agents.
+Discover, absorb, evaluate, govern, evolve — as a native plugin in any coding agent.
 
 <div class="hero-buttons">
 <a href="getting-started/" class="btn-primary">Get Started</a>
@@ -15,43 +15,53 @@ Install, fork, experiment, promote — as a native plugin in your coding agent.
 <div class="feature-grid" markdown>
 
 <div class="feature-card" markdown>
-<span class="card-icon">:material-download:</span>
+<span class="card-icon">:material-magnify:</span>
 
-### Install in seconds
+### Discover
 
-Install as a Claude Code plugin or its equivalent on Codex, Cursor, Gemini CLI, or OpenCode. Short names resolve from a curated registry.
+Find skills from open-source registries, private GitHub/GitLab orgs, or any git remote.
 
 [Get started :material-arrow-right:](getting-started.md)
 </div>
 
 <div class="feature-card" markdown>
-<span class="card-icon">:material-console:</span>
+<span class="card-icon">:material-download:</span>
 
-### Full CLI
+### Absorb
 
-`ls`, `install`, `dev`, `fork`, `use`, `promote`, `update`, `remove`, `doctor` — everything you need.
+Normalize external skill systems (Superpowers, Vercel Skills, Ralphy Loop) into a unified framework.
 
-[CLI Reference :material-arrow-right:](cli-reference.md)
-</div>
-
-<div class="feature-card" markdown>
-<span class="card-icon">:material-puzzle:</span>
-
-### Skillset ecosystem
-
-Media, research, kaggle, agents — each a self-contained repo with a declarative manifest.
-
-[Browse skillsets :material-arrow-right:](skillsets/index.md)
+[Architecture :material-arrow-right:](architecture/index.md)
 </div>
 
 <div class="feature-card" markdown>
 <span class="card-icon">:material-source-branch:</span>
 
-### Variant worktrees
+### Evaluate
 
-Fork a skillset, experiment in isolation, promote back to main. Git worktrees under the hood.
+Fork a skill, experiment in isolation, promote back to main. Git worktrees power the meta-harness.
 
-[Learn more :material-arrow-right:](architecture/variants.md)
+[Variants :material-arrow-right:](architecture/variants.md)
+</div>
+
+<div class="feature-card" markdown>
+<span class="card-icon">:material-shield-check:</span>
+
+### Govern
+
+Built-in auditing scans for compliance — prompt injection, dependency hygiene, data boundaries.
+
+[Audit process :material-arrow-right:](onboarding/audit.md)
+</div>
+
+<div class="feature-card" markdown>
+<span class="card-icon">:material-puzzle:</span>
+
+### Evolve
+
+Compose skills across agents, combine external innovation with private knowledge.
+
+[Ecosystem :material-arrow-right:](ecosystem.md)
 </div>
 
 </div>
@@ -101,3 +111,6 @@ Fork a skillset, experiment in isolation, promote back to main. Git worktrees un
 
 :material-puzzle-outline: **Agent-agnostic**
 :   Target adapters for Claude Code, geno-cli, Codex, and Gemini CLI.
+
+:material-sync: **Lifecycle-driven**
+:   Every skill follows discover, absorb, evaluate, govern, evolve. The tooling enforces it.
