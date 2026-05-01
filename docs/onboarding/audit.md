@@ -1,5 +1,7 @@
 # Audit Process
 
+Auditing is a core architectural pillar of geno-tools, not an optional add-on. Every skill that enters the ecosystem — whether from the public registry, an enterprise namespace, or a direct URL — passes through this compliance gate. The audit enforces the **govern** phase of the skill lifecycle (discover, absorb, evaluate, **govern**, evolve).
+
 The audit checklist. Run it before approving a skillset for the public registry, and before admitting one to an enterprise namespace.
 
 A skillset is allowed to inject prompts into the agent's context, run shell commands, install Python dependencies, and symlink files into the user's home directory. Audit accordingly. The bar is "would I install this on my own machine."

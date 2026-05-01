@@ -1,6 +1,18 @@
 # Architecture
 
-geno-tools is structured around a few core concepts:
+geno-tools is an agent-agnostic meta package manager structured around a five-phase skill lifecycle: **discover, absorb, evaluate, govern, evolve**. This page covers the core architectural components that implement that lifecycle.
+
+## Skill lifecycle
+
+```
+discover ──→ absorb ──→ evaluate ──→ govern ──→ evolve
+    │            │           │           │          │
+discovery.py  install    fork/use     geno-audit  promote
+registry.py   npx skills  worktrees   audit.md    merge → main
+config.yaml   normalize
+```
+
+Discovery finds candidates from heterogeneous sources (public registries, private GitHub/GitLab/Bitbucket orgs, direct URLs). Absorption normalizes them via `geno-tools install` into the `SKILL.md` + `genotools.yaml` contract. Evaluation uses the variant worktree system (`fork`/`use`/`promote`) to experiment in isolation. Governance runs the audit checklist before skills enter any namespace. Evolution promotes successful variants back to main, and the loop repeats.
 
 ## Multi-agent installation
 
@@ -79,6 +91,18 @@ geno-tools/
 ```
 
 Skills and commands are shared across all platforms. Each CLI has its own manifest that points at these shared directories.
+
+## Meta-harness
+
+The `fork`/`use`/`promote` workflow documented in [Variants & Worktrees](variants.md) constitutes the meta-harness: a system that drives evaluation and iteration of skills over time. Operators branch a skill into an isolated worktree, test modifications against real workloads, and promote the winner back to main. Multiple variations can coexist — the meta-harness manages the state so the active variant is always explicit.
+
+Combined with auditing, the meta-harness enables skills to evolve safely: experiment freely in isolation, but nothing reaches the default install path without passing the compliance gate.
+
+## Auditing
+
+Auditing is a core architectural pillar, not an optional add-on. Every skill that enters the ecosystem — whether from the public registry, an enterprise namespace, or a direct URL — passes through the compliance gate. The `geno-audit` skill and the [audit checklist](../onboarding/audit.md) cover prompt injection, dependency hygiene, filesystem boundaries, network data boundaries, and multi-agent integration.
+
+New ingestion paths must integrate with the audit system before shipping. See the [Audit Process](../onboarding/audit.md) for the full specification.
 
 ## Pages
 
