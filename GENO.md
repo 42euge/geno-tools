@@ -13,6 +13,7 @@
 | geno-data-workspaces-init | — | /geno-data-workspaces-init |
 | geno-skills-create | — | /geno-skills-create |
 | geno-skills-install | — | /geno-skills-install |
+| geno-skills-status | — | /geno-skills-status |
 | geno-tools-open-docs | — | /geno-tools-open-docs |
 | geno-tools-update | — | /geno-tools-update |
 
@@ -44,6 +45,7 @@ geno-tools/
 │   ├── geno-data-workspaces-init/SKILL.md  # data workspace scaffolder
 │   ├── geno-skills-create/SKILL.md #  skill scaffolder
 │   ├── geno-skills-install/SKILL.md #  local skill installer
+│   ├── geno-skills-status/SKILL.md #  ecosystem status reporter
 │   ├── geno-tools-update/SKILL.md #   ecosystem updater
 │   └── geno-tools-open-docs/SKILL.md      # docs site opener
 ├── config/defaults.yaml           # reference config with aliases schema
