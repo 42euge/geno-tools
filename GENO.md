@@ -10,6 +10,7 @@
 | Skill | Sub-skillset | Slash command |
 |-------|-------------|---------------|
 | geno-tools | — | — (umbrella) |
+| geno-alias | — | /geno-alias |
 | geno-audit | — | /geno-audit |
 | geno-icons | — | /geno-icons |
 | geno-onboarding | — | /geno-onboarding |
@@ -42,6 +43,7 @@ geno-tools/
 │   └── registry.py                #   curated registry of known skillsets
 ├── skills/                        # skill definitions
 │   ├── geno-tools/SKILL.md        #   umbrella skill
+│   ├── geno-alias/SKILL.md        #   custom skill aliasing
 │   ├── geno-audit/SKILL.md        #   ecosystem compliance auditor
 │   ├── geno-icons/SKILL.md        #   pixel art icon generator
 │   ├── geno-onboarding/SKILL.md   #   skillset onboarding wizard
