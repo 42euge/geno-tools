@@ -574,6 +574,30 @@ A repo's `GENO.md` should contain a skills table showing what skills *this* repo
 
 ---
 
+## Skill Observability
+
+Skills that participate in the self-improving ecosystem should declare observability metadata and emit traces on completion.
+
+### What to check
+
+For each `SKILL.md` under `skills/` (excluding the umbrella):
+
+1. **Observability frontmatter** — does the SKILL.md YAML frontmatter include an `observability:` section with `success_signal`, `failure_signals`, `knowledge_reads`, `knowledge_writes`?
+2. **Completion section** — does the skill have a `## Completion` section that calls `geno-trace emit`?
+3. **Context loading** — does the skill's workflow include a step that calls `geno-notes context` or otherwise loads knowledge before acting?
+
+### Audit checks
+
+**Recommended (WARN):**
+- Every non-umbrella skill should have an `observability:` section in its frontmatter. Without it, the health system can't track the skill's success rate.
+- Every non-umbrella skill should have a `## Completion` section that emits a trace via `geno-trace emit`. Without it, the self-improvement loop has no data.
+
+**Optional (INFO):**
+- Skills that benefit from context should include a context-loading step (e.g., `geno-notes context --skill <name>`).
+- The `knowledge_reads` and `knowledge_writes` fields should accurately reflect what the skill actually consumes and produces.
+
+---
+
 ## Running the Audit
 
 ### Input
