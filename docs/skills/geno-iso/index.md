@@ -60,6 +60,7 @@ Docker containers for isolated Claude Code environments
 ## geno-iso-containers-enter
 
 **Slash command:** `/geno-iso-containers-enter`
+  **Arguments:** `"[container-name] [--shell]"`
 
 > Interactively enter a running geno-iso container
 
@@ -94,8 +95,17 @@ Docker containers for isolated Claude Code environments
 ## geno-iso-containers-run
 
 **Slash command:** `/geno-iso-containers-run`
+  **Arguments:** `"[name] [workspace-path] [--rm] [-- agent-args...]"`
 
 > Spin up an isolated coding agent container with a mounted workspace
+
+??? info "Overview (Level 3)"
+
+    ## Input
+    
+    `$ARGUMENTS` — optional container name and workspace path.
+    
+    If empty, derive the name from the current working directory.
 
 ??? example "Full skill definition (Level 4)"
 
@@ -134,6 +144,11 @@ Docker containers for isolated Claude Code environments
 **Slash command:** `/geno-iso-dev-guide`
 
 > Development guide for the geno-iso codebase
+
+??? info "Overview (Level 3)"
+
+    Reference for developing the geno-iso codebase. Covers the settings seeding
+    pipeline, credential injection, and how Claude Code detects first-run state.
 
 ??? example "Full skill definition (Level 4)"
 
@@ -227,6 +242,7 @@ Docker containers for isolated Claude Code environments
 ## geno-iso-images-build
 
 **Slash command:** `/geno-iso-images-build`
+  **Arguments:** `"[--version X.Y.Z]"`
 
 > Build or rebuild the geno-iso Docker image
 

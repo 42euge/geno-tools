@@ -1,11 +1,11 @@
 ---
 title: geno-taxes
-description: Tax filing — document parsing, checklists, CPA packet prep
+description: Tax document collection, parsing, and CPA prep for personal filings
 ---
 
 # geno-taxes
 
-Tax filing — document parsing, checklists, CPA packet prep
+Tax document collection, parsing, and CPA prep for personal filings
 
 [:material-github: GitHub](https://github.com/42euge/geno-taxes){ .md-button }
 
@@ -13,20 +13,56 @@ Tax filing — document parsing, checklists, CPA packet prep
 
 | Skill | Slash command | Description |
 |-------|--------------|-------------|
-| [geno-tax-checklist](#geno-tax-checklist) | `/geno-tax-checklist` | "Tax Document Checklist" |
-| [geno-tax-fetch](#geno-tax-fetch) | `/geno-tax-fetch` | Retrieve tax documents from financial platforms using geno-vla (Playwright browser automation). |
-| [geno-tax-parse](#geno-tax-parse) | `/geno-tax-parse` | "Parse Tax Document" |
-| [geno-tax-status](#geno-tax-status) | `/geno-tax-status` | "Tax Filing Status" |
-| [geno-tax-summary](#geno-tax-summary) | `/geno-tax-summary` | "Tax Year Summary for CPA" |
+| [geno-tax-checklist](#geno-tax-checklist) | `/geno-tax-checklist` | Tax Document Checklist. |
+| [geno-tax-fetch](#geno-tax-fetch) | `/geno-tax-fetch` | Fetch Tax Documents via Browser. |
+| [geno-tax-parse](#geno-tax-parse) | `/geno-tax-parse` | Parse Tax Document. |
+| [geno-tax-status](#geno-tax-status) | `/geno-tax-status` | Tax Filing Status. |
+| [geno-tax-summary](#geno-tax-summary) | `/geno-tax-summary` | Tax Year Summary for CPA. |
+
+## Overview
+
+??? abstract "Skillset overview (from SKILL.md)"
+
+    # geno-taxes
+    
+    Personal tax filing skills for Claude Code. Manages the yearly cycle of collecting 1099s / W-2s / earnings reports, parsing them into YAML organizers under `~/docs/finance/taxes/`, and generating CPA-ready summaries.
+    
+    **Local-only skillset.** Tax data is sensitive; this repo is not published. Its `geno-tools` registry entry points at this directory's absolute path, and `install` copies it into `~/.geno-tools/geno-taxes/repo/`:
+    
+    ```bash
+    geno-tools install taxes
+    ```
+    
+    ## Commands
+    
+    | Command | Description |
+    |---|---|
+    | `/gt-tax-status [year]` | Show document collection and data entry status across all years |
+    | `/gt-tax-checklist [year]` | List remaining documents with instructions on where to get them |
+    | `/gt-tax-parse <file>` | Parse a PDF/CSV tax doc and populate the YAML organizer |
+    | `/gt-tax-fetch <platform> [year]` | Download tax docs via geno-vla browser automation |
+    | `/gt-tax-summary <year>` | Generate a CPA-ready markdown summary from the YAML organizer |
+    
+    ## Runtime
+    
+    No venv or scripts — all commands are pure markdown workflows. `gt-tax-fetch` depends on the `geno-vla` MCP server for browser automation.
 
 ## geno-tax-checklist
 
 **Slash command:** `/geno-tax-checklist`
 
-> "Tax Document Checklist"
+> Tax Document Checklist.
+
+??? info "Overview (Level 3)"
+
+    ## Input
+    
+    `$ARGUMENTS` — Optional. Tax year (e.g., `2024`). If omitted, show all years.
 
 ??? example "Full skill definition (Level 4)"
 
+    # Tax Document Checklist
+    
     Show remaining documents needed for a specific tax year with instructions on where to get them.
     
     ## Input
@@ -108,10 +144,25 @@ Tax filing — document parsing, checklists, CPA packet prep
 
 **Slash command:** `/geno-tax-fetch`
 
-> Retrieve tax documents from financial platforms using geno-vla (Playwright browser automation).
+> Fetch Tax Documents via Browser.
+
+??? info "Overview (Level 3)"
+
+    ## Input
+    
+    `$ARGUMENTS` — Required. Format: `<platform> [year]`
+    - Platform: `coinbase`, `robinhood`, `fidelity`, `schwab`, `venmo`
+    - Year: defaults to 2024 if omitted
+    
+    Examples:
+    - `/gt-tax-fetch coinbase 2024`
+    - `/gt-tax-fetch robinhood 2025`
+    - `/gt-tax-fetch venmo 2024`
 
 ??? example "Full skill definition (Level 4)"
 
+    # Fetch Tax Documents via Browser
+    
     Retrieve tax documents from financial platforms using geno-vla (Playwright browser automation).
     
     ## Input
@@ -211,10 +262,21 @@ Tax filing — document parsing, checklists, CPA packet prep
 
 **Slash command:** `/geno-tax-parse`
 
-> "Parse Tax Document"
+> Parse Tax Document.
+
+??? info "Overview (Level 3)"
+
+    ## Input
+    
+    `$ARGUMENTS` — Required. Path to a file. Examples:
+    - `/gt-tax-parse ~/Downloads/W2-2024.pdf`
+    - `/gt-tax-parse ~/Downloads/1099-B-robinhood.pdf`
+    - `/gt-tax-parse ~/Downloads/coinbase-gains.csv`
 
 ??? example "Full skill definition (Level 4)"
 
+    # Parse Tax Document
+    
     Parse a tax document (PDF or CSV) and populate the corresponding YAML organizer.
     
     ## Input
@@ -280,10 +342,18 @@ Tax filing — document parsing, checklists, CPA packet prep
 
 **Slash command:** `/geno-tax-status`
 
-> "Tax Filing Status"
+> Tax Filing Status.
+
+??? info "Overview (Level 3)"
+
+    ## Input
+    
+    `$ARGUMENTS` — Optional. A specific tax year (e.g., `2024`). If omitted, show all years.
 
 ??? example "Full skill definition (Level 4)"
 
+    # Tax Filing Status
+    
     Show the document collection and data entry status across all tax years.
     
     ## Input
@@ -353,10 +423,18 @@ Tax filing — document parsing, checklists, CPA packet prep
 
 **Slash command:** `/geno-tax-summary`
 
-> "Tax Year Summary for CPA"
+> Tax Year Summary for CPA.
+
+??? info "Overview (Level 3)"
+
+    ## Input
+    
+    `$ARGUMENTS` — Required. Tax year (e.g., `2024`, `2025`, `2023`).
 
 ??? example "Full skill definition (Level 4)"
 
+    # Tax Year Summary for CPA
+    
     Generate a clean, CPA-ready summary of a tax year from the YAML organizer.
     
     ## Input

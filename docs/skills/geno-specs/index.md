@@ -62,12 +62,18 @@ Execution specifications — create, validate, run, and review
 ## geno-specs-create
 
 **Slash command:** `/geno-specs-create`
+  **Arguments:** `"[title or template:name]"`
 
 > Create a new structured execution spec
 
-??? info "Observability"
+??? info "Overview (Level 3)"
 
-    success_signal: "spec file created and populated with inputs/outputs/steps" failure_signals: - "geno-specs create command failed" - "scope directory could not be initialized" - "user abandoned spec before filling required fields" knowledge_reads: - "available templates (geno-specs create --list-templates)" - "existing specs in scope (project or global)" knowledge_writes: - "spec file (YAML frontmatter + markdown body)" - "scope directory initialized (./geno/geno-specs/ or ~/.geno/geno-specs/)"
+    ## Input
+    
+    `$ARGUMENTS` is optional. Formats:
+    - `title words here` — create a spec with that title
+    - `template:bug-fix Title here` — use a template
+    - (empty) — interactive mode
 
 ??? example "Full skill definition (Level 4)"
 
@@ -173,12 +179,18 @@ Execution specifications — create, validate, run, and review
 ## geno-specs-list
 
 **Slash command:** `/geno-specs-list`
+  **Arguments:** `"[--status ready] [--tag feature]"`
 
 > List specs with optional status and tag filters
 
-??? info "Observability"
+??? info "Overview (Level 3)"
 
-    success_signal: "spec listing displayed (or empty list with suggestion)" failure_signals: - "geno-specs list command failed" - "no scope directory found" knowledge_reads: - "spec files in active scope (project or global)" knowledge_writes: []
+    ## Input
+    
+    `$ARGUMENTS` can contain filter flags:
+    - `--status <status>` or just `ready`, `draft`, `running`, `done`, `failed`
+    - `--tag <tag>`
+    - `--json` for machine-readable output
 
 ??? example "Full skill definition (Level 4)"
 
@@ -220,12 +232,15 @@ Execution specifications — create, validate, run, and review
 ## geno-specs-run
 
 **Slash command:** `/geno-specs-run`
+  **Arguments:** `"[spec-id or pattern]"`
 
 > Pick up a spec, render its agent prompt, and execute it
 
-??? info "Observability"
+??? info "Overview (Level 3)"
 
-    success_signal: "spec executed and all validation checks passed, marked done" failure_signals: - "validation checks failed after execution" - "dependency specs not in done state" - "spec marked failed after unrecoverable error" knowledge_reads: - "spec file (inputs, steps, outputs, checks)" - "dependency specs (depends_on entries)" - "input files listed in the spec" knowledge_writes: - "output files listed in the spec" - "spec status transition (ready → running → done/failed)"
+    ## Input
+    
+    `$ARGUMENTS` is the spec ID or a fuzzy pattern. If empty, show ready specs and ask which to run.
 
 ??? example "Full skill definition (Level 4)"
 
@@ -320,12 +335,15 @@ Execution specifications — create, validate, run, and review
 ## geno-specs-show
 
 **Slash command:** `/geno-specs-show`
+  **Arguments:** `"<spec-id> [--prompt|--json]"`
 
 > Show a spec's full contents, as JSON, or as an agent-executable prompt
 
-??? info "Observability"
+??? info "Overview (Level 3)"
 
-    success_signal: "spec contents displayed in requested format" failure_signals: - "spec ID not found or ambiguous" - "geno-specs show command failed" knowledge_reads: - "spec file (YAML frontmatter + markdown body)" knowledge_writes: []
+    ## Input
+    
+    `$ARGUMENTS` is the spec ID, optionally followed by `--prompt` or `--json`.
 
 ??? example "Full skill definition (Level 4)"
 
@@ -364,12 +382,15 @@ Execution specifications — create, validate, run, and review
 ## geno-specs-validate
 
 **Slash command:** `/geno-specs-validate`
+  **Arguments:** `"<spec-id>"`
 
 > Run a spec's completion checks
 
-??? info "Observability"
+??? info "Overview (Level 3)"
 
-    success_signal: "all output checks and validation commands passed" failure_signals: - "one or more output checks failed" - "validation command returned non-zero exit code" - "spec ID not found" knowledge_reads: - "spec file (outputs and checks definitions)" - "output files referenced by the spec" knowledge_writes: - "spec status transition (running → done, if all checks pass and user confirms)"
+    ## Input
+    
+    `$ARGUMENTS` is the spec ID.
 
 ??? example "Full skill definition (Level 4)"
 

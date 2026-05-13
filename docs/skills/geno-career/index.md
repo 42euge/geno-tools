@@ -55,12 +55,21 @@ Career toolkit — job search, resume building, application tracking
 ## geno-career-applications-track
 
 **Slash command:** `/geno-career-applications-track`
+  **Arguments:** `"[add|update|list|show|stats] [args...]"`
 
 > Track job applications through the pipeline
 
-??? info "Observability"
+??? info "Overview (Level 3)"
 
-    success_signal: "subcommand completed — application added, updated, listed, shown, or stats displayed" failure_signals: - "data/applications.yaml is malformed or unreadable" - "application not found by ID or company name" - "write to tracker file failed" knowledge_reads: - "data/applications.yaml (application tracker)" knowledge_writes: - "data/applications.yaml (new or updated application entries)"
+    ## Input
+    
+    `$ARGUMENTS` — Subcommand + args:
+    - `add <company> <role> [--url <url>] [--status applied]` — Add new application
+    - `update <id-or-company> --status <status> [--notes "..."]` — Update status
+    - `list [--status <status>] [--active]` — List applications
+    - `show <id-or-company>` — Show full details for an application
+    - `stats` — Summary statistics across all applications
+    - (no args) — Show active applications (same as `list --active`)
 
 ??? example "Full skill definition (Level 4)"
 
@@ -167,12 +176,21 @@ Career toolkit — job search, resume building, application tracking
 ## geno-career-jobs-search
 
 **Slash command:** `/geno-career-jobs-search`
+  **Arguments:** `"<query> [--remote] [--level senior] [--board linkedin] [--days 14]"`
 
 > Search for job postings across multiple boards (LinkedIn, Indeed, Glassdoor, Wellfound, YC)
 
-??? info "Observability"
+??? info "Overview (Level 3)"
 
-    success_signal: "job search results table displayed with at least one matching posting" failure_signals: - "all WebSearch queries returned zero results" - "config/defaults/career.yaml or data/profile.yaml missing" - "WebSearch or WebFetch tool call failed" knowledge_reads: - "config/defaults/career.yaml (default search preferences)" - "data/profile.yaml (skills keywords for match highlighting)" knowledge_writes: []
+    ## Input
+    
+    `$ARGUMENTS` — Required. The search query plus optional filters:
+    - `<query>` — Job title, keywords, or company (e.g., "ML engineer", "senior backend at Stripe")
+    - `--remote` — Filter to remote positions
+    - `--level <level>` — Experience level: junior, mid, senior, staff, principal
+    - `--board <board>` — Specific board: linkedin, indeed, glassdoor, wellfound, ycombinator
+    - `--days <n>` — Posted within last N days (default: 30)
+    - `--location <loc>` — Location filter (e.g., "San Francisco", "US")
 
 ??? example "Full skill definition (Level 4)"
 
@@ -250,12 +268,23 @@ Career toolkit — job search, resume building, application tracking
 ## geno-career-letters-generate
 
 **Slash command:** `/geno-career-letters-generate`
+  **Arguments:** `"<job-url-or-description> [--tone professional|conversational|enthusiastic] [--resume path]"`
 
 > Generate a tailored cover letter for a specific job posting
 
-??? info "Observability"
+??? info "Overview (Level 3)"
 
-    success_signal: "cover letter written to output path and displayed to user" failure_signals: - "job posting URL unreachable or unparseable" - "base resume or profile.yaml missing and no --resume provided" - "WebFetch or WebSearch tool call failed" knowledge_reads: - "data/profile.yaml (contact info and skills inventory)" - "data/resumes/base.md (experience context)" - "config/defaults/career.yaml (tone preference)" knowledge_writes: - "data/generated/cover-letters/cover-letter-{company}-{role-slug}.md"
+    ## Input
+    
+    `$ARGUMENTS` — Required. Either:
+    - A URL to a job posting
+    - A pasted job description
+    - A company name + role (e.g., "Stripe senior backend engineer")
+    
+    Optional flags:
+    - `--tone <tone>` — Writing style: `professional` (default), `conversational`, `enthusiastic`
+    - `--resume <path>` — Path to tailored resume (for consistency)
+    - `--output <path>` — Custom output path
 
 ??? example "Full skill definition (Level 4)"
 
@@ -350,12 +379,23 @@ Career toolkit — job search, resume building, application tracking
 ## geno-career-resumes-build
 
 **Slash command:** `/geno-career-resumes-build`
+  **Arguments:** `"<job-url-or-description> [--base path/to/resume.md] [--format md|pdf]"`
 
 > Build or tailor a resume for a specific job posting
 
-??? info "Observability"
+??? info "Overview (Level 3)"
 
-    success_signal: "tailored resume written to output path with diff summary displayed" failure_signals: - "base resume (data/resumes/base.md) missing and no --base provided" - "job posting URL unreachable or unparseable" - "WebFetch tool call failed" knowledge_reads: - "data/resumes/base.md (master resume)" - "data/profile.yaml (structured skills/education data)" - "data/source/ (variant notes for tailoring strategy)" knowledge_writes: - "data/generated/resumes/resume-{company}-{role-slug}.md"
+    ## Input
+    
+    `$ARGUMENTS` — Required. Either:
+    - A URL to a job posting
+    - A pasted job description
+    - A path to a file containing the job description
+    
+    Optional flags:
+    - `--base <path>` — Path to base resume (overrides config)
+    - `--format <fmt>` — Output format: `md` (default), `pdf` (requires pandoc + LaTeX)
+    - `--output <path>` — Custom output path
 
 ??? example "Full skill definition (Level 4)"
 

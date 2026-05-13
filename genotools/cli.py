@@ -57,6 +57,14 @@ def main(argv: list[str] | None = None) -> int:
     p_scan.add_argument("--namespace", help="filter by namespace prefix (e.g. 'geno', 'acme')")
     p_scan.add_argument("--dry-run", action="store_true", help="list candidates without writing to queue")
 
+    p_docs = sub.add_parser("docs", help="compile skill documentation from SKILL.md files")
+    p_docs.add_argument("--docs-dir", type=str, default=None,
+                        help="MkDocs docs/ directory (default: auto-detect)")
+    p_docs.add_argument("--extra-dir", type=str, action="append", default=[],
+                        help="additional directory to scan for skills")
+    p_docs.add_argument("--dry-run", action="store_true",
+                        help="print without writing files")
+
     args = parser.parse_args(argv)
 
     from genotools import commands

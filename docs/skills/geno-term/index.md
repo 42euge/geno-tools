@@ -83,8 +83,15 @@ Terminal automation and session recovery
 ## geno-term-sessions-restart
 
 **Slash command:** `/geno-term-sessions-restart`
+  **Arguments:** `"<target_dir>"`
 
 > Restart coding agent sessions in a project tree after a crash by opening them as iTerm2 tabs and panes grouped by wor...
+
+??? info "Overview (Level 3)"
+
+    ## Input
+    
+    `$ARGUMENTS` — the target directory. Defaults to the current working directory if empty.
 
 ??? example "Full skill definition (Level 4)"
 

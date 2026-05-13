@@ -31,6 +31,7 @@ def dispatch(args: argparse.Namespace) -> int:
         "doctor": _doctor,
         "discover": _discover,
         "scan": _scan,
+        "docs": _docs,
     }
     return handlers[args.cmd](args)
 
@@ -651,6 +652,26 @@ def _scan(args: argparse.Namespace) -> int:
 
     if not args.dry_run:
         print(f"\ncandidates written to {discovery.CANDIDATES_FILE}")
+    return 0
+
+
+def _docs(args: argparse.Namespace) -> int:
+    from genotools.docs import compile_docs
+
+    docs_dir = Path(args.docs_dir) if args.docs_dir else None
+    if docs_dir is None:
+        cwd = Path.cwd()
+        if (cwd / "docs").is_dir():
+            docs_dir = cwd / "docs"
+        elif (cwd / "mkdocs.yml").is_file():
+            docs_dir = cwd / "docs"
+        else:
+            print("Error: cannot find docs/ directory. Use --docs-dir.",
+                  file=sys.stderr)
+            return 1
+
+    extra = [Path(d) for d in (args.extra_dir or [])]
+    compile_docs(docs_dir, extra or None, dry_run=args.dry_run)
     return 0
 
 

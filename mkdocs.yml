@@ -71,9 +71,13 @@ nav:
           - geno-research: skills/geno-research/index.md
       - Creative:
           - geno-voice: skills/geno-voice/index.md
+          - geno-media: skills/geno-media/index.md
       - Life:
           - geno-career: skills/geno-career/index.md
           - geno-taxes: skills/geno-taxes/index.md
+          - geno-budget: skills/geno-budget/index.md
+          - geno-hoa: skills/geno-hoa/index.md
+          - geno-remodel: skills/geno-remodel/index.md
   - Skillsets:
       - skillsets/index.md
       - Creating a Skillset: skillsets/creating.md

@@ -42,8 +42,32 @@ Agentic execution loop patterns — cruise, turbocharge, autopilot
 ## geno-loops-autopilot
 
 **Slash command:** `/geno-loops-autopilot`
+  **Arguments:** `"[task] [--watch <tests|ci|lint|git|all>] [--every <15m|30m>] [--for <duration>]"`
 
 > Background monitoring loop
+
+??? info "Overview (Level 3)"
+
+    ## Input
+    
+    Parse `$ARGUMENTS` for:
+    
+    - **Task pattern** — fuzzy-matches against geno-notes tasks (optional)
+    - **`--watch <tests|ci|lint|git|all>`** — what to monitor. Default: `all`
+    - **`--every <15m|30m>`** — wake interval. Default: `15m`
+    - **`--for <duration>`** — total monitoring window. Default: `24h`, max `7d`
+    
+    If no explicit watch target is given, monitor `ci`, `lint`, `tests`, and `git`.
+    
+    
+    ## When to Use
+    
+    - You opened a PR and want passive CI/watchdog coverage
+    - You want regression catching while other work is happening
+    - You need low-touch maintenance over hours instead of an active tight loop
+    - You want automatic journaling of failures, fixes, and follow-up tasks
+    
+    Do **not** use when the goal is active implementation (use Turbocharge or Cruise), exploratory research (use Drift), or a one-time delayed action (use Snooze).
 
 ??? example "Full skill definition (Level 4)"
 
@@ -226,8 +250,29 @@ Agentic execution loop patterns — cruise, turbocharge, autopilot
 ## geno-loops-boost
 
 **Slash command:** `/geno-loops-boost`
+  **Arguments:** `"[task] [--work <min>] [--reflect <min>]"`
 
 > Time-boxed focus sessions (Pomodoro)
+
+??? info "Overview (Level 3)"
+
+    ## Input
+    
+    Parse `$ARGUMENTS` for:
+    
+    - **Task pattern** — fuzzy-matches against geno-notes tasks (optional)
+    - **`--work <min>`** — duration of the work phase in minutes (default: 25)
+    - **`--reflect <min>`** — duration of the reflection phase in minutes (default: 5)
+    
+    
+    ## When to Use
+    
+    - **Complex investigation** where context degradation is a risk
+    - **Open-ended exploration** or debugging without a clear end-point
+    - When you want to ensure **steady journal logging**
+    - To prevent "rabbit-holing" on a single approach for too long
+    
+    Do **not** use when you have a clear plan (use Cruise), when you have a testable spec (use Turbocharge), or for quick tasks (under 30min).
 
 ??? example "Full skill definition (Level 4)"
 
@@ -336,12 +381,38 @@ Agentic execution loop patterns — cruise, turbocharge, autopilot
 ## geno-loops-cruise
 
 **Slash command:** `/geno-loops-cruise`
+  **Arguments:** `"[task] [--plan <file>]"`
 
 > Plan-driven sequential execution loop
 
-??? info "Observability"
+??? info "Overview (Level 3)"
 
-    success_signal: "all plan steps completed successfully" failure_signals: - "step failed twice consecutively" - "user intervention required" knowledge_reads: - "geno-notes tasks (active, project scope)" - "geno-notes plans" knowledge_writes: - "geno-notes journal (milestones per step)" - ".geno/loops/cruise/*/session.md"
+    ## Input
+    
+    Parse `$ARGUMENTS` for:
+    
+    - **Task pattern** — fuzzy-matches against geno-notes tasks (optional)
+    - **`--plan <file>`** — path to a plan file with numbered steps
+    
+    Plan discovery order if `--plan` is not provided:
+    
+    1. Check `geno-notes plans/<task-slug>.md` for the matched task
+    2. Check `.geno/loops/cruise/` for a recent session with an unfinished plan
+    3. If nothing found, use `AskUserQuestion` to ask the user for one of:
+       - A plan file path
+       - A numbered list of steps (freeform text — write to `.geno/loops/cruise/<session>/plan.md`)
+       - "Create one" — enter `EnterPlanMode`, design a plan, save it, then continue
+    
+    
+    ## When to Use
+    
+    - You have a **clear, ordered plan** with numbered steps
+    - Steps are mostly **sequential** — each builds on the previous
+    - Multi-step refactors, migration checklists, documentation across files
+    - Following a plan written in a previous planning session
+    - Executing a runbook or checklist
+    
+    Do **not** use when the work needs re-planning as it progresses (use Overdrive), when steps are independent and can run in parallel (use NOS), or when there's no plan yet and the goal is exploratory (use Drift or Boost).
 
 ??? example "Full skill definition (Level 4)"
 
@@ -546,8 +617,30 @@ Agentic execution loop patterns — cruise, turbocharge, autopilot
 ## geno-loops-drift
 
 **Slash command:** `/geno-loops-drift`
+  **Arguments:** `"[starting-question] [--max <n>]"`
 
 > Question-driven exploration loop
+
+??? info "Overview (Level 3)"
+
+    ## Input
+    
+    Parse `$ARGUMENTS` for:
+    
+    - **Starting question** — the initial inquiry to kick off exploration (optional)
+    - **`--max <n>`** — maximum cycles (default: 10)
+    
+    If no starting question is provided, use `AskUserQuestion` to ask the user what they want to explore.
+    
+    
+    ## When to Use
+    
+    - **Codebase archaeology**: Understanding how a legacy or complex system works
+    - **Debugging**: Investigating issues with high uncertainty or "where do I even start?"
+    - **Research**: Exploring a new library, framework, or architectural pattern
+    - **Root-cause analysis**: Following a chain of "why" questions
+    
+    Do **not** use when you have a clear spec or target (use Turbocharge), when you have a linear plan (use Cruise), or when you just need to get work done in focused blocks (use Boost).
 
 ??? example "Full skill definition (Level 4)"
 
@@ -666,8 +759,35 @@ Agentic execution loop patterns — cruise, turbocharge, autopilot
 ## geno-loops-ignition
 
 **Slash command:** `/geno-loops-ignition`
+  **Arguments:** `"[goal] [--blueprint <file>] [--max <n>]"`
 
 > Cold-start bootstrap loop
+
+??? info "Overview (Level 3)"
+
+    ## Input
+    
+    Parse `$ARGUMENTS` for:
+    
+    - **Task pattern** — fuzzy-matches against geno-notes tasks (optional)
+    - **Goal text** — a freeform description of what to bootstrap
+    - **`--blueprint <file>`** — start from an existing blueprint instead of generating one
+    - **`--max <n>`** — maximum layers or iterations (default: 6)
+    
+    If no task pattern or goal is provided, use `AskUserQuestion` to ask the user for one of:
+    1. A high-level goal
+    2. A blueprint file path
+    3. "Start from current issue/task"
+    
+    
+    ## When to Use
+    
+    - Starting a new project, package, module, or feature branch from a rough goal
+    - Bootstrapping structure before detailed specs exist
+    - Standing up the first vertical slice: skeleton, core implementation, and verification harness
+    - Turning an issue brief into an executable blueprint
+    
+    Do **not** use when a spec already exists (use Turbocharge), when a step-by-step plan already exists (use Cruise), or when the work is mostly exploratory research (use Drift).
 
 ??? example "Full skill definition (Level 4)"
 
@@ -868,12 +988,20 @@ Agentic execution loop patterns — cruise, turbocharge, autopilot
 ## geno-loops-supercharge
 
 **Slash command:** `/geno-loops-supercharge`
+  **Arguments:** `"[duration] [scope] e.g. 'go!', '4h auth-refactor', '12h all'"`
 
 > Run an extended autonomous work session with structured cycles of planning, implementation, and evaluation
 
-??? info "Observability"
+??? info "Overview (Level 3)"
 
-    success_signal: "all planned cycles completed (or early-stopped because tasks are healthy) with checkpoints and session log written" failure_signals: - "cycle agent crashes repeatedly and no checkpoint is written" - "same action fails 3+ times without forward progress" - "git push or Kaggle API errors block all remaining work" knowledge_reads: - "task notebooks and reviews in tasks/" - "CLAUDE.md for architecture rules" - "~/.geno/supercharge/state.json (cross-session memory)" - "previous cycle checkpoints" knowledge_writes: - "session log at geno-agents/supercharge/sessions/<timestamp>/session.md" - "cycle checkpoints at geno-agents/supercharge/sessions/<timestamp>/checkpoints/" - "~/.geno/supercharge/state.json (updated cross-session memory)" - "task reviews in tasks/<task>/review/"
+    ## Input
+    
+    `$ARGUMENTS` — Optional directives. Examples:
+    - `go!` — Start with defaults (8 hours, all discovered tasks)
+    - `4h auth-refactor` — 4 hours focused on one area
+    - `12h all` — Maximum duration across everything
+    
+    If no arguments, ask the user for duration and scope.
 
 ??? example "Full skill definition (Level 4)"
 
@@ -1079,12 +1207,35 @@ Agentic execution loop patterns — cruise, turbocharge, autopilot
 ## geno-loops-turbocharge
 
 **Slash command:** `/geno-loops-turbocharge`
+  **Arguments:** `"[task] [--spec <file>] [--max <n>]"`
 
 > Spec-driven convergence loop
 
-??? info "Observability"
+??? info "Overview (Level 3)"
 
-    success_signal: "all acceptance criteria pass" failure_signals: - "max iterations reached with failing criteria" - "spec runner crashed twice" - "same criterion fails 3 iterations in a row" knowledge_reads: - "geno-notes tasks (active, project scope)" - "geno-notes plans" knowledge_writes: - "geno-notes journal (milestones per criterion)" - ".geno/loops/turbocharge/*/session.md"
+    ## Input
+    
+    Parse `$ARGUMENTS` for:
+    
+    - **Task pattern** — fuzzy-matches against geno-notes tasks (optional)
+    - **`--spec <file>`** — path to the spec file (test suite, criteria list, type definitions)
+    - **`--max <n>`** — maximum iterations (default: 8)
+    
+    If no spec is provided, use `AskUserQuestion` to ask the user for one of:
+    1. A test file to run
+    2. A list of acceptance criteria (freeform text — write them to `.geno/loops/turbocharge/<session>/spec.md`)
+    3. A type contract or API spec file
+    
+    
+    ## When to Use
+    
+    - You have a **testable target**: test suite, type definitions, acceptance criteria, API contract
+    - The work is **convergence-oriented** — each iteration should get closer to passing
+    - TDD: write tests first, then loop until green
+    - Contract-first development: implement until the interface is satisfied
+    - Migrations with known targets: old behavior must be preserved in new code
+    
+    Do **not** use when the goal is exploratory (use Drift), when there's no spec to validate against (use Boost), or when the work has many independent items (use NOS).
 
 ??? example "Full skill definition (Level 4)"
 

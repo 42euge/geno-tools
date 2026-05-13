@@ -1,11 +1,11 @@
 ---
 title: geno-agents
-description: Multi-agent coordination, registration, autonomous loops
+description: Agent coordination layer — registration, discovery, and presence for multi-agent systems
 ---
 
 # geno-agents
 
-Multi-agent coordination, registration, autonomous loops
+Agent coordination layer — registration, discovery, and presence for multi-agent systems
 
 [:material-github: GitHub](https://github.com/42euge/geno-agents){ .md-button }
 
@@ -13,8 +13,8 @@ Multi-agent coordination, registration, autonomous loops
 
 | Skill | Slash command | Description |
 |-------|--------------|-------------|
-| [geno-agents-supercharge](#geno-agents-supercharge) | `/geno-agents-supercharge` | Run an extended autonomous work session across benchmark tasks with structured cycles of implementation, reflection, ... |
-| [geno-agents-tasks-start](#geno-agents-tasks-start) | `/geno-agents-tasks-start` | Pick up a task from the current workspace's geno-notes project scope, plan if needed, and start executing |
+| [geno-agents-supercharge](#geno-agents-supercharge) | `/geno-agents-supercharge` | Run an extended autonomous work session across benchmark tasks with structured cycles of implemen... |
+| [geno-agents-tasks-start](#geno-agents-tasks-start) | `/geno-agents-tasks-start` | Pick up a task from the current workspace's geno-notes project scope, plan if needed, and start e... |
 
 ## Overview
 
@@ -22,97 +22,38 @@ Multi-agent coordination, registration, autonomous loops
 
     # geno-agents — Agent Coordination
     
-    ```!
-    which geno-agents >/dev/null 2>&1 || echo "⚠️ geno-agents CLI not on PATH. Run: geno-tools install agents"
-    ```
+    Umbrella skill for the geno-agents skillset. Routes to sub-skills based on arguments.
     
-    You have access to geno-agents MCP tools (`list_agents`, `who`, `update_agent`, `register_agent`) and the `geno-agents` CLI on PATH (installed by geno-tools).
+    ## Available skills
     
-    ## Commands
-    
-    Parse the user's arguments to determine the action:
-    
-    ### `/geno-agents` (no args) or `/geno-agents status`
-    Show the current agent network. Use the `list_agents` MCP tool. Display a clean summary:
-    - Each agent's role, project, what they're working on, resources in use, and last seen
-    - Highlight the current session
-    - Flag stale agents
-    
-    ### `/geno-agents who`
-    Show who this agent is — display the current session's agent card. Use the `who` MCP tool (no arguments needed).
-    
-    ### `/geno-agents who-are`
-    List all other agents in the network (excludes yourself). Run:
-    ```bash
-    geno-agents who-are --session-id "${CLAUDE_SESSION_ID:-}"
-    ```
-    
-    ### `/geno-agents whois <query>`
-    Find agents by role or capability. Use the `whois` MCP tool.
-    Example: `/geno-agents whois browser` → finds agents with browser capability.
-    
-    ### `/geno-agents register <role>`
-    Register this session as an agent with the given role. If a `.geno-agents` file exists in the current directory, read role/description/capabilities from it instead.
-    
-    To register from `.geno-agents` file:
-    ```bash
-    geno-agents register "$(grep '^role:' .geno-agents | sed 's/^role: *//')" \
-      --desc "$(grep '^description:' .geno-agents | sed 's/^description: *//')" \
-      --project "$(basename $(pwd))" \
-      --session-id "${CLAUDE_SESSION_ID:-}"
-    ```
-    
-    To register with a custom role:
-    Use the `register_agent` MCP tool with the provided role.
-    
-    After registering, confirm by showing the agent card via `list_agents`.
-    
-    ### `/geno-agents update`
-    Update this agent's card. Parse the arguments for:
-    - `--working-on "description"` — what you're currently doing
-    - `--using resource` — shared resource you're using (browser, api, etc.)
-    - `--status busy|available` — availability
-    
-    Use the `update_agent` MCP tool.
-    
-    ### `/geno-agents ls`
-    Alias for status — list all agents.
-    
-    ## Auto-Registration
-    
-    On session start, the `geno-agents-register.sh` hook automatically registers this session using the `.geno-agents` file in the project root. If no file exists, it infers the role from `CLAUDE.md`.
-    
-    You can check if you're registered by running `/geno-agents status`.
-    
-    ## Session ID environment variable
-    
-    The commands above use `$CLAUDE_SESSION_ID`, which is the session identifier set by Claude Code. Other coding agents (e.g., Gemini CLI, Cursor, Windsurf) may expose their session ID under a different environment variable. The `--session-id` flag accepts any string, so adapt the env var reference to match the agent in use. The Python CLI (`geno_agents/cli.py`) currently falls back to `CLAUDE_SESSION_ID` when no `--session-id` is provided; extending that fallback chain to other agents is tracked as a future improvement.
-    
-    ## `.geno-agents` File Format
-    
-    Projects declare their agent identity in a `.geno-agents` file at the repo root:
-    
-    ```yaml
-    role: dev-agent
-    description: Feature development and code review
-    capabilities:
-      - coding
-      - testing
-      - review
-    ```
+    | Skill | Slash command | Description |
+    |-------|--------------|-------------|
+    | geno-agents | /geno-agents | Agent coordination — status, register, update, who, whois |
+    | geno-agents-supercharge | /geno-agents-supercharge | Long-running autonomous agent loop |
+    | geno-agents-tasks-start | /geno-agents-tasks-start | Pick up and execute a task from geno-notes |
 
 ## geno-agents-supercharge
 
 **Slash command:** `/geno-agents-supercharge`
+  **Arguments:** `[duration] [scope]  e.g. 'go!', '4h change_blindness', '12h all'`
 
-> Run an extended autonomous work session across benchmark tasks with structured cycles of implementation, reflection, ...
+> Run an extended autonomous work session across benchmark tasks with structured cycles of implementation, reflection, and research.
 
-??? info "Observability"
+??? info "Overview (Level 3)"
 
-    success_signal: "all planned cycles completed (or early-stopped because tasks are healthy) with checkpoints and session log written" failure_signals: - "cycle agent crashes repeatedly and no checkpoint is written" - "same action fails 3+ times without forward progress" - "git push or Kaggle API errors block all remaining work" knowledge_reads: - "task notebooks and reviews in tasks/" - "CLAUDE.md for architecture rules" - "~/.geno/supercharge/state.json (cross-session memory)" - "previous cycle checkpoints" knowledge_writes: - "session log at geno-agents/supercharge/sessions/<timestamp>/session.md" - "cycle checkpoints at geno-agents/supercharge/sessions/<timestamp>/checkpoints/" - "~/.geno/supercharge/state.json (updated cross-session memory)" - "task reviews in tasks/<task>/review/"
+    ## Input
+    
+    `$ARGUMENTS` — Optional directives. Examples:
+    - `go!` — Start with defaults (8 hours, all tasks)
+    - `4h change_blindness` — 4 hours on one task
+    - `12h all` — Maximum duration across everything
+    
+    If no arguments, ask the user for duration and scope.
 
 ??? example "Full skill definition (Level 4)"
 
+    # Supercharge — Long-Running Autonomous Agent Loop
+    
     Run an extended autonomous work session across benchmark tasks with structured cycles of implementation, reflection, and research. Based on Anthropic's harness design patterns for long-running apps.
     
     ## Input
@@ -277,36 +218,24 @@ Multi-agent coordination, registration, autonomous loops
     - Don't modify notebooks without updating the timestamp
     - Don't push broken code — verify changes make sense before committing
     - Don't ignore CLAUDE.md rules (self-contained notebooks, llm as list, etc.)
-    
-    ## Completion
-    
-    When this skill finishes, emit a trace:
-    
-    ```bash
-    geno-trace emit \
-      --skill geno-agents-supercharge \
-      --status <success|failure|abandoned> \
-      --tool-calls <approximate count> \
-      --errors <count of tool/command errors>
-    ```
-    
-    - `success` = all planned cycles completed (or early-stopped because all tasks are healthy) with session log and final checkpoint written
-    - `failure` = loop terminated due to repeated cycle failures, unrecoverable git/Kaggle errors, or no forward progress after 3 retries
-    - `abandoned` = user stopped early
 
 ## geno-agents-tasks-start
 
 **Slash command:** `/geno-agents-tasks-start`
 
-> Pick up a task from the current workspace's geno-notes project scope, plan if needed, and start executing
+> Pick up a task from the current workspace's geno-notes project scope, plan if needed, and start executing. Workspace-only — global-scope tasks are out of scope for v0.1. Installed by geno-tools as the /gt-tasks-start slash command.
 
-??? info "Observability"
+??? info "Overview (Level 3)"
 
-    success_signal: "task marked done via geno-notes with milestone journal entry summarizing what was accomplished" failure_signals: - "no project scope found and user aborts initialization" - "task execution blocked and user cannot resolve blocker" - "geno-notes CLI errors prevent task state transitions" knowledge_reads: - "geno-notes project-scope task list (active + backlog)" - "CLAUDE.md / project instructions for project context" - "task details via geno-notes show" knowledge_writes: - "geno-notes journal entries (milestone, finding, bug, decision)" - "plan file at geno-notes path/plans/<task-id>.md (medium/large tasks)" - "task status transitions (backlog -> active -> done)"
+    ## Input
+    
+    The user optionally provides a task description or number as `$ARGUMENTS`. If empty, show the task list and ask which one to start.
 
 ??? example "Full skill definition (Level 4)"
 
-    Pick up a task from this workspace's `geno-notes` project scope (discovered automatically by `geno-notes path --project`) and start working on it.
+    # Start Task
+    
+    Pick up a task from this workspace's `geno-notes` project scope (`./geno/geno-notes/` in cwd or an ancestor) and start working on it.
     
     **Workspace-only.** This skill does not read from or write to the global geno-notes scope. If the user wants to start a task that lives globally, they should either `geno-notes promote <task> --to project` first, or invoke it manually outside this skill.
     
@@ -326,7 +255,7 @@ Multi-agent coordination, registration, autonomous loops
     geno-notes path --project 2>/dev/null
     ```
     
-    If the command exits non-zero (no project scope found in cwd or ancestors):
+    If the command exits non-zero (no `./geno/geno-notes/` in cwd or ancestors):
     
     1. **Ask the user upfront** using `AskUserQuestion` with these options:
        - **Initialize here** — run `geno-notes init --project` in the current directory.
@@ -407,19 +336,3 @@ Multi-agent coordination, registration, autonomous loops
     ```bash
     geno-notes list --project --status backlog
     ```
-    
-    ## Completion
-    
-    When this skill finishes, emit a trace:
-    
-    ```bash
-    geno-trace emit \
-      --skill geno-agents-tasks-start \
-      --status <success|failure|abandoned> \
-      --tool-calls <approximate count> \
-      --errors <count of tool/command errors>
-    ```
-    
-    - `success` = task marked done via `geno-notes done` with a summary milestone logged
-    - `failure` = task could not be completed due to unresolved blocker, missing project scope (user aborted), or repeated CLI errors
-    - `abandoned` = user stopped early

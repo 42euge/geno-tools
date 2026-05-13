@@ -30,8 +30,15 @@ Workspace management
 ## geno-ws-init
 
 **Slash command:** `/geno-ws-init`
+  **Arguments:** `"[config|list|<freeform text>]"`
 
 > Create development workspaces from GitHub issues, JIRA tickets, repo names, or feature ideas
+
+??? info "Overview (Level 3)"
+
+    ## Input
+    
+    `$ARGUMENTS` is either a utility subcommand (`config`, `list`) or freeform text describing what to work on.
 
 ??? example "Full skill definition (Level 4)"
 
