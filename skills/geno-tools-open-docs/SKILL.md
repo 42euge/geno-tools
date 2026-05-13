@@ -9,6 +9,13 @@ license: MIT
 metadata:
   author: 42euge
   version: "0.1.0"
+observability:
+  success_signal: "GitHub Pages URL resolved and opened in the default browser"
+  failure_signals:
+    - "gh api failed (no GitHub Pages configured or not a GitHub repo)"
+    - "open command failed"
+  knowledge_reads: []
+  knowledge_writes: []
 ---
 
 # geno-tools-open-docs — Open Documentation Site

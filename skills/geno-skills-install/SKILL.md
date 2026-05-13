@@ -12,6 +12,16 @@ license: MIT
 metadata:
   author: 42euge
   version: "0.1.0"
+observability:
+  success_signal: "all skills registered globally via npx skills add without errors"
+  failure_signals:
+    - "no geno repo detected in current directory or arguments"
+    - "npx skills add failed for one or more skills"
+    - "target repo validation failed (missing genotools.yaml or skills/)"
+  knowledge_reads:
+    - "<repo>/skills/ (skill directories to register)"
+    - "<repo>/genotools.yaml (skillset manifest)"
+  knowledge_writes: []
 ---
 
 # geno-skills-install — Install Local Skills Globally

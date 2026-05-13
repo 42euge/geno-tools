@@ -8,6 +8,15 @@ license: MIT
 metadata:
   author: 42euge
   version: "0.1.0"
+observability:
+  success_signal: "icon images generated and user selected one, copied to project docs/assets/icon.png"
+  failure_signals:
+    - "Python 3.12 or venv setup failed"
+    - "SD pipeline or LoRA loading error"
+    - "all generated images were black (NSFW filter false positives)"
+  knowledge_reads: []
+  knowledge_writes:
+    - "<repo>/docs/assets/icon.png (selected icon)"
 ---
 
 # geno-icons — Pixel Art Icon Generator

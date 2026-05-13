@@ -6,6 +6,22 @@ description: >-
   Gitea. Use when the user wants to add a new skillset, set up a private
   namespace, or audit a candidate repo before installing.
 allowed-tools: "Bash(geno-tools *) Bash(python3 -m genotools *) Read Write Edit"
+license: MIT
+metadata:
+  author: 42euge
+  version: "0.1.0"
+observability:
+  success_signal: "skillset passes audit and is installed via geno-tools install"
+  failure_signals:
+    - "candidate repo missing SKILL.md at root"
+    - "audit checklist has open red flags"
+    - "discovery configuration invalid or auth token missing"
+  knowledge_reads:
+    - "~/.geno/config.yaml (discovery sources)"
+    - "docs/onboarding/audit.md (audit checklist)"
+  knowledge_writes:
+    - "~/.geno/config.yaml (new discovery source entry, enterprise only)"
+    - "genotools/registry.py (new registry entry, public only)"
 ---
 
 # geno-onboarding — Skillset Onboarding (Public + Enterprise)

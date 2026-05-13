@@ -10,6 +10,18 @@ license: MIT
 metadata:
   author: 42euge
   version: "0.1.0"
+observability:
+  success_signal: "alias created, removed, or listed without errors"
+  failure_signals:
+    - "source skill not found"
+    - "npx skills add/remove command failed"
+    - ".genorc read/write error"
+  knowledge_reads:
+    - "~/.geno/.genorc (existing aliases)"
+    - "~/.agents/skills/ and ~/.claude/skills/ (installed skills)"
+  knowledge_writes:
+    - "~/.geno/.genorc (alias registry)"
+    - "~/.geno/aliases/<name>/SKILL.md (alias skill file)"
 ---
 
 # geno-alias — Skill Aliasing

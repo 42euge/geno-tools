@@ -10,6 +10,16 @@ license: MIT
 metadata:
   author: 42euge
   version: "0.1.0"
+observability:
+  success_signal: "status report printed with version, commit, and skill count for all installed skillsets"
+  failure_signals:
+    - "~/.geno-tools/ directory missing or empty"
+    - "specified skillset not installed"
+  knowledge_reads:
+    - "~/.geno-tools/geno-*/active/genotools.yaml (skillset manifests)"
+    - "~/.geno-tools/geno-*/main/.git (git state)"
+    - "~/.geno/health/ (skill health cards, if available)"
+  knowledge_writes: []
 ---
 
 # geno-skills-status — Ecosystem Installation Status

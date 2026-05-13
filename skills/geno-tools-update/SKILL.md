@@ -9,6 +9,16 @@ license: MIT
 metadata:
   author: 42euge
   version: "0.1.0"
+observability:
+  success_signal: "all targeted skillsets updated (or confirmed up-to-date) with summary printed"
+  failure_signals:
+    - "geno-tools update command returned non-zero exit code"
+    - "one or more skillsets errored during update"
+    - "network error during fetch from origin"
+  knowledge_reads:
+    - "~/.geno-tools/geno-*/ (installed skillsets to update)"
+  knowledge_writes:
+    - "~/.geno-tools/geno-*/main/ (updated worktrees)"
 ---
 
 # geno-tools-update — Update Ecosystem Repos

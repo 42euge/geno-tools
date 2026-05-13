@@ -9,6 +9,19 @@ license: MIT
 metadata:
   author: 42euge
   version: "0.1.0"
+observability:
+  success_signal: "data workspace directory created with metadata and CLAUDE.local.md, registry updated"
+  failure_signals:
+    - "workspace directory creation failed"
+    - "config.yaml missing and could not be created"
+    - "user cancelled during confirmation"
+  knowledge_reads:
+    - "~/.geno/config.yaml (workspace settings)"
+    - "~/.geno/data-workspaces.yaml (existing data workspaces)"
+  knowledge_writes:
+    - "~/.geno/data-workspaces.yaml (registry entry for new workspace)"
+    - "<workspace>/.geno/.workspace/workspace.yaml (workspace metadata)"
+    - "<workspace>/CLAUDE.local.md (agent context)"
 ---
 
 # Create Data Workspace

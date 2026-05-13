@@ -5,6 +5,17 @@ description: >-
   Use when user asks about installing, removing, listing, or updating
   geno ecosystem skillsets.
 allowed-tools: "Bash(geno-tools *) Bash(python3 -m genotools *)"
+observability:
+  success_signal: "user's geno-tools subcommand (install/remove/update/ls) completed successfully"
+  failure_signals:
+    - "geno-tools CLI not on PATH"
+    - "subcommand returned non-zero exit code"
+    - "source resolution failed (unknown repo name, bad URL, missing directory)"
+  knowledge_reads:
+    - "~/.geno-tools/ (installed skillsets)"
+    - "genotools/registry.py (curated registry)"
+  knowledge_writes:
+    - "~/.geno-tools/geno-*/ (installed skillset state)"
 ---
 
 # geno-tools — Skillset Manager

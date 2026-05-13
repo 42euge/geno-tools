@@ -11,6 +11,20 @@ license: MIT
 metadata:
   author: 42euge
   version: "0.1.0"
+observability:
+  success_signal: "new skill directory and SKILL.md created, umbrella skill and GENO.md updated"
+  failure_signals:
+    - "target geno repo not detected"
+    - "skill name collides with existing skill"
+    - "umbrella skill or GENO.md update failed"
+  knowledge_reads:
+    - "<repo>/skills/ (existing skill inventory)"
+    - "<repo>/GENO.md (skills table)"
+    - "<repo>/skills/<skillset>/SKILL.md (umbrella skill)"
+  knowledge_writes:
+    - "<repo>/skills/<new-skill>/SKILL.md (new skill definition)"
+    - "<repo>/skills/<skillset>/SKILL.md (updated umbrella)"
+    - "<repo>/GENO.md (updated skills table)"
 ---
 
 # geno-skills-create — Skill Scaffolder
