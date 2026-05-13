@@ -281,6 +281,37 @@
   background: #3a1560;
 }
 
+/* ── Skill catalog ── */
+
+.md-typeset .skill-count {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.15rem 0.6rem;
+  border-radius: 1rem;
+  background: #e8650a20;
+  color: #e8650a;
+  margin-top: 0.5rem;
+}
+
+[data-md-color-scheme="slate"] .md-typeset .skill-count {
+  background: #f0923a20;
+  color: #f0923a;
+}
+
+.md-typeset .feature-card h3 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.md-typeset .feature-card h3 a:hover {
+  color: #e8650a;
+}
+
+[data-md-color-scheme="slate"] .md-typeset .feature-card h3 a:hover {
+  color: #f0923a;
+}
+
 /* ── Announcement bar ── */
 
 .md-banner {

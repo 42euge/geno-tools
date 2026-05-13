@@ -1,74 +1,62 @@
+---
+title: Ecosystem
+description: The geno-* ecosystem at a glance
+---
+
 # Ecosystem
 
-The geno-\* ecosystem is a collection of repos that extend AI coding agents with specialized capabilities. geno-tools is the agent-agnostic meta package manager at the center: it discovers skills, absorbs external skill systems, evaluates variants via the meta-harness, governs compliance through auditing, and lets capabilities evolve safely.
+The geno ecosystem spans **17 skillsets** and **77 skills**.
 
-## Repos
+Browse the full [Skill Catalog](skills/index.md) or explore individual skillsets below.
 
-### Core
+## Skillsets
 
-| Repo | Description |
-|------|-------------|
-| [geno-tools](https://github.com/42euge/geno-tools) | Meta-CLI and Claude Code plugin — install, update, variant-manage skillsets |
-| [geno-agents](https://github.com/42euge/geno-agents) | Multi-agent coordination, registration, autonomous loops |
-| [geno-msg](https://github.com/42euge/geno-msg) | Inter-agent messaging |
-| [geno-notes](https://github.com/42euge/geno-notes) | Project journal, task management, timestamped notes |
-| [geno-mon](https://github.com/42euge/geno-mon) | Agent monitoring |
+| Skillset | Category | Skills | Description |
+|----------|----------|--------|-------------|
+| [geno-agents](skills/geno-agents/index.md) | :material-cube-outline: Core | 2 | Multi-agent coordination, registration, autonomous loops |
+| [geno-career](skills/geno-career/index.md) | :material-home-outline: Life | 4 | Career toolkit — job search, resume building, application tracking |
+| [geno-dev](skills/geno-dev/index.md) | :material-code-braces: Developer | 18 | Developer utilities — commits, worktrees, workspaces, feature shipping |
+| [geno-iso](skills/geno-iso/index.md) | :material-cog-outline: Runtime | 6 | Docker containers for isolated Claude Code environments |
+| [geno-kaggle](skills/geno-kaggle/index.md) | :material-chart-bar: Data & Research | 6 | Kaggle benchmarking, notebook upload, discussion scraping |
+| [geno-loops](skills/geno-loops/index.md) | :material-code-braces: Developer | 7 | Agentic execution loop patterns — cruise, turbocharge, autopilot |
+| [geno-mine](skills/geno-mine/index.md) | :material-wrench-outline: Tooling | 3 | Session mining — extract, analyze, and export agent session data |
+| [geno-mon](skills/geno-mon/index.md) | :material-cube-outline: Core | 0 | Agent observability and monitoring |
+| [geno-msg](skills/geno-msg/index.md) | :material-cube-outline: Core | 0 | Inter-agent messaging |
+| [geno-notes](skills/geno-notes/index.md) | :material-cube-outline: Core | 4 | Project journal, task management, wiki, and site generation |
+| [geno-research](skills/geno-research/index.md) | :material-chart-bar: Data & Research | 5 | Wiki-based research, paper generation, repo documentation |
+| [geno-specs](skills/geno-specs/index.md) | :material-code-braces: Developer | 5 | Execution specifications — create, validate, run, and review |
+| [geno-taxes](skills/geno-taxes/index.md) | :material-home-outline: Life | 5 | Tax filing — document parsing, checklists, CPA packet prep |
+| [geno-term](skills/geno-term/index.md) | :material-cog-outline: Runtime | 1 | Terminal automation and session recovery |
+| [geno-tools](skills/geno-tools/index.md) | :material-cube-outline: Core | 10 | Meta-CLI — install, update, and manage skillsets across all agents |
+| [geno-voice](skills/geno-voice/index.md) | :material-palette-outline: Creative | 0 | Voice pipeline |
+| [geno-ws](skills/geno-ws/index.md) | :material-cog-outline: Runtime | 1 | Workspace management |
 
-### Skillsets
-
-| Repo | Description |
-|------|-------------|
-| [geno-media](https://github.com/42euge/geno-media) | Audiobooks (Kokoro TTS), animated videos (Manim), podcasts, TTS/STT config |
-| [geno-research](https://github.com/42euge/geno-research) | Wiki-based research, paper generation, repo documentation |
-| [geno-kaggle](https://github.com/42euge/geno-kaggle) | Kaggle benchmarking, notebook upload, discussion scraping |
-| [geno-dev](https://github.com/42euge/geno-dev) | Developer/infrastructure skills — task execution, commit rewriting, Colab plumbing |
-
-### Runtime and tooling
-
-| Repo | Description |
-|------|-------------|
-| [geno-cli](https://github.com/42euge/geno-cli) | Agentic coding assistant TUI powered by Gemma 4 via Ollama |
-| [geno-iso](https://github.com/42euge/geno-iso) | Isolated Docker containers for running Claude Code |
-| [geno-term](https://github.com/42euge/geno-term) | Terminal automation for Claude Code session recovery with iTerm2 tabs and panes |
-| [geno-vla](https://github.com/42euge/geno-vla) | Vision-Language-Action MCP server for Claude Code with smart browser automation |
-| [geno-bench](https://github.com/42euge/geno-bench) | Mine Claude Code session logs for failure patterns and turn observed failures into benchmark tasks |
-
-## How it fits together
+## Architecture
 
 ```
-              ┌──────────────────────────────────────┐
-              │          geno-tools                   │
-              │    (meta package manager)             │
-              └──────────────┬───────────────────────-┘
-                             │
-        discover ──→ absorb ──→ evaluate ──→ govern ──→ evolve
-           │            │          │            │          │
-      registry.py    install    fork/use    geno-audit  promote
-      discovery.py   normalize  worktrees   audit.md    merge → main
-                             │
-              ┌──────────────┼──────────────┐
-              │              │              │
-         geno-<name>   geno-<name>   geno-<name>  ...
-              │              │              │
-              └──────────────┼──────────────┘
-                             │
-                       Coding CLIs
-           (Claude Code, Codex, Gemini CLI, Cursor, OpenCode)
-                             │
-                  geno-agents (coordination)
-                  geno-msg    (messaging)
-                  geno-notes  (project state)
-                  geno-mon    (monitoring)
+        ┌──────────────────────────────────────┐
+        │          geno-tools                   │
+        │    (meta package manager)             │
+        └──────────────┬───────────────────────-┘
+                       │
+  discover ──→ absorb ──→ evaluate ──→ govern ──→ evolve
+     │            │          │            │          │
+registry.py    install    fork/use    geno-audit  promote
+discovery.py   normalize  worktrees   audit.md    merge → main
+                       │
+        ┌──────────────┼──────────────┐
+        │              │              │
+   geno-<name>   geno-<name>   geno-<name>  ...
+        │              │              │
+        └──────────────┼──────────────┘
+                       │
+                 Coding CLIs
+     (Claude Code, Codex, Gemini CLI, Cursor, OpenCode)
+                       │
+            geno-agents (coordination)
+            geno-msg    (messaging)
+            geno-notes  (project state)
+            geno-mon    (monitoring)
 ```
 
 Each skillset is independent — install only what you need. The coordination layer (agents, msg, notes, mon) is optional but enables multi-agent workflows.
-
-## External skill systems
-
-geno-tools absorbs skills from external systems into the unified `SKILL.md` + `genotools.yaml` framework:
-
-- **[Vercel Labs Skills](https://github.com/vercel-labs/skills)** — the backend skill registration layer; `npx skills add` registers skills with all agents
-- **[obra/superpowers](https://github.com/obra/superpowers)** — plugin manifest conventions that geno-tools follows for cross-agent compatibility
-- **Ralphy Loop** — external plugin ecosystem whose skills can be ingested and normalized through `geno-tools install`
-
-Skills from any of these origins are managed the same way once absorbed: same install path, same variant system, same audit checklist, same removal contract.

@@ -48,6 +48,32 @@ nav:
   - Overview: docs-home.md
   - Getting Started: getting-started.md
   - CLI Reference: cli-reference.md
+  - Skills Catalog:
+      - skills/index.md
+      - Core:
+          - geno-tools: skills/geno-tools/index.md
+          - geno-agents: skills/geno-agents/index.md
+          - geno-notes: skills/geno-notes/index.md
+          - geno-mon: skills/geno-mon/index.md
+          - geno-msg: skills/geno-msg/index.md
+      - Developer:
+          - geno-dev: skills/geno-dev/index.md
+          - geno-loops: skills/geno-loops/index.md
+          - geno-specs: skills/geno-specs/index.md
+      - Runtime:
+          - geno-iso: skills/geno-iso/index.md
+          - geno-term: skills/geno-term/index.md
+          - geno-ws: skills/geno-ws/index.md
+      - Tooling:
+          - geno-mine: skills/geno-mine/index.md
+      - Data & Research:
+          - geno-kaggle: skills/geno-kaggle/index.md
+          - geno-research: skills/geno-research/index.md
+      - Creative:
+          - geno-voice: skills/geno-voice/index.md
+      - Life:
+          - geno-career: skills/geno-career/index.md
+          - geno-taxes: skills/geno-taxes/index.md
   - Skillsets:
       - skillsets/index.md
       - Creating a Skillset: skillsets/creating.md
