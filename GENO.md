@@ -40,7 +40,8 @@ geno-tools/
 │   ├── config.py                  #   user config from ~/.geno/config.yaml
 │   ├── discovery.py               #   enterprise repo discovery
 │   ├── paths.py                   #   on-disk layout utilities
-│   └── registry.py                #   curated registry of known skillsets
+│   ├── registry.py                #   curated registry of known skillsets
+│   └── trace.py                   #   skill trace system (emit/list/health)
 ├── skills/                        # skill definitions
 │   ├── geno-tools/SKILL.md        #   umbrella skill
 │   ├── geno-alias/SKILL.md        #   custom skill aliasing
@@ -69,9 +70,12 @@ geno-tools/
 ```toml
 [project.scripts]
 geno-tools = "genotools.cli:main"
+geno-trace = "genotools.trace:main"
 ```
 
 `genotools/cli.py` parses subcommands and lazy-imports `genotools.commands` to keep `--version`/`--help` fast.
+
+`genotools/trace.py` provides the `geno-trace` CLI for emitting and querying skill traces. Traces are append-only JSONL at `~/.geno/traces/YYYY/YYYY-MM.jsonl`. Health cards are aggregated per-skill at `~/.geno/health/<skill>.json`.
 
 ## Subcommands
 
@@ -172,6 +176,23 @@ geno-{name}/
 │   └── {name}/SKILL.md     # umbrella skill definition
 └── pyproject.toml           # optional — triggers venv creation if present
 ```
+
+### Skill observability contract
+
+Skills may declare an optional `observability` section in SKILL.md frontmatter:
+
+```yaml
+observability:
+  success_signal: "description of what success looks like"
+  failure_signals:
+    - "condition that indicates failure"
+  knowledge_reads:
+    - "what knowledge this skill consumes"
+  knowledge_writes:
+    - "what knowledge this skill produces"
+```
+
+Skills that declare observability should also include a `## Completion` section at the end of their workflow that emits a trace via `geno-trace emit`. This feeds the self-improvement loop (health cards, retro, mining).
 
 ## Plugin structure
 

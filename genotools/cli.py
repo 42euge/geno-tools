@@ -53,6 +53,10 @@ def main(argv: list[str] | None = None) -> int:
     p_disc.add_argument("--dry-run", action="store_true",
                         help="print candidates without installing (default behavior)")
 
+    p_scan = sub.add_parser("scan", help="scan for new uninstalled skillsets and queue candidates")
+    p_scan.add_argument("--namespace", help="filter by namespace prefix (e.g. 'geno', 'acme')")
+    p_scan.add_argument("--dry-run", action="store_true", help="list candidates without writing to queue")
+
     args = parser.parse_args(argv)
 
     from genotools import commands
