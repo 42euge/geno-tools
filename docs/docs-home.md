@@ -7,7 +7,7 @@ Discover, absorb, evaluate, govern, evolve — as a native plugin in any coding 
 
 <div class="hero-buttons">
 <a href="getting-started/" class="btn-primary">Get Started</a>
-<a href="cli-reference/" class="btn-secondary">CLI Reference</a>
+<a href="skills/" class="btn-secondary">Skill Catalog</a>
 </div>
 
 </div>
