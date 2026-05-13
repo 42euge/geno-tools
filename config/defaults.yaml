@@ -34,6 +34,24 @@ discovery:
     #   prefix: acme-
     #   auth_env: ACME_GITLAB_TOKEN
 
+# Observability: skill trace and health system configuration.
+observability:
+  health_threshold: 0.7      # success rate below this flags needs_retro
+  health_min_traces: 5       # minimum traces before health judgment
+
+# Operational mode: "user" (default) or "dev".
+# Dev mode enables auto-PRs for retro patches on ecosystem repos.
+# Can be overridden per-session via GENO_MODE env var.
+mode: user
+
+# Mining: session mining and dataset generation configuration.
+mining:
+  enabled: true
+  exclude_projects: []        # project slugs to skip (e.g., "taxes-*")
+  exclude_skills: []          # skill names to skip
+  scrub_paths: true           # replace absolute paths with relative
+  scrub_secrets: true         # detect and redact API keys, tokens
+
 # Workspace layout (used by geno-dev-workspaces-init)
 workspaces:
   mode: color
