@@ -13,6 +13,11 @@
             "type": "command",
             "command": "geno-trace health --refresh 2>/dev/null || true",
             "timeout": 5000
+          },
+          {
+            "type": "command",
+            "command": "test -s ~/.geno/iso/inbox.jsonl && { echo 'geno-iso:'; cat ~/.geno/iso/inbox.jsonl | head -10; mv ~/.geno/iso/inbox.jsonl ~/.geno/iso/inbox.$(date +%s).jsonl; } || true",
+            "timeout": 3000
           }
         ]
       }
