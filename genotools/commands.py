@@ -30,6 +30,7 @@ def dispatch(args: argparse.Namespace) -> int:
         "deps": _deps,
         "doctor": _doctor,
         "discover": _discover,
+        "scan": _scan,
     }
     return handlers[args.cmd](args)
 
@@ -359,25 +360,36 @@ def _uninstall_skills_via_npx(full: str) -> None:
 
 
 def _enumerate_skill_dirs(full: str) -> list[Path]:
+    """Return flat list of skill dirs to register.
+
+    When sub-skills exist under ``skills/``, return only those dirs — skip
+    the umbrella root so ``npx skills add`` doesn't copy the whole tree and
+    stop at the root SKILL.md (it stops when it finds a root SKILL.md
+    unless ``--full-depth`` is passed).  For skillsets with no sub-skills,
+    return the root dir.
+    """
     active = paths.skillset_active(full)
-    dirs: list[Path] = []
-    if (active / "SKILL.md").exists():
-        dirs.append(active)
     skills_dir = active / "skills"
     if skills_dir.exists():
-        dirs.extend(sorted(
+        sub = sorted(
             (p for p in skills_dir.iterdir()
              if p.is_dir() and (p / "SKILL.md").exists()),
             key=lambda p: p.name,
-        ))
-    return dirs
+        )
+        if sub:
+            return sub
+    if (active / "SKILL.md").exists():
+        return [active]
+    return []
 
 
 def _enumerate_skills(full: str) -> list[str]:
-    return [
-        d.name if d != paths.skillset_active(full) else full
-        for d in _enumerate_skill_dirs(full)
-    ]
+    active = paths.skillset_active(full)
+    dirs = _enumerate_skill_dirs(full)
+    names = [d.name if d != active else full for d in dirs]
+    if (active / "SKILL.md").exists() and active not in dirs:
+        names.insert(0, full)
+    return names
 
 
 # ── deps ───────────────────────────────────────────────────────────────────
@@ -618,6 +630,27 @@ def _discover(_: argparse.Namespace) -> int:
     for c in found:
         marker = "" if c.has_skill_md else "  (no SKILL.md — skipped)"
         print(f"  [{c.source}] {c.name:<32} {c.url}{marker}")
+    return 0
+
+
+def _scan(args: argparse.Namespace) -> int:
+    srcs = discovery.sources()
+    if not srcs:
+        print("no discovery sources configured (~/.geno/config.yaml: discovery.sources)")
+        return 0
+
+    new = discovery.scan(namespace=args.namespace, dry_run=args.dry_run)
+    if not new:
+        print("no new candidates found")
+        return 0
+
+    action = "found" if args.dry_run else "queued"
+    print(f"{action} {len(new)} new candidate(s):")
+    for c in new:
+        print(f"  [{c.source}] {c.name:<32} {c.url}")
+
+    if not args.dry_run:
+        print(f"\ncandidates written to {discovery.CANDIDATES_FILE}")
     return 0
 
 
