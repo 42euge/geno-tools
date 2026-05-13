@@ -200,7 +200,35 @@ geno-dev v0.1.0
 
 List each skill by reading the `skills/` directory names. Mark the umbrella. List dependencies from `requires:` or "none" if empty.
 
-### 5. Actionable suggestions
+### 5. Health metrics (if traces exist)
+
+Check if skill health cards exist:
+
+```bash
+geno-trace health 2>/dev/null
+```
+
+If health data is available, append a health section to the report:
+
+```
+Skill Health:
+
+  Skill                                    Rate     N  Tools  Retro
+  ─────────────────────────────────────────────────────────────────
+  geno-dev-loops-turbocharge               83%     12   18.2
+  geno-dev-tasks-start                     90%     10    8.5
+  geno-dev-feature-ship                    60%      5   22.1  YES
+```
+
+If any skill has `needs_retro`, flag it: "Run `/geno-dev-skills-retro --batch` to process the retro queue."
+
+Also show the retro queue depth:
+
+```bash
+geno-trace queue 2>/dev/null
+```
+
+### 6. Actionable suggestions
 
 After the report, if any issues are detected, suggest next steps:
 
