@@ -8,6 +8,11 @@
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/scripts/bootstrap.sh",
             "timeout": 30000
+          },
+          {
+            "type": "command",
+            "command": "geno-trace health --refresh 2>/dev/null || true",
+            "timeout": 5000
           }
         ]
       }
