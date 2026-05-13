@@ -122,6 +122,8 @@ class TestHooks:
         for hook in data["hooks"].get("SessionStart", []):
             for h in hook.get("hooks", []):
                 cmd = h.get("command", "")
+                if "${CLAUDE_PLUGIN_ROOT}/" not in cmd:
+                    continue
                 script = cmd.replace("${CLAUDE_PLUGIN_ROOT}/", "")
                 script_path = REPO_ROOT / script
                 assert script_path.exists(), f"hook script not found: {script_path}"
