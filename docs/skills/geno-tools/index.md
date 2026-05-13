@@ -1,11 +1,11 @@
 ---
 title: geno-tools
-description: Meta-CLI — install, update, and manage skillsets across all agents
+description: Installer and meta-CLI for geno-* skillsets
 ---
 
 # geno-tools
 
-Meta-CLI — install, update, and manage skillsets across all agents
+Installer and meta-CLI for geno-* skillsets
 
 [:material-github: GitHub](https://github.com/42euge/geno-tools){ .md-button }
 
@@ -13,16 +13,16 @@ Meta-CLI — install, update, and manage skillsets across all agents
 
 | Skill | Slash command | Description |
 |-------|--------------|-------------|
-| [geno-alias](#geno-alias) | `/geno-alias` | Create, remove, and list custom slash-command aliases for geno ecosystem skills |
-| [geno-audit](#geno-audit) | `/geno-audit` | Audit a geno-ecosystem repo for compliance with skillset conventions |
-| [geno-data-workspaces-init](#geno-data-workspaces-init) | `/geno-data-workspaces-init` | Create data workspaces for personal/life skills (taxes, remodel, career, custom) |
-| [geno-icons](#geno-icons) | `/geno-icons` | Generate pixel art icons for geno-ecosystem projects using SD 1 |
-| [geno-onboarding](#geno-onboarding) | `/geno-onboarding` | Walks an operator through onboarding a new skillset into a geno-tools install, including enterprise discovery from Gi... |
-| [geno-skills-create](#geno-skills-create) | `/geno-skills-create` | Scaffold a new skill in a geno ecosystem repo |
-| [geno-skills-install](#geno-skills-install) | `/geno-skills-install` | Install skills from a local geno ecosystem repo checkout globally via npx skills add |
-| [geno-skills-status](#geno-skills-status) | `/geno-skills-status` | Show the installation status of the geno ecosystem |
-| [geno-tools-open-docs](#geno-tools-open-docs) | `/geno-tools-open-docs` | Open the current repo's GitHub Pages documentation site in the default browser |
-| [geno-tools-update](#geno-tools-update) | `/geno-tools-update` | Update installed geno ecosystem skillsets to the latest main branch |
+| [geno-alias](#geno-alias) | `/geno-alias` | Create, remove, and list custom slash-command aliases for geno ecosystem skills. |
+| [geno-audit](#geno-audit) | `/geno-audit` | Audit a geno-ecosystem repo for compliance with skillset conventions. |
+| [geno-data-workspaces-init](#geno-data-workspaces-init) | `/geno-data-workspaces-init` | Create data workspaces for personal/life skills (taxes, remodel, career, custom). Scaffolds a dir... |
+| [geno-icons](#geno-icons) | `/geno-icons` | Generate pixel art icons for geno-ecosystem projects using SD 1.5 + pixel art LoRA. |
+| [geno-onboarding](#geno-onboarding) | `/geno-onboarding` | Walks an operator through onboarding a new skillset into a geno-tools install, including enterpri... |
+| [geno-skills-create](#geno-skills-create) | `/geno-skills-create` | Scaffold a new skill in a geno ecosystem repo. Creates the SKILL.md with proper frontmatter, upda... |
+| [geno-skills-install](#geno-skills-install) | `/geno-skills-install` | Install skills from a local geno ecosystem repo checkout globally via npx skills add. Detects the... |
+| [geno-skills-status](#geno-skills-status) | `/geno-skills-status` | Show the installation status of the geno ecosystem — version, commit, branch, and freshness of ea... |
+| [geno-tools-open-docs](#geno-tools-open-docs) | `/geno-tools-open-docs` | Open the current repo's GitHub Pages documentation site in the default browser. |
+| [geno-tools-update](#geno-tools-update) | `/geno-tools-update` | Update installed geno ecosystem skillsets to the latest main branch. |
 
 ## Overview
 
@@ -77,11 +77,37 @@ Meta-CLI — install, update, and manage skillsets across all agents
 ## geno-alias
 
 **Slash command:** `/geno-alias`
+  **Arguments:** `[add|remove|list] [source-skill] [alias-name]`
 
-> Create, remove, and list custom slash-command aliases for geno ecosystem skills
+> Create, remove, and list custom slash-command aliases for geno ecosystem skills.
+
+??? info "Overview (Level 3)"
+
+    Create custom slash-command aliases for any installed geno ecosystem skill. Aliases are tracked in `~/.geno/.genorc` and registered with all agents via `npx skills`.
+    
+    ## Argument parsing
+    
+    Parse `$ARGUMENTS` into one of three operations:
+    
+    | Input | Operation |
+    |-------|-----------|
+    | `list` or empty | List all aliases |
+    | `remove <alias>` | Remove an alias |
+    | `add <source> <alias>` | Create an alias |
+    | `<source> <alias>` (two args, first is not `add`/`remove`/`list`) | Create an alias (shorthand) |
+    
+    Strip leading `/` from both source and alias names.
+    
+    ## Add operation
+    
+    ### Step 1 — Validate source skill exists
+    
+    *[...truncated — expand Level 4 for full definition]*
 
 ??? example "Full skill definition (Level 4)"
 
+    # geno-alias — Skill Aliasing
+    
     Create custom slash-command aliases for any installed geno ecosystem skill. Aliases are tracked in `~/.geno/.genorc` and registered with all agents via `npx skills`.
     
     ## Argument parsing
@@ -279,10 +305,36 @@ Meta-CLI — install, update, and manage skillsets across all agents
 
 **Slash command:** `/geno-audit`
 
-> Audit a geno-ecosystem repo for compliance with skillset conventions
+> Audit a geno-ecosystem repo for compliance with skillset conventions.
+
+??? info "Overview (Level 3)"
+
+    Validates that a `geno-{name}` repo meets the conventions required for installation and management by `geno-tools`.
+    
+    The audit runs checks in three tiers: **required** (FAIL), **recommended** (WARN), and **optional** (INFO). A repo must pass all required checks to be installable via `geno-tools install`.
+    
+    ---
+    
+    ## `.geno` Directory Convention
+    
+    Every project in the geno ecosystem uses a two-tier `.geno` directory structure for runtime state, configuration, and tooling data. Neither tier should ever be committed to git — they contain machine-local paths, user-specific config, and transient runtime state that would break on any other machine.
+    
+    ### Global — `~/.geno/`
+    
+    The global `.geno` directory at `~/.geno/` is the ecosystem-wide root. It contains shared infrastructure and per-project state that persists across workspaces:
+    
+    ```
+    ~/.geno/
+    ├── config.yaml                    # ecosystem-wide settings
+    ├── agents/                        # agent registration and presence
+    ├── sessions/                      # session history
+    
+    *[...truncated — expand Level 4 for full definition]*
 
 ??? example "Full skill definition (Level 4)"
 
+    # geno-audit — Ecosystem Compliance Auditor
+    
     Validates that a `geno-{name}` repo meets the conventions required for installation and management by `geno-tools`.
     
     The audit runs checks in three tiers: **required** (FAIL), **recommended** (WARN), and **optional** (INFO). A repo must pass all required checks to be installable via `geno-tools install`.
@@ -941,11 +993,20 @@ Meta-CLI — install, update, and manage skillsets across all agents
 ## geno-data-workspaces-init
 
 **Slash command:** `/geno-data-workspaces-init`
+  **Arguments:** `[list|<freeform text>]`
 
-> Create data workspaces for personal/life skills (taxes, remodel, career, custom)
+> Create data workspaces for personal/life skills (taxes, remodel, career, custom). Scaffolds a directory with metadata, agent context, and links to related workspaces.
+
+??? info "Overview (Level 3)"
+
+    ## Input
+    
+    `$ARGUMENTS` is either a utility subcommand (`list`) or freeform text describing what to work on. If empty, launch the interactive flow.
 
 ??? example "Full skill definition (Level 4)"
 
+    # Create Data Workspace
+    
     Create data workspaces for personal/life skills that operate on user data, not code. Unlike dev workspaces (which clone repos), data workspaces are lightweight launchpads with metadata linking to where the skill's data actually lives and cross-links to related workspaces.
     
     ## Input
@@ -1234,11 +1295,182 @@ Meta-CLI — install, update, and manage skillsets across all agents
 ## geno-icons
 
 **Slash command:** `/geno-icons`
+  **Arguments:** `[generate|refine|status] [project-name] [--seeds N] [--prompts 'custom prompt']`
 
-> Generate pixel art icons for geno-ecosystem projects using SD 1
+> Generate pixel art icons for geno-ecosystem projects using SD 1.5 + pixel art LoRA.
+
+??? info "Overview (Level 3)"
+
+    ## Commands
+    
+    Parse the user's arguments to determine the action:
+    
+    ### `/geno-icons generate [project-name]` or `/geno-icons`
+    
+    Generate pixel art icon variants for one or all geno-ecosystem projects.
+    
+    #### Workflow
+    
+    1. **Set up the venv** (if not already present):
+       ```bash
+       VENV_DIR="/tmp/geno-icons-venv"
+       if [ ! -d "$VENV_DIR" ]; then
+         python3.12 -m venv "$VENV_DIR"
+         source "$VENV_DIR/bin/activate"
+         pip install torch torchvision diffusers transformers accelerate safetensors Pillow peft
+       else
+         source "$VENV_DIR/bin/activate"
+       fi
+       ```
+    
+    2. **Determine target projects.** If a project name is given, generate for that one. Otherwise, scan the ecosystem repos directory for all `geno-*` repos:
+       ```
+       ~/Library/Mobile Documents/iCloud~md~obsidian/Documents/Everything/research/kaggle/gemma-4-good-hackathon/geno-ecosystem/repos/
+       ```
+    
+    3. **Write and run a generation script.** Use the template below, customizing the `projects` dict with themed prompts for each target project. Write the script to `/tmp/geno-icons-venv/generate.py` and run it.
+    
+    4. **Output** goes to `/tmp/geno-icons/<project-name>/` with naming: `<NN>_p<prompt-idx>_s<seed>.png`
+    
+    5. **After generation**, open all non-black images in Preview:
+       ```bash
+       for f in /tmp/geno-icons/<project>/*.png; do
+         size=$(stat -f%z "$f")
+         [ "$size" -gt 5000 ] && echo "$f"
+       done | xargs open
+       ```
+       (The NSFW safety filter produces false positive black images — filter by file size >5KB)
+    
+    6. **Let the user pick.** When they select an image, copy it to the project's `docs/assets/icon.png`:
+       ```bash
+       mkdir -p "<repo-path>/docs/assets"
+       cp "<selected-image>" "<repo-path>/docs/assets/icon.png"
+       ```
+    
+    #### Generation Script Template
+    
+    ```python
+    import torch
+    import os
+    import time
+    from diffusers import StableDiffusionPipeline, DDIMScheduler
+    
+    device = "mps" if torch.backends.mps.is_available() else ("cuda" if torch.cuda.is_available() else "cpu")
+    dtype = torch.float32
+    
+    print("Loading SD 1.5 pipeline...")
+    pipe = StableDiffusionPipeline.from_pretrained(
+        "stable-diffusion-v1-5/stable-diffusion-v1-5",
+        torch_dtype=dtype,
+    )
+    
+    print("Loading pixel art LoRA...")
+    pipe.load_lora_weights(
+        "artificialguybr/pixelartredmond-1-5v-pixel-art-loras-for-sd-1-5",
+        weight_name="PixelArtRedmond15V-PixelArt-PIXARFK.safetensors",
+    )
+    
+    pipe.scheduler = DDIMScheduler.from_config(pipe.scheduler.config)
+    pipe = pipe.to(device)
+    pipe.enable_attention_slicing()
+    
+    neg = "blurry, photorealistic, 3d, text, watermark, complex, noisy, border, frame, multiple objects, scenery, landscape, black background"
+    
+    projects = {
+        "project-name": [
+            "description of icon concept 1",
+            "description of icon concept 2",
+            # ... 7 total
+        ],
+    }
+    
+    output_base = "/tmp/geno-icons"
+    os.makedirs(output_base, exist_ok=True)
+    
+    for project, base_prompts in projects.items():
+        project_dir = os.path.join(output_base, project)
+        os.makedirs(project_dir, exist_ok=True)
+        img_num = 0
+        for prompt_idx, base_prompt in enumerate(base_prompts):
+            full_prompt = f"pixelarfk, pixel art, {base_prompt}, white background, game item sprite, centered, clean simple sprite, icon"
+            for seed_offset in range(6):
+                img_num += 1
+                seed = 100 + prompt_idx * 10 + seed_offset
+                print(f"  [{img_num}/42] seed={seed} | {base_prompt[:50]}...")
+                image = pipe(
+                    prompt=full_prompt,
+                    negative_prompt=neg,
+                    guidance_scale=8.5,
+                    num_inference_steps=25,
+                    width=512,
+                    height=512,
+                    generator=torch.Generator(device="cpu").manual_seed(seed),
+                ).images[0]
+                filename = f"{img_num:02d}_p{prompt_idx}_s{seed}.png"
+                image.save(os.path.join(project_dir, filename))
+    ```
+    
+    #### Prompt Design Guidelines
+    
+    - Frame subjects as **game items, sprites, or RPG inventory icons** — the LoRA excels at these
+    - Use **white or light backgrounds** — dark backgrounds trigger the NSFW filter frequently
+    - Keep descriptions **concrete and object-focused** — "purple wrench" not "developer tools concept"
+    - Always prefix with `pixelarfk, pixel art,` (the LoRA trigger)
+    - End with `white background, game item sprite, centered, clean simple sprite, icon`
+    
+    #### Reference Prompts by Project
+    
+    | Project | Good prompt themes |
+    |---|---|
+    | geno-tools | toolbox, Swiss army knife, magic toolkit, treasure chest of tools, mechanical hand with wrench |
+    | geno-agents | robot, network nodes, team of small robots, AI brain, radar dish, group of characters |
+    | geno-dev | retro computer terminal, wrench + screwdriver, laptop with code, keyboard with glowing keys |
+    | geno-media | film camera, microphone, music note + headphones, video player, speaker, paintbrush |
+    | geno-research | magnifying glass + book, telescope, laboratory flask, open book with glowing pages, microscope |
+    | geno-kaggle | trophy cup, medal, bar chart with arrow, podium, leaderboard |
+    | geno-bench | stopwatch, speedometer, racing car, lightning bolt + clock, progress bar |
+    | geno-cli | retro TUI window, terminal with sparkles, prompt cursor in a chat bubble, command line wand |
+    | geno-iso | shipping container, sealed glass dome, isolation chamber, padlocked box, sandbox border |
+    | geno-mon | eye with alert, security camera, heartbeat monitor, radar screen, shield with eye, watchtower |
+    | geno-msg | speech bubble, envelope with lightning, chat bubbles, megaphone, carrier pigeon, walkie talkie |
+    | geno-notes | notepad with pencil, sticky notes, journal with bookmark, clipboard, quill pen + scroll |
+    | geno-term | terminal with cursor, command prompt, CRT monitor, keyboard, matrix rain, retro monitor |
+    | geno-vla | eye + neural network, camera lens + AI brain, robotic arm, AR glasses, scanner beam |
+    
+    ### `/geno-icons refine <project-name> [--prompts 'custom prompt']`
+    
+    Regenerate icons for a single project with custom or adjusted prompts.
+    
+    1. Check if `/tmp/geno-icons/<project>/` already has images — show the user what exists
+    2. Ask the user what direction to take: new prompts, same prompts with different seeds, or custom prompts
+    3. Generate a new batch (use seed range 200+ to avoid collisions with prior runs)
+    4. Open results and let the user pick
+    
+    ### `/geno-icons status`
+    
+    Show which projects have icons and which don't:
+    ```bash
+    REPOS_DIR="<ecosystem-repos-path>"
+    for repo in "$REPOS_DIR"/geno-* "$REPOS_DIR"/obsidian-*; do
+      name=$(basename "$repo")
+      if [ -f "$repo/docs/assets/icon.png" ]; then
+        echo "  ✓ $name"
+      else
+        echo "  ✗ $name"
+      fi
+    done
+    ```
+    
+    ### `/geno-icons animate <project-name>`
+    
+    Generate an animated GIF from the selected icon using AnimateDiff.
+    
+    **Note:** AnimateDiff at small sizes produces noisy results. This is experimental. For better animated icons, consider using the static icon as a base and animating with simpler frame interpolation (glow pulse, rotation, etc.) via Pillow/imageio.
 
 ??? example "Full skill definition (Level 4)"
 
+    # geno-icons — Pixel Art Icon Generator
+    
     Generate 8-bit pixel art icons for geno-ecosystem projects using Stable Diffusion 1.5 with a pixel art LoRA, running locally on MPS (Apple Silicon).
     
     ```!
@@ -1448,10 +1680,36 @@ Meta-CLI — install, update, and manage skillsets across all agents
 
 **Slash command:** `/geno-onboarding`
 
-> Walks an operator through onboarding a new skillset into a geno-tools install, including enterprise discovery from Gi...
+> Walks an operator through onboarding a new skillset into a geno-tools install, including enterprise discovery from GitHub Enterprise, GitLab, Bitbucket, or Gitea.
+
+??? info "Overview (Level 3)"
+
+    Helps an operator onboard a new skillset to their geno-tools install. Two flavors:
+    
+    1. **Public** — adding a `geno-*` repo to the curated registry.
+    2. **Enterprise** — admitting a `{company-slug}-*` repo into a private namespace, optionally via auto-discovery against GitHub Enterprise / GitLab / Bitbucket / Gitea.
+    
+    ## When to invoke
+    
+    - The user says "onboard a skillset" / "add a new geno repo" / "wire up our internal skillset".
+    - The user wants `geno-tools` to discover repos in their company's git host.
+    - The user is preparing an audit before installing an unfamiliar skillset.
+    - A platform team is bootstrapping a new private namespace.
+    
+    ## Public onboarding flow
+    
+    ```
+    1. Verify repo shape       → SKILL.md + commands/ at root, optional skills/<sub>/SKILL.md
+    2. Self-test locally       → geno-tools dev <repo-name> ~/src/<repo-name>
+    3. Push to a public remote → git push -u origin main
+    4. Register                → PR adding "<repo-name>": "<git-url>" to genotools/registry.py
+    
+    *[...truncated — expand Level 4 for full definition]*
 
 ??? example "Full skill definition (Level 4)"
 
+    # geno-onboarding — Skillset Onboarding (Public + Enterprise)
+    
     Helps an operator onboard a new skillset to their geno-tools install. Two flavors:
     
     1. **Public** — adding a `geno-*` repo to the curated registry.
@@ -1570,11 +1828,27 @@ Meta-CLI — install, update, and manage skillsets across all agents
 ## geno-skills-create
 
 **Slash command:** `/geno-skills-create`
+  **Arguments:** `[skill-name|freeform description]`
 
-> Scaffold a new skill in a geno ecosystem repo
+> Scaffold a new skill in a geno ecosystem repo. Creates the SKILL.md with proper frontmatter, updates the umbrella skill table and GENO.md skills table.
+
+??? info "Overview (Level 3)"
+
+    ## Input
+    
+    `$ARGUMENTS` is either:
+    - A skill name (e.g. `geno-dev-worktrees-manage`) — skip naming, go straight to details
+    - Freeform text describing what the skill should do — use it to derive the name
+    - Empty — launch the interactive flow
+    
+    ## Input
+    
+    `$ARGUMENTS` — {describe expected arguments, or "No arguments." if none}.
 
 ??? example "Full skill definition (Level 4)"
 
+    # geno-skills-create — Skill Scaffolder
+    
     Creates a new skill in a geno ecosystem repo. Handles naming, SKILL.md generation, and updating the umbrella skill and GENO.md so the new skill is wired into the repo.
     
     ## When to invoke
@@ -1813,11 +2087,23 @@ Meta-CLI — install, update, and manage skillsets across all agents
 ## geno-skills-install
 
 **Slash command:** `/geno-skills-install`
+  **Arguments:** `[repo-path|repo-name]`
 
-> Install skills from a local geno ecosystem repo checkout globally via npx skills add
+> Install skills from a local geno ecosystem repo checkout globally via npx skills add. Detects the repo from the current directory, accepts a path or name as an argument, or offers selection when called from a multi-repo workspace.
+
+??? info "Overview (Level 3)"
+
+    ## Input
+    
+    `$ARGUMENTS` — one of:
+    - **Empty** — detect from context (see Resolution below)
+    - **A path** — absolute or relative path to a geno repo checkout
+    - **A repo name** — e.g. `geno-dev`, `geno-media` — resolved as a subdirectory of the current workspace
 
 ??? example "Full skill definition (Level 4)"
 
+    # geno-skills-install — Install Local Skills Globally
+    
     Registers all skills from a local geno ecosystem repo checkout as global slash commands across all supported agents. This is the dev-loop companion to `geno-tools install` — instead of cloning from a remote, it installs from whatever is on disk right now so you can test local changes immediately.
     
     ## When to invoke
@@ -1989,10 +2275,20 @@ Meta-CLI — install, update, and manage skillsets across all agents
 
 **Slash command:** `/geno-skills-status`
 
-> Show the installation status of the geno ecosystem
+> Show the installation status of the geno ecosystem — version, commit, branch, and freshness of each installed skillset.
+
+??? info "Overview (Level 3)"
+
+    ## Input
+    
+    `$ARGUMENTS` — optional:
+    - **Empty** — report on all installed skillsets
+    - **A skillset name** (e.g. `geno-dev`, `dev`) — report on just that one in detail
 
 ??? example "Full skill definition (Level 4)"
 
+    # geno-skills-status — Ecosystem Installation Status
+    
     Shows the current state of every installed geno skillset: version from the manifest, git commit, branch, skill count, and whether the install is behind origin. Also reports the geno-tools version itself and the geno-tools plugin source.
     
     ## When to invoke
@@ -2215,10 +2511,35 @@ Meta-CLI — install, update, and manage skillsets across all agents
 
 **Slash command:** `/geno-tools-open-docs`
 
-> Open the current repo's GitHub Pages documentation site in the default browser
+> Open the current repo's GitHub Pages documentation site in the default browser.
+
+??? info "Overview (Level 3)"
+
+    Open the GitHub Pages documentation site for the current repo in the default browser.
+    
+    ## Behavior
+    
+    1. Get the GitHub Pages URL for the current repo:
+       ```bash
+       gh api repos/{owner}/{repo}/pages --jq '.html_url'
+       ```
+    2. Open it:
+       ```bash
+       open "$PAGES_URL"
+       ```
+    3. Print the URL so the user can see it.
+    
+    If the argument is a subpath (e.g. `/geno-tools-open-docs architecture`), append it to the URL:
+    ```bash
+    open "${PAGES_URL}architecture/"
+    ```
+    
+    *[...truncated — expand Level 4 for full definition]*
 
 ??? example "Full skill definition (Level 4)"
 
+    # geno-tools-open-docs — Open Documentation Site
+    
     Open the GitHub Pages documentation site for the current repo in the default browser.
     
     ## Behavior
@@ -2262,10 +2583,36 @@ Meta-CLI — install, update, and manage skillsets across all agents
 
 **Slash command:** `/geno-tools-update`
 
-> Update installed geno ecosystem skillsets to the latest main branch
+> Update installed geno ecosystem skillsets to the latest main branch.
+
+??? info "Overview (Level 3)"
+
+    Pull the latest main branch for installed geno-* skillsets, re-register skills, and reinstall venvs if dependencies changed.
+    
+    ## Usage
+    
+    Update all installed skillsets:
+    ```bash
+    geno-tools update
+    ```
+    
+    Update a single skillset:
+    ```bash
+    geno-tools update <name>
+    ```
+    
+    The `<name>` accepts both full (`geno-dev`) and bare (`dev`) forms.
+    
+    ## Behavior
+    
+    For each skillset the command will:
+    
+    *[...truncated — expand Level 4 for full definition]*
 
 ??? example "Full skill definition (Level 4)"
 
+    # geno-tools-update — Update Ecosystem Repos
+    
     Pull the latest main branch for installed geno-* skillsets, re-register skills, and reinstall venvs if dependencies changed.
     
     ## Usage

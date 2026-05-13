@@ -1,11 +1,11 @@
 ---
 title: geno-kaggle
-description: Kaggle benchmarking, notebook upload, discussion scraping
+description: Kaggle benchmarking toolkit — create, run, monitor, and review benchmark notebooks on the Kaggle platform. Scrape com...
 ---
 
 # geno-kaggle
 
-Kaggle benchmarking, notebook upload, discussion scraping
+Kaggle benchmarking toolkit — create, run, monitor, and review benchmark notebooks on the Kaggle platform. Scrape com...
 
 [:material-github: GitHub](https://github.com/42euge/geno-kaggle){ .md-button }
 
@@ -13,12 +13,12 @@ Kaggle benchmarking, notebook upload, discussion scraping
 
 | Skill | Slash command | Description |
 |-------|--------------|-------------|
-| [geno-create-benchmark-kaggle](#geno-create-benchmark-kaggle) | `/geno-create-benchmark-kaggle` | "Create Kaggle Benchmark Notebook" |
-| [geno-kaggle-benchmarks-task-generate](#geno-kaggle-benchmarks-task-generate) | `/geno-kaggle-benchmarks-task-generate` | "Generate Kaggle Benchmark Task Structure" |
-| [geno-kaggle-benchmarks-task-review](#geno-kaggle-benchmarks-task-review) | `/geno-kaggle-benchmarks-task-review` | "Review Kaggle Benchmark Task Results" |
-| [geno-kaggle-discussion](#geno-kaggle-discussion) | `/geno-kaggle-discussion` | "Kaggle Discussion Scraper" |
-| [geno-run-kaggle-bench](#geno-run-kaggle-bench) | `/geno-run-kaggle-bench` | "Run Kaggle Benchmark" |
-| [geno-upload-kaggle](#geno-upload-kaggle) | `/geno-upload-kaggle` | "Upload Notebook to Kaggle" |
+| [geno-create-benchmark-kaggle](#geno-create-benchmark-kaggle) | `/geno-create-benchmark-kaggle` | Create Kaggle Benchmark Notebook. |
+| [geno-kaggle-benchmarks-task-generate](#geno-kaggle-benchmarks-task-generate) | `/geno-kaggle-benchmarks-task-generate` | Generate Kaggle Benchmark Task Structure. |
+| [geno-kaggle-benchmarks-task-review](#geno-kaggle-benchmarks-task-review) | `/geno-kaggle-benchmarks-task-review` | Review Kaggle Benchmark Task Results. |
+| [geno-kaggle-discussion](#geno-kaggle-discussion) | `/geno-kaggle-discussion` | Kaggle Discussion Scraper. |
+| [geno-run-kaggle-bench](#geno-run-kaggle-bench) | `/geno-run-kaggle-bench` | Run Kaggle Benchmark. |
+| [geno-upload-kaggle](#geno-upload-kaggle) | `/geno-upload-kaggle` | Upload Notebook to Kaggle. |
 
 ## Overview
 
@@ -26,32 +26,45 @@ Kaggle benchmarking, notebook upload, discussion scraping
 
     # geno-kaggle
     
-    Kaggle benchmarking skills for AI coding agents. Provides workflows for creating, deploying,
+    Kaggle benchmarking skills for Claude Code. Provides workflows for creating, deploying,
     running, and reviewing benchmark tasks on the Kaggle platform.
     
-    ## Skills
+    ## Commands
     
-    | Skill | Description |
-    |-------|-------------|
-    | `/geno-create-benchmark-kaggle <desc>` | Create a self-contained benchmark notebook for Kaggle |
-    | `/geno-kaggle-benchmarks-task-generate <name>` | Scaffold a new benchmark task folder structure |
-    | `/geno-kaggle-benchmarks-task-review <task>` | Pull and review results from a Kaggle benchmark run |
-    | `/geno-run-kaggle-bench <notebook>` | Push, run, monitor, and debug a notebook on Kaggle |
-    | `/geno-upload-kaggle <notebook>` | Upload a notebook to Kaggle |
-    | `/geno-kaggle-discussion` | Scrape competition discussions and generate insights |
+    | Command | Description |
+    |---------|-------------|
+    | `/gt-create-benchmark-kaggle <desc>` | Create a self-contained benchmark notebook for Kaggle |
+    | `/gt-kaggle-benchmarks-task-generate <name>` | Scaffold a new benchmark task folder structure |
+    | `/gt-kaggle-benchmarks-task-review <task>` | Pull and review results from a Kaggle benchmark run |
+    | `/gt-run-kaggle-bench <notebook>` | Push, run, monitor, and debug a notebook on Kaggle |
+    | `/gt-upload-kaggle <notebook>` | Upload a notebook to Kaggle |
+    | `/gt-kaggle-discussion` | Scrape competition discussions and generate insights |
 
 ## geno-create-benchmark-kaggle
 
 **Slash command:** `/geno-create-benchmark-kaggle`
 
-> "Create Kaggle Benchmark Notebook"
+> Create Kaggle Benchmark Notebook.
 
-??? info "Observability"
+??? info "Overview (Level 3)"
 
-    success_signal: "Valid .ipynb notebook created, passes all 10 validation checks, and next-step instructions printed" failure_signals: - "Generated notebook fails JSON validation or nbformat checks" - "Missing required elements (no @kbench.task, no kbench.llm usage, no llm parameter)" - "Output path not writable or parent directory does not exist" knowledge_reads: - "User-provided benchmark specification (track, cognitive ability, task design)" - "Kaggle Benchmark environment constraints" knowledge_writes: - "Generated .ipynb notebook file at specified output path"
+    ## Input
+    
+    `$ARGUMENTS` — Description of the benchmark to create. Can include:
+    - Track name (learning, metacognition, attention, executive functions, social cognition)
+    - Task description (what cognitive ability to test)
+    - Output path for the notebook
+    - (empty) — enter interactive mode to gather details
+    
+    Examples:
+    - `attention "selective attention with distractor scaling" tasks/attention_v2.ipynb`
+    - `learning "in-context rule induction across difficulty tiers"`
+    - (empty) — ask the user what benchmark to create
 
 ??? example "Full skill definition (Level 4)"
 
+    # Create Kaggle Benchmark Notebook
+    
     Generate a self-contained Jupyter notebook (.ipynb) for a Kaggle Benchmark task that can be uploaded and run against multiple models via the Kaggle UI.
     
     ## Input
@@ -84,7 +97,7 @@ Kaggle benchmarking, notebook upload, discussion scraping
     
     ### 1. Gather benchmark specification
     
-    If `$ARGUMENTS` is empty or incomplete, prompt the user to provide:
+    If `$ARGUMENTS` is empty or incomplete, use `AskUserQuestion` to collect:
     - **Track**: Which of the 5 tracks?
     - **Cognitive ability**: What specific ability within the track to test?
     - **Task design**: How will the task work? What does the model need to do?
@@ -235,7 +248,7 @@ Kaggle benchmarking, notebook upload, discussion scraping
     Next steps:
     1. Review the notebook locally (open in Jupyter/VS Code)
     2. Upload to Kaggle as a benchmark task:
-       /geno-run-kaggle-bench <path>
+       /gt-run-kaggle-bench <path>
     
        Or manually:
        - Go to https://www.kaggle.com/benchmarks/tasks/new
@@ -244,7 +257,7 @@ Kaggle benchmarking, notebook upload, discussion scraping
        - Click "Save Task" to publish
     
     3. Add models via the "Add Models" button in the Kaggle UI
-    4. Monitor results with: /geno-run-kaggle-bench <path> <slug>
+    4. Monitor results with: /gt-run-kaggle-bench <path> <slug>
     ```
     
     ## Important Notes
@@ -257,35 +270,23 @@ Kaggle benchmarking, notebook upload, discussion scraping
     - Generate unique cell IDs (use short hex strings like `"a1b2c3"`)
     - Target 50-200 evaluation items for good discriminatory power without excessive runtime
     - Include difficulty scaling so the benchmark isn't trivially easy or impossible
-    
-    ## Completion
-    
-    When this skill finishes, emit a trace:
-    
-    ```bash
-    geno-trace emit \
-      --skill geno-create-benchmark-kaggle \
-      --status <success|failure|abandoned> \
-      --tool-calls <approximate count> \
-      --errors <count of tool/command errors>
-    ```
-    
-    - `success` = valid .ipynb notebook created and all 10 validation checks pass
-    - `failure` = notebook generation failed, or validation checks could not be resolved
-    - `abandoned` = user stopped early
 
 ## geno-kaggle-benchmarks-task-generate
 
 **Slash command:** `/geno-kaggle-benchmarks-task-generate`
 
-> "Generate Kaggle Benchmark Task Structure"
+> Generate Kaggle Benchmark Task Structure.
 
-??? info "Observability"
+??? info "Overview (Level 3)"
 
-    success_signal: "tasks/<task_name>/ directory created with .ipynb notebook, docs/, results/, and review/ subdirectories" failure_signals: - "Task name validation fails (not snake_case)" - "tasks/ directory does not exist or is not writable" - "Generated notebook is invalid JSON or missing required cells" knowledge_reads: - "User-provided task name and description" - "CLAUDE.md for notebook conventions" knowledge_writes: - "tasks/<task_name>/<task_name>.ipynb (benchmark notebook template)" - "tasks/<task_name>/docs/<task_name>.md (task documentation)" - "tasks/<task_name>/results/.gitkeep" - "tasks/<task_name>/review/.gitkeep"
+    ## Input
+    
+    `$ARGUMENTS` — Task name in snake_case (e.g., `selective_attention`). Optional — if not provided, ask the user for a name and brief description of what the task tests.
 
 ??? example "Full skill definition (Level 4)"
 
+    # Generate Kaggle Benchmark Task Structure
+    
     Scaffold a new benchmark task with the standard folder structure and notebook template.
     
     ## Input
@@ -297,7 +298,7 @@ Kaggle benchmarking, notebook upload, discussion scraping
     ### 1. Resolve task name
     
     - If `$ARGUMENTS` is provided, use it as the task name
-    - If not provided, ask the user for the task name and a one-line description
+    - If not provided, use `AskUserQuestion` to get the task name and a one-line description
     - Validate: must be snake_case, no spaces, no hyphens
     
     ### 2. Create folder structure
@@ -333,7 +334,7 @@ Kaggle benchmarking, notebook upload, discussion scraping
     11. **Code: Analysis** — summary statistics and metrics
     12. **Code: Plot** — matplotlib visualization
     
-    Key requirements:
+    Key requirements (from CLAUDE.md):
     - Self-contained: all data generated inline with fixed seed
     - `llm` must be passed as a list: `llm=[kbench.llm]`
     - Include `strip_thinking()` for reasoning model compatibility
@@ -352,35 +353,25 @@ Kaggle benchmarking, notebook upload, discussion scraping
     Tell the user:
     - What was created
     - Next steps: fill in the data generation and task function, then push to GitHub and link from Kaggle
-    
-    ## Completion
-    
-    When this skill finishes, emit a trace:
-    
-    ```bash
-    geno-trace emit \
-      --skill geno-kaggle-benchmarks-task-generate \
-      --status <success|failure|abandoned> \
-      --tool-calls <approximate count> \
-      --errors <count of tool/command errors>
-    ```
-    
-    - `success` = tasks/<task_name>/ directory created with notebook, docs, results, and review subdirectories
-    - `failure` = task name invalid, directory creation failed, or notebook template generation failed
-    - `abandoned` = user stopped early
 
 ## geno-kaggle-benchmarks-task-review
 
 **Slash command:** `/geno-kaggle-benchmarks-task-review`
 
-> "Review Kaggle Benchmark Task Results"
+> Review Kaggle Benchmark Task Results.
 
-??? info "Observability"
+??? info "Overview (Level 3)"
 
-    success_signal: "Review markdown written to tasks/<task_name>/review/review_<date>.md and summary printed" failure_signals: - "Kaggle kernel pull fails (slug not found, auth error)" - "Version mismatch between local and Kaggle notebook timestamps" - "Pulled notebook has no cell outputs (run did not complete)" knowledge_reads: - "~/.kaggle/kaggle.json (API credentials)" - "tasks/<task_name>/*.ipynb (local notebook for version comparison)" - "Pulled notebook cell outputs from Kaggle" knowledge_writes: - "tasks/<task_name>/results/latest_run.md (raw extracted outputs)" - "tasks/<task_name>/review/review_<date>.md (analysis and recommendations)"
+    ## Input
+    
+    `$ARGUMENTS` — Task name (e.g., `change_blindness`). Must match a folder under `tasks/`.
+    
+    If no arguments provided, list available tasks in `tasks/` and ask the user which one to review.
 
 ??? example "Full skill definition (Level 4)"
 
+    # Review Kaggle Benchmark Task Results
+    
     Pull the latest run from Kaggle for a benchmark task, verify it matches the last pushed version, analyze the results, and write a review.
     
     ## Input
@@ -394,7 +385,7 @@ Kaggle benchmarking, notebook upload, discussion scraping
     ### 1. Resolve the task
     
     - If `$ARGUMENTS` is provided, verify `tasks/<task_name>/` exists and contains a `.ipynb` file
-    - If not provided, list directories under `tasks/` and ask the user which one to review
+    - If not provided, list directories under `tasks/` and present the list using `AskUserQuestion`
     
     ### 2. Pull the latest run from Kaggle
     
@@ -455,35 +446,27 @@ Kaggle benchmarking, notebook upload, discussion scraping
     ### 6. Report to user
     
     Print a summary of the review findings directly in the conversation, and tell the user where the review file was saved.
-    
-    ## Completion
-    
-    When this skill finishes, emit a trace:
-    
-    ```bash
-    geno-trace emit \
-      --skill geno-kaggle-benchmarks-task-review \
-      --status <success|failure|abandoned> \
-      --tool-calls <approximate count> \
-      --errors <count of tool/command errors>
-    ```
-    
-    - `success` = review markdown written to tasks/<task_name>/review/ and summary printed
-    - `failure` = kernel pull failed, notebook had no outputs, or review generation failed
-    - `abandoned` = user stopped early
 
 ## geno-kaggle-discussion
 
 **Slash command:** `/geno-kaggle-discussion`
 
-> "Kaggle Discussion Scraper"
+> Kaggle Discussion Scraper.
 
-??? info "Observability"
+??? info "Overview (Level 3)"
 
-    success_signal: "index.yaml and per-track insight markdown files generated under competition-info/kaggle-discussions/" failure_signals: - "Kaggle Search API returns auth error or empty results" - "WebFetch fails on discussion thread URLs (rate-limited or 404)" - "YAML serialization error when saving thread files" knowledge_reads: - "~/.kaggle/kaggle.json (API credentials)" - "Existing thread YAML files for incremental update comparison" knowledge_writes: - "competition-info/kaggle-discussions/threads/*.yaml (per-thread data)" - "competition-info/kaggle-discussions/index.yaml (master index)" - "competition-info/kaggle-discussions/insights/*.md (per-track insight summaries)"
+    ## Input
+    
+    `$ARGUMENTS` — Optional. Can be:
+    - (empty) — scrape all discussions and generate insights
+    - `scrape` — only scrape discussions, skip insight generation
+    - `insights` — only regenerate insights from existing YAML files
+    - A track name (e.g., `learning`, `metacognition`) — regenerate insights for one track
 
 ??? example "Full skill definition (Level 4)"
 
+    # Kaggle Discussion Scraper
+    
     Scrape all discussion threads from the kaggle-measuring-agi competition, save each thread as a YAML file with its comments, and generate per-track insight summaries.
     
     ## Input
@@ -765,35 +748,28 @@ Kaggle benchmarking, notebook upload, discussion scraping
     - **YAML formatting**: Use block scalars (`|`) for markdown content to preserve formatting
     - **Track classification**: Use the thread's title + post markdown + comment content for classification. Weight the title most heavily.
     - **Parallel fetching**: Use up to 3 parallel Agents for WebFetch calls to speed up scraping, but respect rate limits.
-    
-    ## Completion
-    
-    When this skill finishes, emit a trace:
-    
-    ```bash
-    geno-trace emit \
-      --skill geno-kaggle-discussion \
-      --status <success|failure|abandoned> \
-      --tool-calls <approximate count> \
-      --errors <count of tool/command errors>
-    ```
-    
-    - `success` = index.yaml written and at least one insight markdown generated
-    - `failure` = API scrape returned no threads, or YAML/insight generation failed
-    - `abandoned` = user stopped early
 
 ## geno-run-kaggle-bench
 
 **Slash command:** `/geno-run-kaggle-bench`
 
-> "Run Kaggle Benchmark"
+> Run Kaggle Benchmark.
 
-??? info "Observability"
+??? info "Overview (Level 3)"
 
-    success_signal: "Notebook pushed, executed on Kaggle, results retrieved to /tmp/kaggle-output/ and saved to results/" failure_signals: - "Compatibility checks fail (missing SDK import, git clone in notebook, etc.)" - "kaggle kernels push fails (slug not found, auth error, never saved in UI)" - "Notebook execution errors on Kaggle (PapermillExecutionError, protobuf conflict)" knowledge_reads: - "~/.kaggle/kaggle.json (API credentials)" - "Target .ipynb notebook file" - "Git remote URL and repo visibility" - "Kaggle kernel status and output logs" knowledge_writes: - "results/<run_label>/ (raw logs, .run.json, plots)" - "geno-notes journal entry (milestone or bug)" - "Git commits (if uncommitted changes are staged and pushed)"
+    ## Input
+    
+    `$ARGUMENTS` — Path to the `.ipynb` file to run, optionally followed by a benchmark task slug.
+    
+    Examples:
+    - `notebooks/kaggle_benchmark.ipynb` — push and run, auto-detect or ask for task slug
+    - `notebooks/kaggle_benchmark.ipynb eugenio0/new-benchmark-task-0def0` — push to specific task
+    - (empty) — search for `.ipynb` files and present options
 
 ??? example "Full skill definition (Level 4)"
 
+    # Run Kaggle Benchmark
+    
     Validate, push, run, monitor, and debug a Jupyter notebook on the Kaggle Benchmarks platform. Retrieves results and logs progress to lab notes.
     
     ## Input
@@ -802,7 +778,7 @@ Kaggle benchmarking, notebook upload, discussion scraping
     
     Examples:
     - `notebooks/kaggle_benchmark.ipynb` — push and run, auto-detect or ask for task slug
-    - `notebooks/kaggle_benchmark.ipynb <your-kaggle-username>/new-benchmark-task-0def0` — push to specific task
+    - `notebooks/kaggle_benchmark.ipynb eugenio0/new-benchmark-task-0def0` — push to specific task
     - (empty) — search for `.ipynb` files and present options
     
     ## Kaggle CLI Setup
@@ -1003,39 +979,27 @@ Kaggle benchmarking, notebook upload, discussion scraping
     
     If there is an error, fix the notebook locally, re-push (repeat step 4), and monitor again. Continue this loop until the notebook completes successfully.
     
-    ### 7. Log results to the journal
+    ### 7. Log results to lab notes
     
-    After a successful run (or informative failure), log the results via `geno-notes`:
+    After a successful run (or informative failure), log the results to `geno-tools/labnotes/notes.md`:
     
-    ```bash
-    geno-notes note "<summary>" --kind milestone --task <task-id-if-linked>
-    ```
+    - **Timestamp** the entry
+    - **Record**: task slug, version number, status (complete/error), runtime
+    - **If complete**: paste key metrics (accuracy tables, attention thresholds, model comparison)
+    - **If error**: note the error type and what was fixed
+    - **Available models**: record what `kbench.llms.keys()` returned (from stdout log)
+    - **Generated data**: note any output files retrieved and where they were saved locally
     
-    Use `--kind milestone` for a completed run, `--kind bug` for an error worth remembering. The entry lands in the active scope's `journal/YYYY/YYYY-MM.{md,jsonl}` with seconds-precision timestamp. Scope auto-resolves (project if `./geno/geno-notes/` exists, else global).
+    Example entry:
+    ```markdown
+    ### 2026-03-22 — Kaggle Benchmark Run v4
     
-    The message body should capture:
-    - Task slug, version number, status (complete/error), runtime
-    - If complete: key metrics (accuracy tables, attention thresholds, model comparison)
-    - If error: error type and what was fixed
-    - Available models (what `kbench.llms.keys()` returned)
-    - Paths to any retrieved output files
-    
-    Example:
-    ```bash
-    geno-notes note "Kaggle Benchmark v4 — COMPLETE. Task <your-kaggle-username>/new-benchmark-task-0def0. Models: gemini-2.5-flash, gemini-2.5-pro, claude-sonnet-4. SIN: adversarial 10:1, related 25:1, unrelated 25:1. Vigilance: 99-100%. Output → /tmp/kaggle-output/" --kind milestone
-    ```
-    
-    For multi-line context or code blocks, quote-escape carefully or use a heredoc:
-    
-    ```bash
-    geno-notes note "$(cat <<'EOF'
-    Kaggle Benchmark v4 — COMPLETE
-    Task: <your-kaggle-username>/new-benchmark-task-0def0
-    Models: gemini-2.5-flash, gemini-2.5-pro
-    SIN Results: adversarial 10:1, related 25:1, unrelated 25:1
-    Output → /tmp/kaggle-output/
-    EOF
-    )" --kind milestone
+    - **Task**: `eugenio0/new-benchmark-task-0def0` (v4)
+    - **Status**: COMPLETE
+    - **Models**: gemini-2.5-flash, gemini-2.5-pro, claude-sonnet-4
+    - **SIN Results**: adversarial threshold=10:1, related=25:1, unrelated=25:1
+    - **Vigilance**: 99-100% across all types
+    - **Output files**: results saved to `/tmp/kaggle-output/`
     ```
     
     ### 8. Multi-model evaluation
@@ -1114,35 +1078,25 @@ Kaggle benchmarking, notebook upload, discussion scraping
     - **Do NOT install the SDK** in the notebook (`pip install kaggle-benchmarks`). It is pre-installed on benchmark notebooks and installing separately causes protobuf version conflicts.
     - **No `git` in runtime** — use `urllib.request.urlretrieve` for file downloads from GitHub raw URLs.
     - Available models can be listed with `kbench.llms.keys()` but the primary evaluation should use `kbench.llm`.
-    
-    ## Completion
-    
-    When this skill finishes, emit a trace:
-    
-    ```bash
-    geno-trace emit \
-      --skill geno-run-kaggle-bench \
-      --status <success|failure|abandoned> \
-      --tool-calls <approximate count> \
-      --errors <count of tool/command errors>
-    ```
-    
-    - `success` = notebook pushed, executed on Kaggle without errors, results retrieved and saved to results/
-    - `failure` = compatibility checks failed, push rejected, or Kaggle execution errored after all fix attempts
-    - `abandoned` = user stopped early
 
 ## geno-upload-kaggle
 
 **Slash command:** `/geno-upload-kaggle`
 
-> "Upload Notebook to Kaggle"
+> Upload Notebook to Kaggle.
 
-??? info "Observability"
+??? info "Overview (Level 3)"
 
-    success_signal: "Notebook uploaded to Kaggle via API push or manual instructions provided with valid GitHub URL" failure_signals: - "Notebook file not found or invalid JSON" - "kaggle kernels push fails (auth error, metadata error)" - "Repo cannot be made public and notebook references it" knowledge_reads: - "~/.kaggle/kaggle.json (API credentials)" - "Target .ipynb notebook file" - "Git remote URL and repo visibility" knowledge_writes: - "kernel-metadata.json (Kaggle kernel metadata for API push)" - "Git commits (if uncommitted notebook changes are staged)"
+    ## Input
+    
+    `$ARGUMENTS` — Path to the `.ipynb` file to upload. Can be absolute or relative to the current working directory.
+    
+    If no arguments provided, search for `.ipynb` files in the current project and ask the user which one to upload.
 
 ??? example "Full skill definition (Level 4)"
 
+    # Upload Notebook to Kaggle
+    
     Prepare and upload a Jupyter notebook to Kaggle for running with the kaggle-benchmarks SDK.
     
     ## Input
@@ -1156,7 +1110,7 @@ Kaggle benchmarking, notebook upload, discussion scraping
     ### 1. Resolve the notebook
     
     - If `$ARGUMENTS` is provided, resolve it to an absolute path
-    - If not provided, glob for `**/*.ipynb` (excluding `.venv/`, `node_modules/`, `.ipynb_checkpoints/`) and prompt the user to select one
+    - If not provided, glob for `**/*.ipynb` (excluding `.venv/`, `node_modules/`, `.ipynb_checkpoints/`) and present the list using `AskUserQuestion`
     - Verify the file exists and is valid JSON (valid notebook format)
     
     ### 2. Ensure the repo is public
@@ -1217,19 +1171,3 @@ Kaggle benchmarking, notebook upload, discussion scraping
       ```
     - Run `kaggle kernels push -p <notebook-directory>`
     - Report the kernel URL on success
-    
-    ## Completion
-    
-    When this skill finishes, emit a trace:
-    
-    ```bash
-    geno-trace emit \
-      --skill geno-upload-kaggle \
-      --status <success|failure|abandoned> \
-      --tool-calls <approximate count> \
-      --errors <count of tool/command errors>
-    ```
-    
-    - `success` = notebook uploaded via API push or manual upload instructions provided with valid URLs
-    - `failure` = notebook not found, invalid format, or kaggle kernels push failed
-    - `abandoned` = user stopped early

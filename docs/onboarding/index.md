@@ -32,7 +32,7 @@ The checklist is the same. The reviewer changes.
 
 The shape is identical, the boundary is internal:
 
-1. **Pick the namespace.** Use your company slug as the prefix — `acme-incident-response`, `acme-finance`, etc. See the [Enterprise pattern](../../README.md#enterprise-private-skillsets-public-tooling) in the README.
+1. **Pick the namespace.** Use your company slug as the prefix — `acme-incident-response`, `acme-finance`, etc.
 2. **Author against the same skillset spec.** No fork of geno-tools needed; the on-disk format is identical to public skillsets.
 3. **Host in your private remote.** GitHub Enterprise, GitLab, Bitbucket, internal mirror — anywhere git can clone from.
 4. **Run the audit internally.** Use [the audit checklist](audit.md) as your platform team's review template. Treat the result as a sign-off artifact.
@@ -68,7 +68,7 @@ discovery:
 
 `geno-tools ls --available` runs each source through the appropriate provider, filters to repos that pass the candidate check, and lists them with their canonical repo name. `geno-tools install <repo>` then resolves through the same source. No extra step beyond editing the config.
 
-The discovery layer is intentionally pluggable — adding a new provider (Bitbucket, Gitea, Azure DevOps) is a matter of implementing a small `list_repos()` function, not changing the install flow. Walking through onboarding with an agent is automated by the [`geno-onboarding`](../../skills/geno-onboarding/SKILL.md) skill.
+The discovery layer is intentionally pluggable — adding a new provider (Bitbucket, Gitea, Azure DevOps) is a matter of implementing a small `list_repos()` function, not changing the install flow. Walking through onboarding with an agent is automated by the [`geno-onboarding`](../skills/geno-tools/index.md#geno-onboarding) skill.
 
 ## What "onboarded" means in practice
 

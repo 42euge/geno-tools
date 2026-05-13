@@ -39,8 +39,13 @@ Session mining — extract, analyze, and export agent session data
 ## geno-mine-export
 
 **Slash command:** `/geno-mine-export`
+  **Arguments:** `"--format <sft|dpo|tool_trace|anthropic> [--version <tag>] [-o <dir>]"`
 
 > Export a dataset version to a directory for finetuning
+
+??? info "Overview (Level 3)"
+
+    Export a mined dataset version to a local directory for use with finetuning pipelines.
 
 ??? example "Full skill definition (Level 4)"
 
@@ -57,12 +62,20 @@ Session mining — extract, analyze, and export agent session data
 ## geno-mine-extract
 
 **Slash command:** `/geno-mine-extract`
+  **Arguments:** `"[--since <days>d] [--skill <name>] [--format sft,dpo] [--dry-run]"`
 
 > Run the full session mining pipeline
 
-??? info "Observability"
+??? info "Overview (Level 3)"
 
-    success_signal: "dataset saved with >0 examples" failure_signals: - "no traces found" - "no segments correlated" - "all segments filtered" knowledge_reads: - "~/.geno/traces/ (structured skill traces)" - "~/.claude/projects/ (session transcripts)" knowledge_writes: - "~/.geno/datasets/ (training examples)"
+    Run the full mining pipeline:
+    
+    1. Load traces from `~/.geno/traces/`
+    2. Correlate with session transcripts in `~/.claude/projects/`
+    3. Classify segments by training value (tier 1/2/3)
+    4. Generate examples in requested formats
+    5. Apply privacy filters (path scrubbing, secret detection, PII removal)
+    6. Save to `~/.geno/datasets/`
 
 ??? example "Full skill definition (Level 4)"
 
@@ -116,6 +129,10 @@ Session mining — extract, analyze, and export agent session data
 **Slash command:** `/geno-mine-stats`
 
 > Show dataset statistics
+
+??? info "Overview (Level 3)"
+
+    Show statistics about the mined training datasets.
 
 ??? example "Full skill definition (Level 4)"
 
