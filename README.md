@@ -1,5 +1,7 @@
 # geno-tools
 
+[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://42euge.github.io/geno-tools/)
+
 Agent-agnostic meta package manager for AI coding agents. Discovers, absorbs, evaluates, and governs skills across Claude Code, Codex, Gemini CLI, Cursor, and OpenCode.
 
 **Website:** <https://42euge.github.io/geno-tools>
