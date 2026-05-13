@@ -14,6 +14,7 @@ test = ["pytest>=8.0"]
 
 [project.scripts]
 geno-tools = "genotools.cli:main"
+geno-trace = "genotools.trace:main"
 
 [tool.setuptools.packages.find]
 include = ["genotools*"]

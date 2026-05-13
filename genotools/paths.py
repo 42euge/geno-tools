@@ -21,6 +21,13 @@ ROOT = HOME / ".geno-tools"
 STATE_HASH = ROOT / ".state-hash"
 BOOTSTRAP = ROOT / "geno-bootstrap"
 
+GENO_DIR = HOME / ".geno"
+TRACES_DIR = GENO_DIR / "traces"
+HEALTH_DIR = GENO_DIR / "health"
+DISCOVERY_DIR = GENO_DIR / "discovery"
+DATASETS_DIR = GENO_DIR / "datasets"
+ISO_DIR = GENO_DIR / "iso"
+
 
 def normalize(name: str) -> str:
     """Canonicalize to the `geno-{name}` form used on disk."""
