@@ -36,12 +36,17 @@ def _discover() -> dict[str, str]:
 
 _FALLBACK: dict[str, str] = {
     "geno-agents":   f"https://github.com/{OWNER}/geno-agents.git",
-    "geno-media":    f"https://github.com/{OWNER}/geno-media.git",
-    "geno-research": f"https://github.com/{OWNER}/geno-research.git",
-    "geno-taxes":    f"https://github.com/{OWNER}/geno-taxes.git",
-    "geno-kaggle":   f"https://github.com/{OWNER}/geno-kaggle.git",
     "geno-dev":      f"https://github.com/{OWNER}/geno-dev.git",
+    "geno-iso":      f"https://github.com/{OWNER}/geno-iso.git",
+    "geno-kaggle":   f"https://github.com/{OWNER}/geno-kaggle.git",
+    "geno-loops":    f"https://github.com/{OWNER}/geno-loops.git",
+    "geno-media":    f"https://github.com/{OWNER}/geno-media.git",
+    "geno-mine":     f"https://github.com/{OWNER}/geno-mine.git",
+    "geno-notes":    f"https://github.com/{OWNER}/geno-notes.git",
+    "geno-research": f"https://github.com/{OWNER}/geno-research.git",
     "geno-specs":    f"https://github.com/{OWNER}/geno-specs.git",
+    "geno-taxes":    f"https://github.com/{OWNER}/geno-taxes.git",
+    "geno-ws":       f"https://github.com/{OWNER}/geno-ws.git",
 }
 
 _cache: dict[str, str] | None = None
