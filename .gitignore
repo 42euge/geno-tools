@@ -18,3 +18,6 @@ node_modules/
 
 # MkDocs
 site/
+
+# geno-audit temp clones
+.geno-audit/
