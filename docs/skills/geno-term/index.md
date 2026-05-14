@@ -13,7 +13,7 @@ Terminal automation and session recovery
 
 | Skill | Slash command | Description |
 |-------|--------------|-------------|
-| [geno-term-sessions-restart](#geno-term-sessions-restart) | `/geno-term-sessions-restart` | Restart coding agent sessions in a project tree after a crash by opening them as iTerm2 tabs and panes grouped by wor... |
+| [geno-term-sessions-restart](geno-term-sessions-restart.md) | `/geno-term-sessions-restart` | Restart coding agent sessions in a project tree after a crash by opening them as iTerm2 tabs and panes grouped by wor... |
 
 ## Overview
 
@@ -79,32 +79,3 @@ Terminal automation and session recovery
     - `success` = sessions discovered and listed, or iTerm tabs opened with resumed sessions
     - `failure` = geno-term CLI missing, no sessions found under target directory, or AppleScript failed
     - `abandoned` = user stopped early
-
-## geno-term-sessions-restart
-
-**Slash command:** `/geno-term-sessions-restart`
-  **Arguments:** `"<target_dir>"`
-
-> Restart coding agent sessions in a project tree after a crash by opening them as iTerm2 tabs and panes grouped by wor...
-
-??? info "Overview (Level 3)"
-
-    ## Input
-    
-    `$ARGUMENTS` — the target directory. Defaults to the current working directory if empty.
-
-??? example "Full skill definition (Level 4)"
-
-    Recover coding agent sessions in a project tree after a crash by restarting them as iTerm2 tabs+panes grouped by cwd.
-    
-    ## Input
-    
-    `$ARGUMENTS` — the target directory. Defaults to the current working directory if empty.
-    
-    ## Steps
-    
-    1. Resolve `$ARGUMENTS` (or `pwd`) to an absolute path.
-    2. Run `geno-term discover "<path>"` and show the user the grouped list.
-    3. Ask before restarting if more than 8 sessions would open.
-    4. Run `geno-term restart "<path>"`.
-    5. Report the number of tabs and panes opened.

@@ -1,18 +1,13 @@
 ---
 title: geno-hoa
-description: HOA portal automation — document retrieval, account status, and dues extraction
+description: HOA portal automation
 ---
 
 # geno-hoa
 
-HOA portal automation — document retrieval, account status, and dues extraction
+HOA portal automation
 
 [:material-github: GitHub](https://github.com/42euge/geno-hoa){ .md-button }
-
-## Skills
-
-| Skill | Slash command | Description |
-|-------|--------------|-------------|
 
 ## Overview
 

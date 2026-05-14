@@ -1,18 +1,13 @@
 ---
 title: geno-budget
-description: Expense categorization — business vs personal classification for tax prep
+description: Personal budget and expense categorization
 ---
 
 # geno-budget
 
-Expense categorization — business vs personal classification for tax prep
+Personal budget and expense categorization
 
 [:material-github: GitHub](https://github.com/42euge/geno-budget){ .md-button }
-
-## Skills
-
-| Skill | Slash command | Description |
-|-------|--------------|-------------|
 
 ## Overview
 

@@ -1,18 +1,13 @@
 ---
 title: geno-remodel
-description: Home remodel toolkit — photo-driven remodel planning, HOA submissions, permit tracking, contractor coordination, cont...
+description: Home remodel toolkit
 ---
 
 # geno-remodel
 
-Home remodel toolkit — photo-driven remodel planning, HOA submissions, permit tracking, contractor coordination, cont...
+Home remodel toolkit
 
 [:material-github: GitHub](https://github.com/42euge/geno-remodel){ .md-button }
-
-## Skills
-
-| Skill | Slash command | Description |
-|-------|--------------|-------------|
 
 ## Overview
 
