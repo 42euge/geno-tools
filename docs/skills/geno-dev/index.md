@@ -17,12 +17,6 @@ Developer utilities — commits, worktrees, workspaces, feature shipping
 | [geno-dev-commits-rewrite](geno-dev-commits-rewrite.md) | `/geno-dev-commits-rewrite` | Rewrite git commit history into a clean narrative (backup + soft reset + restage) |
 | [geno-dev-feature-ship](geno-dev-feature-ship.md) | `/geno-dev-feature-ship` | End-to-end feature shipping |
 | [geno-dev-issue-work](geno-dev-issue-work.md) | `/geno-dev-issue-work` | Select a GitHub issue or JIRA ticket and start working on it, with a choice of normal interactive mode or autonomous ... |
-| [geno-dev-loops-autopilot](geno-dev-loops-autopilot.md) | `/geno-dev-loops-autopilot` | Background monitoring loop |
-| [geno-dev-loops-boost](geno-dev-loops-boost.md) | `/geno-dev-loops-boost` | Time-boxed focus sessions (Pomodoro) |
-| [geno-dev-loops-cruise](geno-dev-loops-cruise.md) | `/geno-dev-loops-cruise` | Plan-driven sequential execution loop |
-| [geno-dev-loops-drift](geno-dev-loops-drift.md) | `/geno-dev-loops-drift` | Question-driven exploration loop |
-| [geno-dev-loops-ignition](geno-dev-loops-ignition.md) | `/geno-dev-loops-ignition` | Cold-start bootstrap loop |
-| [geno-dev-loops-turbocharge](geno-dev-loops-turbocharge.md) | `/geno-dev-loops-turbocharge` | Spec-driven convergence loop |
 | [geno-dev-prs-check](geno-dev-prs-check.md) | `/geno-dev-prs-check` | Check open PRs for repos in the current session and show which ones may need to be closed |
 | [geno-dev-scheduling-snooze](geno-dev-scheduling-snooze.md) | `/geno-dev-scheduling-snooze` | Snooze the current session |
 | [geno-dev-sessions-fork](geno-dev-sessions-fork.md) | `/geno-dev-sessions-fork` | Fork an agent session |
