@@ -19,6 +19,7 @@
 | geno-skills-install | — | /geno-skills-install |
 | geno-skills-status | — | /geno-skills-status |
 | geno-tools-open-docs | — | /geno-tools-open-docs |
+| geno-tools-sessions-spawn | — | /geno-tools-sessions-spawn |
 | geno-tools-update | — | /geno-tools-update |
 
 ## Repo structure
