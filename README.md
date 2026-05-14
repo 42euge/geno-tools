@@ -122,7 +122,6 @@ Inside each skillset:
 
 - `SKILL.md` at the root — the umbrella manifest the agent loads first
 - `skills/<subskill>/SKILL.md` — **subskillsets**, each scoped to one focused capability (a single skillset typically ships several). geno-tools registers all of them in one shot via `npx skills add --skill '*'`.
-- `commands/*.md` — slash commands surfaced as `/{configured-prefix}-*` in the agent
 - Optional `pyproject.toml`, runtime scripts, and copy-once configs
 
 Subskillsets keep individual SKILL.md files small and tightly scoped, while the umbrella SKILL.md gives the agent enough context to discover them.
@@ -135,7 +134,7 @@ There are three ways to make a skillset installable through `geno-tools install`
 2. **Direct git URL** — anyone can install any compliant repo without a registry entry: `geno-tools install https://github.com/you/your-skillset.git`. This is the recommended path for private, internal, or experimental skillsets.
 3. **Local dev link** — `geno-tools dev <repo-name> ~/src/<repo-name>` to iterate on a checkout without committing.
 
-A minimum viable skillset only needs a root `SKILL.md` and a `commands/` directory; everything else (venv, runtime symlinks, configs, subskillsets) is opt-in.
+A minimum viable skillset only needs a root `SKILL.md`, a `genotools.yaml`, and a `GENO.md`; everything else (venv, runtime symlinks, configs, subskillsets) is opt-in.
 
 ## Existing geno-* repos
 
@@ -185,7 +184,7 @@ Lower-level building blocks that power skillsets and the agent itself:
 
 geno-tools is built so an organization can run the same agentic stack as the open-source community without leaking proprietary prompts, code, or data.
 
-The pattern is to mirror the `geno-*` convention under your own namespace: `{company-slug}-{skillset-slug}`. For example, an internal skillset for incident response at Acme would live in a repo named `acme-incident-response`, and a finance skillset would be `acme-finance`. Same layout, same `SKILL.md` + `commands/` + optional venv shape — just hosted privately.
+The pattern is to mirror the `geno-*` convention under your own namespace: `{company-slug}-{skillset-slug}`. For example, an internal skillset for incident response at Acme would live in a repo named `acme-incident-response`, and a finance skillset would be `acme-finance`. Same layout, same `SKILL.md` + `genotools.yaml` + `GENO.md` + optional venv shape — just hosted privately.
 
 How it works in practice:
 

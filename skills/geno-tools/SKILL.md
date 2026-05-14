@@ -32,10 +32,15 @@ Install by full repo name (e.g. `geno-tools install geno-<name>`):
 | Skill | Description |
 |-------|-------------|
 | geno-alias | Create, remove, and list custom slash-command aliases |
+| geno-audit | Audit a geno-ecosystem repo for compliance with skillset conventions |
 | geno-data-workspaces-init | Create data workspaces for personal/life skills (taxes, remodel, career) |
+| geno-icons | Generate pixel-art icons for geno ecosystem repos |
+| geno-onboarding | Onboarding wizard for new geno ecosystem skillsets |
 | geno-skills-create | Scaffold a new skill in a geno ecosystem repo |
 | geno-skills-install | Install skills from a local repo checkout globally |
 | geno-skills-status | Show version, commit, and freshness of installed skillsets |
+| geno-tools-open-docs | Open the geno-tools documentation site |
+| geno-tools-update | Pull the latest version of installed skillsets and re-register with all agents |
 
 ## Commands
 
