@@ -33,6 +33,20 @@ Parse `$ARGUMENTS` for:
 - **`--cwd <path>`** — working directory for the new session (default: current workspace root)
 - **`--briefing <file-or-text>`** — initial prompt to send. Can be a file path (read and sent) or inline text. If omitted, ask the user what the session should work on.
 
+## Important: Local + Remote Control (NOT --remote)
+
+This skill creates a **local interactive session** then enables **Remote Control** inside it via `/remote-control`. This is NOT the same as `claude --remote` which creates a cloud-only session that exits immediately.
+
+The correct flow:
+1. Launch `claude --dangerously-skip-permissions --name <name>` (local, interactive)
+2. Once the REPL is up, type `/remote-control <name>` inside the session
+3. Now the session is local AND accessible from phone/browser
+
+**Never use:**
+- `claude --remote` — creates a cloud session, not local
+- `claude -p "prompt"` — runs one-shot and exits, not interactive
+- iTerm2 AppleScript — use Terminal.app (macOS default)
+
 ## Workflow
 
 ### 1. Resolve parameters
@@ -61,9 +75,9 @@ chmod +x "$LAUNCHER"
 osascript -e 'tell application "Terminal" to do script "/tmp/geno-spawn-<NAME>.sh"'
 ```
 
-### 4. Wait for session to start
+### 4. Wait for session to start and handle trust prompt
 
-Wait for the claude process to appear:
+Wait for the claude process to appear, then handle the directory trust prompt:
 
 ```bash
 for i in $(seq 1 30); do
@@ -73,6 +87,21 @@ for i in $(seq 1 30); do
   sleep 1
 done
 ```
+
+Note: `--dangerously-skip-permissions` does NOT skip the initial directory trust prompt ("Is this a project you created or one you trust?"). After the process starts, wait 5 seconds then send Enter to confirm trust:
+
+```bash
+sleep 5
+osascript -e '
+tell application "Terminal"
+    activate
+    tell application "System Events"
+        keystroke return
+    end tell
+end tell'
+```
+
+Wait another 8-10 seconds for the REPL to fully initialize before sending `/remote-control`.
 
 ### 5. Enable remote-control
 

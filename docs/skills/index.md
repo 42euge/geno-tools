@@ -5,7 +5,7 @@ description: Browse all skills in the geno ecosystem
 
 # Skill Catalog
 
-**21 skillsets** · **78 skills** across the geno ecosystem.
+**21 skillsets** · **70 skills** across the geno ecosystem.
 
 Browse by category, search for a skill, or drill into any skillset for full documentation.
 
@@ -84,13 +84,13 @@ Meta-CLI — install, update, and manage skillsets across all agents
 
 <div class="feature-grid" markdown>
 
-<div class="feature-card" data-skills="geno-dev-branches-audit geno-dev-commits-rewrite geno-dev-feature-ship geno-dev-issue-work geno-dev-loops-autopilot geno-dev-loops-boost geno-dev-loops-cruise geno-dev-loops-drift geno-dev-loops-ignition geno-dev-loops-turbocharge geno-dev-prs-check geno-dev-scheduling-snooze geno-dev-sessions-fork geno-dev-sessions-remote geno-dev-skills-retro geno-dev-tasks-start geno-dev-workspaces-init geno-dev-worktrees-manage" markdown>
+<div class="feature-card" data-skills="geno-dev-branches-audit geno-dev-commits-rewrite geno-dev-feature-ship geno-dev-issue-work geno-dev-prs-check geno-dev-scheduling-snooze geno-dev-sessions-fork geno-dev-sessions-remote geno-dev-skills-retro geno-dev-tasks-start geno-dev-workspaces-init geno-dev-worktrees-manage" markdown>
 
 ### [geno-dev](geno-dev/index.md)
 
 Developer utilities — commits, worktrees, workspaces, feature shipping
 
-<span class="skill-count">18 skills</span>
+<span class="skill-count">12 skills</span>
 
 </div>
 
@@ -194,13 +194,13 @@ Kaggle benchmarking, notebook upload, discussion scraping
 
 </div>
 
-<div class="feature-card" data-skills="geno-research-paper-generate geno-research-papers-generate geno-research-repo-docs geno-research-repos-document geno-research-wiki" markdown>
+<div class="feature-card" data-skills="geno-research-paper-generate geno-research-repo-docs geno-research-wiki" markdown>
 
 ### [geno-research](geno-research/index.md)
 
 Wiki-based research, paper generation, repo documentation
 
-<span class="skill-count">5 skills</span>
+<span class="skill-count">3 skills</span>
 
 </div>
 
@@ -308,12 +308,6 @@ Tax filing — document parsing, checklists, CPA packet prep
 | [`geno-dev-commits-rewrite`](geno-dev/geno-dev-commits-rewrite.md) | [geno-dev](geno-dev/index.md) | Rewrite git commit history into a clean narrative (backup + soft reset + restage) |
 | [`geno-dev-feature-ship`](geno-dev/geno-dev-feature-ship.md) | [geno-dev](geno-dev/index.md) | End-to-end feature shipping |
 | [`geno-dev-issue-work`](geno-dev/geno-dev-issue-work.md) | [geno-dev](geno-dev/index.md) | Select a GitHub issue or JIRA ticket and start working on it, with a choice of normal interactive mode or autonomous ... |
-| [`geno-dev-loops-autopilot`](geno-dev/geno-dev-loops-autopilot.md) | [geno-dev](geno-dev/index.md) | Background monitoring loop |
-| [`geno-dev-loops-boost`](geno-dev/geno-dev-loops-boost.md) | [geno-dev](geno-dev/index.md) | Time-boxed focus sessions (Pomodoro) |
-| [`geno-dev-loops-cruise`](geno-dev/geno-dev-loops-cruise.md) | [geno-dev](geno-dev/index.md) | Plan-driven sequential execution loop |
-| [`geno-dev-loops-drift`](geno-dev/geno-dev-loops-drift.md) | [geno-dev](geno-dev/index.md) | Question-driven exploration loop |
-| [`geno-dev-loops-ignition`](geno-dev/geno-dev-loops-ignition.md) | [geno-dev](geno-dev/index.md) | Cold-start bootstrap loop |
-| [`geno-dev-loops-turbocharge`](geno-dev/geno-dev-loops-turbocharge.md) | [geno-dev](geno-dev/index.md) | Spec-driven convergence loop |
 | [`geno-dev-prs-check`](geno-dev/geno-dev-prs-check.md) | [geno-dev](geno-dev/index.md) | Check open PRs for repos in the current session and show which ones may need to be closed |
 | [`geno-dev-scheduling-snooze`](geno-dev/geno-dev-scheduling-snooze.md) | [geno-dev](geno-dev/index.md) | Snooze the current session |
 | [`geno-dev-sessions-fork`](geno-dev/geno-dev-sessions-fork.md) | [geno-dev](geno-dev/index.md) | Fork an agent session |
@@ -348,9 +342,7 @@ Tax filing — document parsing, checklists, CPA packet prep
 | [`geno-notes-wiki-lint`](geno-notes/geno-notes-wiki-lint.md) | [geno-notes](geno-notes/index.md) | Health-check the wiki against primary sources |
 | [`geno-onboarding`](geno-tools/geno-onboarding.md) | [geno-tools](geno-tools/index.md) | Walks an operator through onboarding a new skillset into a geno-tools install, including enterprise discovery from Gi... |
 | [`geno-research-paper-generate`](geno-research/geno-research-paper-generate.md) | [geno-research](geno-research/index.md) | Generate an academic paper (workshop / extended abstract style) from the current repository's benchmark results, code... |
-| [`geno-research-papers-generate`](geno-research/geno-research-papers-generate.md) | [geno-research](geno-research/index.md) | Generate an academic paper (workshop / extended abstract style) from research findings |
 | [`geno-research-repo-docs`](geno-research/geno-research-repo-docs.md) | [geno-research](geno-research/index.md) | Generate purpose-driven repository documentation that captures what we're trying to achieve, the reasoning behind des... |
-| [`geno-research-repos-document`](geno-research/geno-research-repos-document.md) | [geno-research](geno-research/index.md) | Generate purpose-driven documentation for a repository |
 | [`geno-research-wiki`](geno-research/geno-research-wiki.md) | [geno-research](geno-research/index.md) | Build and maintain a wiki of linked markdown notes using the LLM Wiki pattern |
 | [`geno-run-kaggle-bench`](geno-kaggle/geno-run-kaggle-bench.md) | [geno-kaggle](geno-kaggle/index.md) | "Run Kaggle Benchmark" |
 | [`geno-skills-create`](geno-tools/geno-skills-create.md) | [geno-tools](geno-tools/index.md) | Scaffold a new skill in a geno ecosystem repo |

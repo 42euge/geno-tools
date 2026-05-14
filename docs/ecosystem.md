@@ -5,7 +5,7 @@ description: The geno-* ecosystem at a glance
 
 # Ecosystem
 
-The geno ecosystem spans **21 skillsets** and **78 skills**.
+The geno ecosystem spans **21 skillsets** and **70 skills**.
 
 Browse the full [Skill Catalog](skills/index.md) or explore individual skillsets below.
 
@@ -16,7 +16,7 @@ Browse the full [Skill Catalog](skills/index.md) or explore individual skillsets
 | [geno-agents](skills/geno-agents/index.md) | :material-cube-outline: Core | 2 | Multi-agent coordination, registration, autonomous loops |
 | [geno-budget](skills/geno-budget/index.md) | :material-home-outline: Life | 0 | Personal budget and expense categorization |
 | [geno-career](skills/geno-career/index.md) | :material-home-outline: Life | 4 | Career toolkit — job search, resume building, application tracking |
-| [geno-dev](skills/geno-dev/index.md) | :material-code-braces: Developer | 18 | Developer utilities — commits, worktrees, workspaces, feature shipping |
+| [geno-dev](skills/geno-dev/index.md) | :material-code-braces: Developer | 12 | Developer utilities — commits, worktrees, workspaces, feature shipping |
 | [geno-hoa](skills/geno-hoa/index.md) | :material-home-outline: Life | 0 | HOA portal automation |
 | [geno-iso](skills/geno-iso/index.md) | :material-cog-outline: Runtime | 6 | Docker containers for isolated Claude Code environments |
 | [geno-kaggle](skills/geno-kaggle/index.md) | :material-chart-bar: Data & Research | 6 | Kaggle benchmarking, notebook upload, discussion scraping |
@@ -27,7 +27,7 @@ Browse the full [Skill Catalog](skills/index.md) or explore individual skillsets
 | [geno-msg](skills/geno-msg/index.md) | :material-cube-outline: Core | 0 | Inter-agent messaging |
 | [geno-notes](skills/geno-notes/index.md) | :material-cube-outline: Core | 4 | Project journal, task management, wiki, and site generation |
 | [geno-remodel](skills/geno-remodel/index.md) | :material-home-outline: Life | 0 | Home remodel toolkit |
-| [geno-research](skills/geno-research/index.md) | :material-chart-bar: Data & Research | 5 | Wiki-based research, paper generation, repo documentation |
+| [geno-research](skills/geno-research/index.md) | :material-chart-bar: Data & Research | 3 | Wiki-based research, paper generation, repo documentation |
 | [geno-specs](skills/geno-specs/index.md) | :material-code-braces: Developer | 5 | Execution specifications — create, validate, run, and review |
 | [geno-taxes](skills/geno-taxes/index.md) | :material-home-outline: Life | 5 | Tax filing — document parsing, checklists, CPA packet prep |
 | [geno-term](skills/geno-term/index.md) | :material-cog-outline: Runtime | 1 | Terminal automation and session recovery |
