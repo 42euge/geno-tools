@@ -21,6 +21,7 @@
 | geno-tools-open-docs | — | /geno-tools-open-docs |
 | geno-tools-sessions-spawn | — | /geno-tools-sessions-spawn |
 | geno-tools-create-skillset-repo | — | /geno-tools-create-skillset-repo |
+| geno-tools-improve | — | /geno-tools-improve |
 | geno-tools-update | — | /geno-tools-update |
 
 ## Repo structure
@@ -54,6 +55,7 @@ geno-tools/
 │   ├── geno-skills-create/SKILL.md #  skill scaffolder
 │   ├── geno-skills-install/SKILL.md #  local skill installer
 │   ├── geno-skills-status/SKILL.md #  ecosystem status reporter
+│   ├── geno-tools-improve/SKILL.md #  self-improvement cycle
 │   ├── geno-tools-update/SKILL.md #   ecosystem updater
 │   └── geno-tools-open-docs/SKILL.md      # docs site opener
 ├── config/defaults.yaml           # reference config with aliases schema

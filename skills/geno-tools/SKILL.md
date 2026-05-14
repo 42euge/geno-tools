@@ -43,6 +43,7 @@ Install by full repo name (e.g. `geno-tools install geno-<name>`):
 | geno-tools-create-skillset-repo | Scaffold a new geno ecosystem skillset repo from scratch |
 | geno-skills-install | Install skills from a local repo checkout globally |
 | geno-skills-status | Show version, commit, and freshness of installed skillsets |
+| geno-tools-improve | Run the self-improvement cycle — health report, retro triage, session mining |
 | geno-tools-open-docs | Open the geno-tools documentation site |
 | geno-tools-update | Pull the latest version of installed skillsets and re-register with all agents |
 
