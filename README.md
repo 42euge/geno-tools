@@ -52,7 +52,7 @@ gemini extensions install https://github.com/42euge/geno-tools
 bash ~/.gemini/extensions/geno-tools/scripts/bootstrap.sh
 ```
 
-Gemini clones the repo into `~/.gemini/extensions/geno-tools/`, reads `gemini-extension.json`, and registers the bundled `skills/`, `commands/`, and `hooks/hooks.json`. Restart the CLI to pick it up. Update later with `gemini extensions update geno-tools`. Gemini extensions don't run arbitrary startup commands, so the one-time `bootstrap.sh` invocation is what puts `geno-tools` on PATH.
+Gemini clones the repo into `~/.gemini/extensions/geno-tools/`, reads `gemini-extension.json`, and registers the bundled `skills/` and `hooks/hooks.json`. Restart the CLI to pick it up. Update later with `gemini extensions update geno-tools`. Gemini extensions don't run arbitrary startup commands, so the one-time `bootstrap.sh` invocation is what puts `geno-tools` on PATH.
 
 ### Cursor
 
