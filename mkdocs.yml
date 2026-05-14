@@ -189,6 +189,7 @@ extra_css:
 extra_javascript:
   - javascripts/face.js
   - javascripts/catalog-filter.js
+  - javascripts/zoom-indicator.js
 
 markdown_extensions:
   - admonition

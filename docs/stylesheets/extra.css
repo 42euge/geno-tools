@@ -507,6 +507,62 @@
 [data-md-color-scheme="slate"] .md-typeset .zoom-section-4 { border-left-color: #b8b0c840; }
 [data-md-color-scheme="slate"] .md-typeset .zoom-section-5 { border-left-color: #9a8ab040; }
 
+/* ── Zoom scroll indicator ── */
+
+.zoom-indicator {
+  position: fixed;
+  right: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  z-index: 10;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.zoom-indicator:hover {
+  opacity: 1;
+}
+
+.zi-dot {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.55rem;
+  font-weight: 700;
+  color: #8a7fa0;
+  background: #2d1b4e15;
+  border: 1px solid #2d1b4e20;
+  transition: all 0.3s;
+}
+
+.zi-dot.zi-active {
+  background: #e8650a;
+  border-color: #e8650a;
+  color: #fff;
+}
+
+[data-md-color-scheme="slate"] .zi-dot {
+  background: #1a0a2e60;
+  border-color: #3a156040;
+  color: #6a5a80;
+}
+
+[data-md-color-scheme="slate"] .zi-dot.zi-active {
+  background: #f0923a;
+  border-color: #f0923a;
+  color: #fff;
+}
+
+@media (max-width: 76.25em) {
+  .zoom-indicator { display: none; }
+}
+
 /* ── Announcement bar ── */
 
 .md-banner {
