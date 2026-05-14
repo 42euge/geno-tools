@@ -288,6 +288,171 @@ def _gitea_has_skill_md(base_url: str, org: str, name: str, headers: dict) -> bo
         return False
 
 
+# ── community provider (GitHub search) ────────────────────────────────────
+
+
+@_register_provider("community")
+def _community(source: dict) -> list[Candidate]:
+    """Search GitHub for public repos containing SKILL.md or agent skill topics."""
+    query = source.get("query", "SKILL.md in:path filename:SKILL.md")
+    limit = source.get("limit", 50)
+    label = "community:github-search"
+
+    args = [
+        "gh", "search", "repos", query,
+        "--json", "name,url,fullName",
+        "--limit", str(limit),
+    ]
+
+    out = subprocess.run(args, capture_output=True, text=True, timeout=30)
+    if out.returncode != 0:
+        return []
+    try:
+        repos = json.loads(out.stdout)
+    except json.JSONDecodeError:
+        return []
+
+    results: list[Candidate] = []
+    for repo in repos:
+        name = repo.get("name", "")
+        full_name = repo.get("fullName", "")
+        url = repo.get("url", "")
+        results.append(Candidate(
+            name=name,
+            url=f"{url}.git" if url else "",
+            source=f"{label}:{full_name}",
+            has_skill_md=True,
+        ))
+    return results
+
+
+# ── confluence knowledge scanner ──────────────────────────────────────────
+
+
+@dataclass(frozen=True)
+class KnowledgeEntry:
+    title: str
+    url: str
+    source: str
+    category: str  # "patterns", "decisions", or "errata"
+
+
+KnowledgeProvider = Callable[[dict], list[KnowledgeEntry]]
+_KNOWLEDGE_PROVIDERS: dict[str, KnowledgeProvider] = {}
+
+
+def _register_knowledge_provider(kind: str):
+    def decorate(fn: KnowledgeProvider) -> KnowledgeProvider:
+        _KNOWLEDGE_PROVIDERS[kind] = fn
+        return fn
+    return decorate
+
+
+@_register_knowledge_provider("confluence")
+def _confluence(source: dict) -> list[KnowledgeEntry]:
+    """Scan a Confluence space for automation-related pages."""
+    base_url = source.get("base_url", "").rstrip("/")
+    space = source.get("space", "")
+    if not base_url or not space:
+        return []
+    label = f"confluence:{space}"
+
+    headers = {"Accept": "application/json"}
+    if (auth_env := source.get("auth_env")) and (tok := os.environ.get(auth_env)):
+        headers["Authorization"] = f"Bearer {tok}"
+
+    keywords = ("skill", "automation", "integration", "runbook", "playbook", "workflow")
+    results: list[KnowledgeEntry] = []
+
+    try:
+        import urllib.request
+        url = f"{base_url}/wiki/rest/api/content?spaceKey={space}&limit=100&expand=metadata.labels"
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            data = json.loads(resp.read())
+    except Exception:
+        return []
+
+    for page in data.get("results", []):
+        title = page.get("title", "").lower()
+        if any(kw in title for kw in keywords):
+            page_url = f"{base_url}/wiki{page.get('_links', {}).get('webui', '')}"
+            category = "patterns" if any(k in title for k in ("runbook", "playbook", "workflow")) else "errata"
+            results.append(KnowledgeEntry(
+                title=page.get("title", ""),
+                url=page_url,
+                source=label,
+                category=category,
+            ))
+    return results
+
+
+@_register_knowledge_provider("gitlab-wiki")
+def _gitlab_wiki(source: dict) -> list[KnowledgeEntry]:
+    """Scan GitLab project wikis for automation-related pages."""
+    base_url = source.get("base_url", "https://gitlab.com").rstrip("/")
+    group = source.get("group", "")
+    if not group:
+        return []
+    label = f"gitlab-wiki:{group}"
+
+    headers = {}
+    if (auth_env := source.get("auth_env")) and (tok := os.environ.get(auth_env)):
+        headers["PRIVATE-TOKEN"] = tok
+
+    keywords = ("skill", "automation", "integration", "runbook", "playbook", "workflow")
+    results: list[KnowledgeEntry] = []
+
+    try:
+        import urllib.request
+        projects_url = f"{base_url}/api/v4/groups/{group.replace('/', '%2F')}/projects?per_page=50"
+        req = urllib.request.Request(projects_url, headers=headers)
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            projects = json.loads(resp.read())
+    except Exception:
+        return []
+
+    for project in projects[:20]:
+        pid = project.get("id")
+        if not pid:
+            continue
+        try:
+            wiki_url = f"{base_url}/api/v4/projects/{pid}/wikis"
+            req = urllib.request.Request(wiki_url, headers=headers)
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                pages = json.loads(resp.read())
+        except Exception:
+            continue
+        for page in pages:
+            title = page.get("title", "").lower()
+            if any(kw in title for kw in keywords):
+                slug = page.get("slug", "")
+                page_url = f"{base_url}/{project.get('path_with_namespace', '')}/-/wikis/{slug}"
+                category = "patterns" if any(k in title for k in ("runbook", "playbook")) else "errata"
+                results.append(KnowledgeEntry(
+                    title=page.get("title", ""),
+                    url=page_url,
+                    source=label,
+                    category=category,
+                ))
+    return results
+
+
+def scan_knowledge(*, namespace: str | None = None) -> list[KnowledgeEntry]:
+    """Scan configured knowledge sources (Confluence, wiki) for relevant pages."""
+    out: list[KnowledgeEntry] = []
+    for src in sources():
+        kind = src.get("kind")
+        provider = _KNOWLEDGE_PROVIDERS.get(kind)
+        if provider is None:
+            continue
+        try:
+            out.extend(provider(src))
+        except Exception as e:
+            print(f"  warn: knowledge source {kind} failed: {e}", file=sys.stderr)
+    return out
+
+
 # ── helpers ─────────────────────────────────────────────────────────────────
 
 

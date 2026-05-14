@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import shutil
 import yaml
 from pathlib import Path
@@ -20,6 +21,8 @@ _DEFAULTS = {
             {"kind": "github", "org": "42euge"},
         ],
     },
+    "mode": "user",
+    "autonomy": 1,
 }
 
 
@@ -46,11 +49,35 @@ def load() -> dict:
     except Exception:
         return dict(_DEFAULTS)
     merged = dict(_DEFAULTS)
-    for section, defaults in _DEFAULTS.items():
-        if section in data and isinstance(data[section], dict):
-            merged[section] = {**defaults, **data[section]}
+    for key, default in _DEFAULTS.items():
+        if key in data:
+            if isinstance(default, dict) and isinstance(data[key], dict):
+                merged[key] = {**default, **data[key]}
+            else:
+                merged[key] = data[key]
     return merged
 
 
 def command_prefix() -> str:
     return load().get("aliases", {}).get("command_prefix", "gt")
+
+
+def get_mode(cwd: Path | None = None) -> str:
+    """Return 'dev' or 'user'. Checks $GENO_MODE, then CWD heuristic, then config."""
+    env = os.environ.get("GENO_MODE", "").strip().lower()
+    if env in ("dev", "user"):
+        return env
+    if cwd is None:
+        cwd = Path.cwd()
+    for part in cwd.parts:
+        if part.startswith("geno-") and part.endswith("-ws"):
+            return "dev"
+    return load().get("mode", "user")
+
+
+def get_autonomy() -> int:
+    """Return autonomy level 0, 1, or 2. Checks $GENO_AUTONOMY, then config."""
+    env = os.environ.get("GENO_AUTONOMY", "").strip()
+    if env in ("0", "1", "2"):
+        return int(env)
+    return int(load().get("autonomy", 1))

@@ -44,6 +44,13 @@ observability:
 # Can be overridden per-session via GENO_MODE env var.
 mode: user
 
+# Autonomy level: 0, 1, or 2.
+#   0 (passive) — traces via skill completion sections, no background work
+#   1 (hook-initiated) — SessionStart/Stop hooks for health refresh and retro queue
+#   2 (background daemon) — geno-iso housekeeping loop for wiki, mining, retro, discovery
+# Can be overridden per-session via GENO_AUTONOMY env var.
+autonomy: 1
+
 # Mining: session mining and dataset generation configuration.
 mining:
   enabled: true

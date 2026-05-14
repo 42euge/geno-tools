@@ -667,3 +667,15 @@ A repo's `GENO.md` should contain a skills table showing what skills *this* repo
    If the entire `.geno-audit/` directory is now empty, remove it too.
 
 8. **Report the result.** Print the PR URL and a summary of what was fixed vs. what needs manual attention.
+
+## Completion
+
+When this skill finishes, emit a trace:
+
+```bash
+geno-trace emit \
+  --skill geno-audit \
+  --status <success|failure|abandoned> \
+  --tool-calls <approximate count> \
+  --errors <count of tool/command errors>
+```
