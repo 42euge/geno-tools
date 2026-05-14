@@ -885,6 +885,263 @@ def compile_docs(
     print("Done.")
 
 
+def init_repo_docs(repo_dir: Path) -> None:
+    """Scaffold standardized docs for a geno-* repo.
+
+    Generates:
+      docs/index.md        — home page with description + skill inventory
+      docs/getting-started.md — install instructions
+      docs/skills.md       — auto-generated skill reference (zoom levels)
+      docs/stylesheets/extra.css — geno theme
+      mkdocs.yml           — full MkDocs Material config
+    """
+    repo_name = repo_dir.name
+    docs_dir = repo_dir / "docs"
+    docs_dir.mkdir(parents=True, exist_ok=True)
+    (docs_dir / "stylesheets").mkdir(exist_ok=True)
+
+    geno_md = repo_dir / "GENO.md"
+    description = REPO_DESCRIPTIONS.get(repo_name, f"{repo_name} skillset")
+    if geno_md.is_file():
+        text = geno_md.read_text(encoding="utf-8", errors="replace")
+        for line in text.split("\n"):
+            line = line.strip()
+            if line and not line.startswith("#") and not line.startswith("@"):
+                description = line
+                break
+
+    skills_dir = repo_dir / "skills"
+    skills: list[SkillInfo] = []
+    if skills_dir.is_dir():
+        for sd in sorted(skills_dir.iterdir()):
+            skill_md = sd / "SKILL.md"
+            if skill_md.is_file():
+                fm, body = parse_skill_md(skill_md)
+                sname = fm.get("name", sd.name)
+                skills.append(SkillInfo(
+                    name=sname,
+                    skillset=repo_name,
+                    description=extract_description(fm, body),
+                    frontmatter=fm,
+                    body=body,
+                    source_path=skill_md,
+                    is_umbrella=(sname == repo_name),
+                ))
+
+    sub_skills = [s for s in skills if not s.is_umbrella]
+
+    index_lines = [
+        "---",
+        f"title: {repo_name}",
+        f"description: {description}",
+        "---",
+        "",
+        f"# {repo_name}",
+        "",
+        description,
+        "",
+        f"[:material-open-in-new: Central Hub](https://42euge.github.io/geno-tools/skills/{repo_name}/){{ .md-button }}",
+        "",
+    ]
+    if sub_skills:
+        index_lines.append("## Skills")
+        index_lines.append("")
+        index_lines.append("| Skill | Slash command | Description |")
+        index_lines.append("|-------|--------------|-------------|")
+        for s in sorted(sub_skills, key=lambda x: x.name):
+            index_lines.append(
+                f"| [{s.name}](skills.md#{s.name}) | `/{s.name}` | {s.description or '—'} |"
+            )
+        index_lines.append("")
+    index_lines.append("## Quick start")
+    index_lines.append("")
+    index_lines.append("```bash")
+    index_lines.append(f"geno-tools install {repo_name}")
+    index_lines.append("```")
+    index_lines.append("")
+    index_lines.append("See [Getting Started](getting-started.md) for detailed setup.")
+    index_lines.append("")
+
+    (docs_dir / "index.md").write_text("\n".join(index_lines), encoding="utf-8")
+    print(f"  Wrote {docs_dir / 'index.md'}")
+
+    gs_lines = [
+        "---",
+        f"title: Getting Started",
+        f"description: Install and configure {repo_name}",
+        "---",
+        "",
+        "# Getting Started",
+        "",
+        "## Install",
+        "",
+        "```bash",
+        f"geno-tools install {repo_name}",
+        "```",
+        "",
+        "## Verify",
+        "",
+        "```bash",
+        "geno-tools ls",
+        "```",
+        "",
+        f"You should see `{repo_name}` in the installed skillsets list.",
+        "",
+        "## Usage",
+        "",
+    ]
+    if sub_skills:
+        for s in sorted(sub_skills, key=lambda x: x.name):
+            gs_lines.append(f"- `/{s.name}` — {s.description or s.name}")
+    else:
+        gs_lines.append(f"Run `/{repo_name}` to get started.")
+    gs_lines.append("")
+    gs_lines.append("## Learn more")
+    gs_lines.append("")
+    gs_lines.append(f"- [Skill Reference](skills.md)")
+    gs_lines.append(f"- [Central Hub](https://42euge.github.io/geno-tools/skills/{repo_name}/)")
+    gs_lines.append("")
+
+    (docs_dir / "getting-started.md").write_text("\n".join(gs_lines), encoding="utf-8")
+    print(f"  Wrote {docs_dir / 'getting-started.md'}")
+
+    skill_ref_lines = [
+        "---",
+        "title: Skill Reference",
+        f"description: All skills in {repo_name}",
+        "---",
+        "",
+        "# Skill Reference",
+        "",
+    ]
+    for s in sorted(sub_skills, key=lambda x: x.name):
+        skill_ref_lines.append(f"## {s.name}")
+        skill_ref_lines.append("")
+        arg_hint = s.frontmatter.get("argument-hint", "")
+        if arg_hint:
+            skill_ref_lines.append(f"`/{s.name} {arg_hint}`")
+        else:
+            skill_ref_lines.append(f"`/{s.name}`")
+        skill_ref_lines.append("")
+        if s.description:
+            skill_ref_lines.append(f"> {s.description}")
+            skill_ref_lines.append("")
+        if s.body:
+            overview = _extract_overview_sections(s.body)
+            if overview:
+                skill_ref_lines.append(overview)
+                skill_ref_lines.append("")
+            deep = _extract_deep_sections(s.body)
+            if deep:
+                skill_ref_lines.append("---")
+                skill_ref_lines.append("")
+                skill_ref_lines.append(deep)
+                skill_ref_lines.append("")
+
+    (docs_dir / "skills.md").write_text("\n".join(skill_ref_lines), encoding="utf-8")
+    print(f"  Wrote {docs_dir / 'skills.md'}")
+
+    theme_css = textwrap.dedent("""\
+        :root {
+          --md-primary-fg-color: #1a0a2e;
+          --md-primary-fg-color--light: #2d1b4e;
+          --md-primary-fg-color--dark: #0f0619;
+          --md-accent-fg-color: #e8650a;
+        }
+        [data-md-color-scheme="slate"] {
+          --md-primary-fg-color: #1a0a2e;
+          --md-accent-fg-color: #f0923a;
+          --md-default-bg-color: #0e0b14;
+        }
+        .md-header {
+          background: linear-gradient(135deg, #1a0a2e 0%, #2d1050 50%, #3a1560 100%);
+        }
+        .md-tabs {
+          background: linear-gradient(135deg, #0f0619 0%, #1a0a2e 100%);
+        }
+        .md-footer {
+          background: linear-gradient(135deg, #0f0619, #1a0a2e);
+        }
+    """)
+    (docs_dir / "stylesheets" / "extra.css").write_text(theme_css, encoding="utf-8")
+    print(f"  Wrote {docs_dir / 'stylesheets' / 'extra.css'}")
+
+    mkdocs_lines = [
+        f"site_name: {repo_name}",
+        f"site_description: {description}",
+        f"site_url: https://42euge.github.io/{repo_name}",
+        f"repo_url: https://github.com/42euge/{repo_name}",
+        f"repo_name: 42euge/{repo_name}",
+        "",
+        "theme:",
+        "  name: material",
+        "  palette:",
+        '    - media: "(prefers-color-scheme: light)"',
+        "      scheme: default",
+        "      primary: custom",
+        "      accent: custom",
+        "      toggle:",
+        "        icon: material/brightness-7",
+        "        name: Switch to dark mode",
+        '    - media: "(prefers-color-scheme: dark)"',
+        "      scheme: slate",
+        "      primary: custom",
+        "      accent: custom",
+        "      toggle:",
+        "        icon: material/brightness-4",
+        "        name: Switch to light mode",
+        "  font:",
+        "    text: Inter",
+        "    code: JetBrains Mono",
+        "  icon:",
+        "    repo: fontawesome/brands/github",
+        "  features:",
+        "    - navigation.tabs",
+        "    - navigation.top",
+        "    - content.code.copy",
+        "    - search.highlight",
+        "    - search.suggest",
+        "    - toc.follow",
+        "",
+        "nav:",
+        "  - Home: index.md",
+        "  - Getting Started: getting-started.md",
+        "  - Skill Reference: skills.md",
+        "",
+        "extra_css:",
+        "  - stylesheets/extra.css",
+        "",
+        "markdown_extensions:",
+        "  - admonition",
+        "  - pymdownx.details",
+        "  - pymdownx.superfences",
+        "  - pymdownx.highlight:",
+        "      anchor_linenums: true",
+        "  - pymdownx.tabbed:",
+        "      alternate_style: true",
+        "  - attr_list",
+        "  - md_in_html",
+        "  - toc:",
+        "      permalink: true",
+        "",
+        "extra:",
+        "  social:",
+        "    - icon: fontawesome/brands/github",
+        "      link: https://github.com/42euge",
+        "  generator: false",
+        "",
+    ]
+
+    mkdocs_path = repo_dir / "mkdocs.yml"
+    if mkdocs_path.exists():
+        print(f"  Skipped {mkdocs_path} (already exists)")
+    else:
+        mkdocs_path.write_text("\n".join(mkdocs_lines), encoding="utf-8")
+        print(f"  Wrote {mkdocs_path}")
+
+    print(f"Scaffolded docs for {repo_name}.")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -910,8 +1167,18 @@ def main():
         action="store_true",
         help="Print the generated nav YAML for mkdocs.yml",
     )
+    parser.add_argument(
+        "--init-repo",
+        type=Path,
+        default=None,
+        help="Scaffold standardized docs for a geno-* repo directory",
+    )
     args = parser.parse_args()
-    compile_docs(args.workspace, args.install_dir, args.output, args.update_nav)
+
+    if args.init_repo:
+        init_repo_docs(args.init_repo.resolve())
+    else:
+        compile_docs(args.workspace, args.install_dir, args.output, args.update_nav)
 
 
 if __name__ == "__main__":
