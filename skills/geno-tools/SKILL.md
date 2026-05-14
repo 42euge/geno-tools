@@ -40,6 +40,7 @@ Install by full repo name (e.g. `geno-tools install geno-<name>`):
 | geno-icons | Generate pixel-art icons for geno ecosystem repos |
 | geno-onboarding | Onboarding wizard for new geno ecosystem skillsets |
 | geno-skills-create | Scaffold a new skill in a geno ecosystem repo |
+| geno-tools-create-skillset-repo | Scaffold a new geno ecosystem skillset repo from scratch |
 | geno-skills-install | Install skills from a local repo checkout globally |
 | geno-skills-status | Show version, commit, and freshness of installed skillsets |
 | geno-tools-open-docs | Open the geno-tools documentation site |
