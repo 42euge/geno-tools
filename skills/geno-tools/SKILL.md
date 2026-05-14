@@ -5,6 +5,9 @@ description: >-
   Use when user asks about installing, removing, listing, or updating
   geno ecosystem skillsets.
 allowed-tools: "Bash(geno-tools *) Bash(python3 -m genotools *)"
+metadata:
+  author: 42euge
+  version: "0.1.0"
 ---
 
 # geno-tools — Skillset Manager
