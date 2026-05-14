@@ -91,6 +91,9 @@ geno-trace = "genotools.trace:main"
 | `geno-tools use <name>@<variant> [--here]` | stub |
 | `geno-tools promote <name> <variant>` | stub |
 | `geno-tools doctor` | stub |
+| `geno-tools discover [--dry-run]` | implemented |
+| `geno-tools scan [--namespace] [--dry-run]` | implemented |
+| `geno-tools docs [--docs-dir] [--dry-run]` | implemented |
 
 ## Dependency management
 
@@ -153,6 +156,10 @@ aliases:
 
 The prefix is applied at install time by `geno-tools install` when materializing skills via `npx skills add`. Never hardcode an aliased prefix like `gt-` in SKILL.md descriptions, GENO.md, or any committed file. See `config/defaults.yaml` for the full schema.
 
+### Versioning
+
+The canonical version lives in `genotools.yaml` (`version` field). The same value must appear in `pyproject.toml` (`project.version`), `package.json` (`version`), and `genotools/__init__.py` (`__version__`). Bump the version whenever skills are added, removed, or behavior changes. Keep all four files in sync.
+
 ### Adding a new skill
 
 To add a new skill to this repo:
@@ -162,6 +169,7 @@ To add a new skill to this repo:
 3. Update the umbrella skill description in `skills/geno-tools/SKILL.md` to list the new skill.
 4. Add the skill to the skills table in this file (`GENO.md`).
 5. If the skill needs docs, add a page under `docs/`.
+6. Bump the version in all four files: `genotools.yaml`, `pyproject.toml`, `package.json`, `genotools/__init__.py`.
 
 ### What a skillset repo needs to provide
 
