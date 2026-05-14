@@ -5,7 +5,7 @@ description: Browse all skills in the geno ecosystem
 
 # Skill Catalog
 
-**21 skillsets** · **78 skills** across the geno ecosystem.
+**21 skillsets** · **76 skills** across the geno ecosystem.
 
 Browse by category, search for a skill, or drill into any skillset for full documentation.
 
@@ -194,13 +194,13 @@ Kaggle benchmarking, notebook upload, discussion scraping
 
 </div>
 
-<div class="feature-card" data-skills="geno-research-paper-generate geno-research-papers-generate geno-research-repo-docs geno-research-repos-document geno-research-wiki" markdown>
+<div class="feature-card" data-skills="geno-research-paper-generate geno-research-repo-docs geno-research-wiki" markdown>
 
 ### [geno-research](geno-research/index.md)
 
 Wiki-based research, paper generation, repo documentation
 
-<span class="skill-count">5 skills</span>
+<span class="skill-count">3 skills</span>
 
 </div>
 
@@ -348,9 +348,7 @@ Tax filing — document parsing, checklists, CPA packet prep
 | [`geno-notes-wiki-lint`](geno-notes/geno-notes-wiki-lint.md) | [geno-notes](geno-notes/index.md) | Health-check the wiki against primary sources |
 | [`geno-onboarding`](geno-tools/geno-onboarding.md) | [geno-tools](geno-tools/index.md) | Walks an operator through onboarding a new skillset into a geno-tools install, including enterprise discovery from Gi... |
 | [`geno-research-paper-generate`](geno-research/geno-research-paper-generate.md) | [geno-research](geno-research/index.md) | Generate an academic paper (workshop / extended abstract style) from the current repository's benchmark results, code... |
-| [`geno-research-papers-generate`](geno-research/geno-research-papers-generate.md) | [geno-research](geno-research/index.md) | Generate an academic paper (workshop / extended abstract style) from research findings |
 | [`geno-research-repo-docs`](geno-research/geno-research-repo-docs.md) | [geno-research](geno-research/index.md) | Generate purpose-driven repository documentation that captures what we're trying to achieve, the reasoning behind des... |
-| [`geno-research-repos-document`](geno-research/geno-research-repos-document.md) | [geno-research](geno-research/index.md) | Generate purpose-driven documentation for a repository |
 | [`geno-research-wiki`](geno-research/geno-research-wiki.md) | [geno-research](geno-research/index.md) | Build and maintain a wiki of linked markdown notes using the LLM Wiki pattern |
 | [`geno-run-kaggle-bench`](geno-kaggle/geno-run-kaggle-bench.md) | [geno-kaggle](geno-kaggle/index.md) | "Run Kaggle Benchmark" |
 | [`geno-skills-create`](geno-tools/geno-skills-create.md) | [geno-tools](geno-tools/index.md) | Scaffold a new skill in a geno ecosystem repo |
