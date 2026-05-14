@@ -5,7 +5,7 @@ description: The geno-* ecosystem at a glance
 
 # Ecosystem
 
-The geno ecosystem spans **21 skillsets** and **78 skills**.
+The geno ecosystem spans **21 skillsets** and **76 skills**.
 
 Browse the full [Skill Catalog](skills/index.md) or explore individual skillsets below.
 
@@ -27,7 +27,7 @@ Browse the full [Skill Catalog](skills/index.md) or explore individual skillsets
 | [geno-msg](skills/geno-msg/index.md) | :material-cube-outline: Core | 0 | Inter-agent messaging |
 | [geno-notes](skills/geno-notes/index.md) | :material-cube-outline: Core | 4 | Project journal, task management, wiki, and site generation |
 | [geno-remodel](skills/geno-remodel/index.md) | :material-home-outline: Life | 0 | Home remodel toolkit |
-| [geno-research](skills/geno-research/index.md) | :material-chart-bar: Data & Research | 5 | Wiki-based research, paper generation, repo documentation |
+| [geno-research](skills/geno-research/index.md) | :material-chart-bar: Data & Research | 3 | Wiki-based research, paper generation, repo documentation |
 | [geno-specs](skills/geno-specs/index.md) | :material-code-braces: Developer | 5 | Execution specifications — create, validate, run, and review |
 | [geno-taxes](skills/geno-taxes/index.md) | :material-home-outline: Life | 5 | Tax filing — document parsing, checklists, CPA packet prep |
 | [geno-term](skills/geno-term/index.md) | :material-cog-outline: Runtime | 1 | Terminal automation and session recovery |

@@ -146,9 +146,7 @@ nav:
           - geno-research:
               - skills/geno-research/index.md
               - geno-research-paper-generate: skills/geno-research/geno-research-paper-generate.md
-              - geno-research-papers-generate: skills/geno-research/geno-research-papers-generate.md
               - geno-research-repo-docs: skills/geno-research/geno-research-repo-docs.md
-              - geno-research-repos-document: skills/geno-research/geno-research-repos-document.md
               - geno-research-wiki: skills/geno-research/geno-research-wiki.md
       - Creative:
           - geno-media: skills/geno-media/index.md
