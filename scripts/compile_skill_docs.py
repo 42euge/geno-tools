@@ -276,8 +276,8 @@ def discover_skillsets(
             skillsets[repo_name] = ss
 
     for ss_dir in sorted(install_dir.glob("geno-*")):
-        active = ss_dir / "active" / "skills"
-        if not active.is_dir():
+        active_dir = ss_dir / "active"
+        if not active_dir.is_dir():
             continue
 
         repo_name = ss_dir.name
@@ -291,31 +291,50 @@ def discover_skillsets(
             repo_url=f"https://github.com/42euge/{repo_name}",
         )
 
-        geno_path = ss_dir / "active" / "GENO.md"
+        geno_path = active_dir / "GENO.md"
         if geno_path.is_file():
             ss.geno_md = geno_path.read_text(encoding="utf-8", errors="replace")
 
-        for skill_dir in sorted(active.iterdir()):
-            skill_md = skill_dir / "SKILL.md"
-            if not skill_md.is_file():
-                continue
+        root_skill = active_dir / "SKILL.md"
+        if root_skill.is_file():
+            fm, body = parse_skill_md(root_skill)
+            skill_name = fm.get("name", repo_name)
+            if skill_name not in seen_skills:
+                seen_skills.add(skill_name)
+                si = SkillInfo(
+                    name=skill_name,
+                    skillset=repo_name,
+                    description=extract_description(fm, body),
+                    frontmatter=fm,
+                    body=body,
+                    source_path=root_skill,
+                    is_umbrella=(skill_name == repo_name),
+                )
+                ss.skills.append(si)
 
-            fm, body = parse_skill_md(skill_md)
-            skill_name = fm.get("name", skill_dir.name)
-            if skill_name in seen_skills:
-                continue
-            seen_skills.add(skill_name)
+        active_skills = active_dir / "skills"
+        if active_skills.is_dir():
+            for skill_dir in sorted(active_skills.iterdir()):
+                skill_md = skill_dir / "SKILL.md"
+                if not skill_md.is_file():
+                    continue
 
-            si = SkillInfo(
-                name=skill_name,
-                skillset=repo_name,
-                description=extract_description(fm, body),
-                frontmatter=fm,
-                body=body,
-                source_path=skill_md,
-                is_umbrella=(skill_name == repo_name),
-            )
-            ss.skills.append(si)
+                fm, body = parse_skill_md(skill_md)
+                skill_name = fm.get("name", skill_dir.name)
+                if skill_name in seen_skills:
+                    continue
+                seen_skills.add(skill_name)
+
+                si = SkillInfo(
+                    name=skill_name,
+                    skillset=repo_name,
+                    description=extract_description(fm, body),
+                    frontmatter=fm,
+                    body=body,
+                    source_path=skill_md,
+                    is_umbrella=(skill_name == repo_name),
+                )
+                ss.skills.append(si)
 
         if ss.skills:
             skillsets[repo_name] = ss
@@ -330,6 +349,8 @@ def generate_catalog_page(skillsets: dict[str, SkillsetInfo]) -> str:
     )
     total_skillsets = len(skillsets)
 
+    cat_labels_list = [label for label, _ in CATEGORY_LABELS.values()]
+
     lines = [
         "---",
         "title: Skill Catalog",
@@ -342,7 +363,17 @@ def generate_catalog_page(skillsets: dict[str, SkillsetInfo]) -> str:
         "",
         "Browse by category, search for a skill, or drill into any skillset for full documentation.",
         "",
+        '<div class="catalog-filter" markdown>',
+        '  <input type="text" id="skill-search" placeholder="Filter skills..." />',
     ]
+    lines.append('  <button class="filter-btn active" data-cat="all">All</button>')
+    for cat_key, (label, _) in CATEGORY_LABELS.items():
+        lines.append(f'  <button class="filter-btn" data-cat="{cat_key}">{label}</button>')
+    lines.extend([
+        "</div>",
+        '<p class="catalog-no-results" id="no-results">No skills match your filter.</p>',
+        "",
+    ])
 
     by_cat: dict[str, list[SkillsetInfo]] = defaultdict(list)
     for ss in skillsets.values():
@@ -354,6 +385,8 @@ def generate_catalog_page(skillsets: dict[str, SkillsetInfo]) -> str:
             continue
 
         label, icon = CATEGORY_LABELS[cat_key]
+        lines.append(f'<div class="catalog-category" data-cat="{cat_key}" markdown>')
+        lines.append("")
         lines.append(f"## {icon} {label}")
         lines.append("")
         lines.append('<div class="feature-grid" markdown>')
@@ -364,8 +397,9 @@ def generate_catalog_page(skillsets: dict[str, SkillsetInfo]) -> str:
             skill_count = len(sub_skills)
             desc = ss.description or "No description"
             slug = ss.name
+            skill_names = " ".join(s.name for s in sub_skills)
 
-            lines.append('<div class="feature-card" markdown>')
+            lines.append(f'<div class="feature-card" data-skills="{skill_names}" markdown>')
             lines.append("")
             lines.append(f"### [{ss.name}]({slug}/index.md)")
             lines.append("")
@@ -381,7 +415,11 @@ def generate_catalog_page(skillsets: dict[str, SkillsetInfo]) -> str:
 
         lines.append("</div>")
         lines.append("")
+        lines.append("</div>")
+        lines.append("")
 
+    lines.append('<div class="catalog-all-skills" markdown>')
+    lines.append("")
     lines.append("## All skills")
     lines.append("")
     lines.append("| Skill | Skillset | Description |")
@@ -395,17 +433,202 @@ def generate_catalog_page(skillsets: dict[str, SkillsetInfo]) -> str:
 
     for skill in sorted(all_skills, key=lambda s: s.name):
         slug = skill.skillset
-        link = f"[`{skill.name}`]({slug}/index.md#{skill.name})"
+        link = f"[`{skill.name}`]({slug}/{skill.name}.md)"
         ss_link = f"[{skill.skillset}]({slug}/index.md)"
         desc = skill.description or "—"
         lines.append(f"| {link} | {ss_link} | {desc} |")
 
     lines.append("")
+    lines.append("</div>")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def _extract_overview_sections(body: str) -> str:
+    """Extract Level 3 overview from skill body.
+
+    Pulls Input, When to Use, Usage, and Prerequisites sections —
+    everything useful for understanding without the full workflow.
+    """
+    heading_stripped = _strip_leading_h1(body)
+    overview_headings = {"input", "when to use", "usage", "prerequisites", "options"}
+    stop_headings = {"workflow", "don'ts", "what not to do", "error recovery", "runtime"}
+
+    sections: list[str] = []
+    current_section: list[str] = []
+    in_overview_section = False
+    found_any = False
+
+    for line in heading_stripped.split("\n"):
+        stripped = line.strip()
+        if stripped.startswith("## "):
+            heading_text = stripped[3:].strip().lower()
+            if in_overview_section and current_section:
+                sections.append("\n".join(current_section))
+                current_section = []
+
+            if heading_text in overview_headings:
+                in_overview_section = True
+                found_any = True
+                current_section = [line]
+            elif heading_text in stop_headings:
+                in_overview_section = False
+            else:
+                in_overview_section = False
+        elif in_overview_section:
+            current_section.append(line)
+
+    if in_overview_section and current_section:
+        sections.append("\n".join(current_section))
+
+    if not found_any:
+        para_lines: list[str] = []
+        for line in heading_stripped.split("\n"):
+            stripped = line.strip()
+            if stripped.startswith("#"):
+                break
+            para_lines.append(line)
+        intro = "\n".join(para_lines).strip()
+        if intro:
+            return intro
+
+    return "\n\n".join(sections).strip()
+
+
+def _generate_rationale(skill: SkillInfo) -> str:
+    """Generate Level 5 rationale content for a skill.
+
+    Returns a short explanation of WHY the skill is structured the way it is,
+    cross-references to related skills, and LLM behavior patterns it addresses.
+    For now, generates heuristic rationale from the skill body; a future pass
+    can enrich this with Claude API calls.
+    """
+    lines: list[str] = []
+
+    related = _find_related_skills(skill)
+    if related:
+        lines.append("**Related skills:** " + ", ".join(f"`{r}`" for r in related))
+        lines.append("")
+
+    has_error_recovery = any(
+        h in skill.body.lower()
+        for h in ["error recovery", "fallback", "if.*fails"]
+    )
+    has_donts = any(
+        h in skill.body.lower()
+        for h in ["don't", "do not", "what not to do", "never"]
+    )
+    has_observability = "geno-trace" in skill.body or "observability" in str(skill.frontmatter)
+
+    if has_error_recovery:
+        lines.append(
+            "- **Error recovery section** — LLMs can get stuck in retry loops "
+            "or abandon tasks on first failure. Explicit fallback steps prevent both."
+        )
+    if has_donts:
+        lines.append(
+            "- **Explicit don'ts** — negative constraints are crucial for LLM-driven "
+            "workflows. Without them, agents drift toward plausible-but-wrong approaches."
+        )
+    if has_observability:
+        lines.append(
+            "- **Observability contract** — emitting traces at completion feeds the "
+            "self-improvement loop (health cards, retro, mining)."
+        )
+
+    if not lines:
+        lines.append(
+            "*Rationale not yet generated. Run `geno-docs compile --rationale` "
+            "to generate LLM explanations for this skill.*"
+        )
+
+    return "\n".join(lines)
+
+
+def _find_related_skills(skill: SkillInfo) -> list[str]:
+    """Find skill names referenced in the body text."""
+    matches = re.findall(r"/geno-[\w-]+", skill.body)
+    names = sorted(set(m.lstrip("/") for m in matches if m.lstrip("/") != skill.name))
+    return names[:5]
+
+
+def _generate_skill_page(skill: SkillInfo) -> str:
+    """Generate a standalone skill page with progressive scroll depth."""
+    lines: list[str] = []
+    desc = skill.description or skill.name
+
+    lines.append("---")
+    lines.append(f"title: {skill.name}")
+    lines.append(f"description: {desc}")
+    lines.append("---")
+    lines.append("")
+
+    # L1-2: Name + description (visible on landing)
+    lines.append(f"# {skill.name}")
+    lines.append("")
+    arg_hint = skill.frontmatter.get("argument-hint", "")
+    if arg_hint:
+        lines.append(f"`/{skill.name} {arg_hint}`")
+    else:
+        lines.append(f"`/{skill.name}`")
+    lines.append("")
+    lines.append(f"> {desc}")
+    lines.append("")
+
+    lines.append('<div class="zoom-depth" markdown>')
+    lines.append("")
+
+    if skill.body:
+        # L3: Overview — scroll deeper
+        overview = _extract_overview_sections(skill.body)
+        if overview:
+            lines.append('<div class="zoom-section zoom-section-3" markdown>')
+            lines.append("")
+            for oline in overview.split("\n"):
+                lines.append(oline)
+            lines.append("")
+            lines.append("</div>")
+            lines.append("")
+
+        # L4: Deep content — workflow, error recovery, don'ts (excludes L3 sections)
+        deep = _extract_deep_sections(skill.body)
+        if deep:
+            lines.append('<div class="zoom-section zoom-section-4" markdown>')
+            lines.append("")
+            lines.append("---")
+            lines.append("")
+            for bline in deep.split("\n"):
+                lines.append(bline)
+            lines.append("")
+            lines.append("</div>")
+            lines.append("")
+
+        # L5: Rationale — bottom of page
+        rationale = _generate_rationale(skill)
+        lines.append('<div class="zoom-section zoom-section-5" markdown>')
+        lines.append("")
+        lines.append("---")
+        lines.append("")
+        lines.append("### Rationale")
+        lines.append("")
+        for rline in rationale.split("\n"):
+            lines.append(rline)
+        lines.append("")
+        lines.append("</div>")
+        lines.append("")
+
+    lines.append("</div>")
+    lines.append("")
+
+    # Back link
+    lines.append(f"[:material-arrow-left: Back to {skill.skillset}](index.md)")
+    lines.append("")
+
     return "\n".join(lines)
 
 
 def generate_skillset_page(ss: SkillsetInfo) -> str:
-    """Generate a per-skillset page with zoom levels (Level 3-4)."""
+    """Generate a per-skillset index page linking to individual skill pages."""
     sub_skills = [s for s in ss.skills if not s.is_umbrella]
     umbrella = next((s for s in ss.skills if s.is_umbrella), None)
 
@@ -435,9 +658,8 @@ def generate_skillset_page(ss: SkillsetInfo) -> str:
         for skill in sorted(sub_skills, key=lambda s: s.name):
             slash = f"`/{skill.name}`"
             desc = skill.description or "—"
-            anchor = skill.name
             lines.append(
-                f"| [{skill.name}](#{anchor}) | {slash} | {desc} |"
+                f"| [{skill.name}]({skill.name}.md) | {slash} | {desc} |"
             )
         lines.append("")
 
@@ -452,36 +674,42 @@ def generate_skillset_page(ss: SkillsetInfo) -> str:
             lines.append(f"    {bline}")
         lines.append("")
 
-    for skill in sorted(sub_skills, key=lambda s: s.name):
-        lines.append(f"## {skill.name}")
-        lines.append("")
-        lines.append(f"**Slash command:** `/{skill.name}`")
-        lines.append("")
-
-        if skill.description:
-            lines.append(f"> {skill.description}")
-            lines.append("")
-
-        obs = skill.frontmatter.get("observability", "")
-        if obs:
-            lines.append(
-                '??? info "Observability"'
-            )
-            lines.append("")
-            lines.append(f"    {obs}")
-            lines.append("")
-
-        if skill.body:
-            heading_stripped = _strip_leading_h1(skill.body)
-            lines.append(
-                f'??? example "Full skill definition (Level 4)"'
-            )
-            lines.append("")
-            for bline in heading_stripped.split("\n"):
-                lines.append(f"    {bline}")
-            lines.append("")
-
     return "\n".join(lines)
+
+
+def _extract_deep_sections(body: str) -> str:
+    """Extract Level 4 content: everything beyond the overview sections.
+
+    Strips the overview headings (Input, When to Use, Usage, Prerequisites)
+    to avoid repetition with Level 3 in progressive scroll.
+    """
+    heading_stripped = _strip_leading_h1(body)
+    overview_headings = {"input", "when to use", "usage", "prerequisites", "options"}
+
+    result: list[str] = []
+    skip = False
+    intro_done = False
+
+    for line in heading_stripped.split("\n"):
+        stripped = line.strip()
+        if stripped.startswith("## "):
+            heading_text = stripped[3:].strip().lower()
+            if heading_text in overview_headings:
+                skip = True
+                intro_done = True
+                continue
+            else:
+                skip = False
+                intro_done = True
+        elif not intro_done and not stripped.startswith("#"):
+            skip = True
+            continue
+
+        if not skip:
+            result.append(line)
+
+    text = "\n".join(result).strip()
+    return text if text else heading_stripped
 
 
 def _strip_leading_h1(body: str) -> str:
@@ -574,8 +802,41 @@ def generate_ecosystem_overview(skillsets: dict[str, SkillsetInfo]) -> str:
     return "\n".join(lines)
 
 
+def generate_nav_yaml(skillsets: dict[str, SkillsetInfo]) -> str:
+    """Generate the Skills Catalog nav section for mkdocs.yml."""
+    by_cat: dict[str, list[SkillsetInfo]] = defaultdict(list)
+    for ss in skillsets.values():
+        by_cat[ss.category].append(ss)
+
+    lines = [
+        "  - Skills Catalog:",
+        "      - skills/index.md",
+    ]
+
+    for cat_key in CATEGORY_LABELS:
+        cat_skillsets = by_cat.get(cat_key, [])
+        if not cat_skillsets:
+            continue
+        label, _ = CATEGORY_LABELS[cat_key]
+        lines.append(f"      - {label}:")
+        for ss in sorted(cat_skillsets, key=lambda s: s.name):
+            sub_skills = [s for s in ss.skills if not s.is_umbrella]
+            if sub_skills:
+                lines.append(f"          - {ss.name}:")
+                lines.append(f"              - skills/{ss.name}/index.md")
+                for skill in sorted(sub_skills, key=lambda s: s.name):
+                    lines.append(
+                        f"              - {skill.name}: skills/{ss.name}/{skill.name}.md"
+                    )
+            else:
+                lines.append(f"          - {ss.name}: skills/{ss.name}/index.md")
+
+    return "\n".join(lines)
+
+
 def compile_docs(
-    workspace_root: Path, install_dir: Path, output_dir: Path
+    workspace_root: Path, install_dir: Path, output_dir: Path,
+    update_nav: bool = False,
 ) -> None:
     """Main entry point: discover skills and generate all docs pages."""
     print(f"Discovering skillsets from {workspace_root} and {install_dir}...")
@@ -591,18 +852,35 @@ def compile_docs(
     catalog_path.write_text(catalog, encoding="utf-8")
     print(f"  Wrote {catalog_path}")
 
+    skill_page_count = 0
     for ss in skillsets.values():
         ss_dir = output_dir / ss.name
         ss_dir.mkdir(parents=True, exist_ok=True)
+
         page = generate_skillset_page(ss)
         page_path = ss_dir / "index.md"
         page_path.write_text(page, encoding="utf-8")
         print(f"  Wrote {page_path}")
 
+        sub_skills = [s for s in ss.skills if not s.is_umbrella]
+        for skill in sub_skills:
+            skill_page = _generate_skill_page(skill)
+            skill_path = ss_dir / f"{skill.name}.md"
+            skill_path.write_text(skill_page, encoding="utf-8")
+            skill_page_count += 1
+
+    print(f"  Generated {skill_page_count} individual skill pages")
+
     eco_page = generate_ecosystem_overview(skillsets)
     eco_path = output_dir.parent / "ecosystem.md"
     eco_path.write_text(eco_page, encoding="utf-8")
     print(f"  Wrote {eco_path}")
+
+    if update_nav:
+        nav_yaml = generate_nav_yaml(skillsets)
+        print("\n--- Generated nav section (paste into mkdocs.yml) ---")
+        print(nav_yaml)
+        print("--- end ---")
 
     print("Done.")
 
@@ -627,8 +905,13 @@ def main():
         default=OUTPUT_DIR,
         help="Output directory for generated docs (docs/skills/)",
     )
+    parser.add_argument(
+        "--update-nav",
+        action="store_true",
+        help="Print the generated nav YAML for mkdocs.yml",
+    )
     args = parser.parse_args()
-    compile_docs(args.workspace, args.install_dir, args.output)
+    compile_docs(args.workspace, args.install_dir, args.output, args.update_nav)
 
 
 if __name__ == "__main__":

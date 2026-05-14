@@ -1,18 +1,13 @@
 ---
 title: geno-media
-description: Media creation — audiobooks (Kokoro TTS), videos (Manim), podcast videos, TTS/STT
+description: Audiobooks, animated videos, podcasts, TTS/STT config
 ---
 
 # geno-media
 
-Media creation — audiobooks (Kokoro TTS), videos (Manim), podcast videos, TTS/STT
+Audiobooks, animated videos, podcasts, TTS/STT config
 
 [:material-github: GitHub](https://github.com/42euge/geno-media){ .md-button }
-
-## Skills
-
-| Skill | Slash command | Description |
-|-------|--------------|-------------|
 
 ## Overview
 

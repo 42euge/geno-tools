@@ -51,33 +51,125 @@ nav:
   - Skills Catalog:
       - skills/index.md
       - Core:
-          - geno-tools: skills/geno-tools/index.md
-          - geno-agents: skills/geno-agents/index.md
-          - geno-notes: skills/geno-notes/index.md
+          - geno-agents:
+              - skills/geno-agents/index.md
+              - geno-agents-supercharge: skills/geno-agents/geno-agents-supercharge.md
+              - geno-agents-tasks-start: skills/geno-agents/geno-agents-tasks-start.md
           - geno-mon: skills/geno-mon/index.md
           - geno-msg: skills/geno-msg/index.md
+          - geno-notes:
+              - skills/geno-notes/index.md
+              - geno-notes-sites-generate: skills/geno-notes/geno-notes-sites-generate.md
+              - geno-notes-vault-generate: skills/geno-notes/geno-notes-vault-generate.md
+              - geno-notes-wiki-compile: skills/geno-notes/geno-notes-wiki-compile.md
+              - geno-notes-wiki-lint: skills/geno-notes/geno-notes-wiki-lint.md
+          - geno-tools:
+              - skills/geno-tools/index.md
+              - geno-alias: skills/geno-tools/geno-alias.md
+              - geno-audit: skills/geno-tools/geno-audit.md
+              - geno-data-workspaces-init: skills/geno-tools/geno-data-workspaces-init.md
+              - geno-icons: skills/geno-tools/geno-icons.md
+              - geno-onboarding: skills/geno-tools/geno-onboarding.md
+              - geno-skills-create: skills/geno-tools/geno-skills-create.md
+              - geno-skills-install: skills/geno-tools/geno-skills-install.md
+              - geno-skills-status: skills/geno-tools/geno-skills-status.md
+              - geno-tools-open-docs: skills/geno-tools/geno-tools-open-docs.md
+              - geno-tools-sessions-spawn: skills/geno-tools/geno-tools-sessions-spawn.md
+              - geno-tools-update: skills/geno-tools/geno-tools-update.md
       - Developer:
-          - geno-dev: skills/geno-dev/index.md
-          - geno-loops: skills/geno-loops/index.md
-          - geno-specs: skills/geno-specs/index.md
+          - geno-dev:
+              - skills/geno-dev/index.md
+              - geno-dev-branches-audit: skills/geno-dev/geno-dev-branches-audit.md
+              - geno-dev-commits-rewrite: skills/geno-dev/geno-dev-commits-rewrite.md
+              - geno-dev-feature-ship: skills/geno-dev/geno-dev-feature-ship.md
+              - geno-dev-issue-work: skills/geno-dev/geno-dev-issue-work.md
+              - geno-dev-loops-autopilot: skills/geno-dev/geno-dev-loops-autopilot.md
+              - geno-dev-loops-boost: skills/geno-dev/geno-dev-loops-boost.md
+              - geno-dev-loops-cruise: skills/geno-dev/geno-dev-loops-cruise.md
+              - geno-dev-loops-drift: skills/geno-dev/geno-dev-loops-drift.md
+              - geno-dev-loops-ignition: skills/geno-dev/geno-dev-loops-ignition.md
+              - geno-dev-loops-turbocharge: skills/geno-dev/geno-dev-loops-turbocharge.md
+              - geno-dev-prs-check: skills/geno-dev/geno-dev-prs-check.md
+              - geno-dev-scheduling-snooze: skills/geno-dev/geno-dev-scheduling-snooze.md
+              - geno-dev-sessions-fork: skills/geno-dev/geno-dev-sessions-fork.md
+              - geno-dev-sessions-remote: skills/geno-dev/geno-dev-sessions-remote.md
+              - geno-dev-skills-retro: skills/geno-dev/geno-dev-skills-retro.md
+              - geno-dev-tasks-start: skills/geno-dev/geno-dev-tasks-start.md
+              - geno-dev-workspaces-init: skills/geno-dev/geno-dev-workspaces-init.md
+              - geno-dev-worktrees-manage: skills/geno-dev/geno-dev-worktrees-manage.md
+          - geno-loops:
+              - skills/geno-loops/index.md
+              - geno-loops-autopilot: skills/geno-loops/geno-loops-autopilot.md
+              - geno-loops-boost: skills/geno-loops/geno-loops-boost.md
+              - geno-loops-cruise: skills/geno-loops/geno-loops-cruise.md
+              - geno-loops-drift: skills/geno-loops/geno-loops-drift.md
+              - geno-loops-ignition: skills/geno-loops/geno-loops-ignition.md
+              - geno-loops-supercharge: skills/geno-loops/geno-loops-supercharge.md
+              - geno-loops-turbocharge: skills/geno-loops/geno-loops-turbocharge.md
+          - geno-specs:
+              - skills/geno-specs/index.md
+              - geno-specs-create: skills/geno-specs/geno-specs-create.md
+              - geno-specs-list: skills/geno-specs/geno-specs-list.md
+              - geno-specs-run: skills/geno-specs/geno-specs-run.md
+              - geno-specs-show: skills/geno-specs/geno-specs-show.md
+              - geno-specs-validate: skills/geno-specs/geno-specs-validate.md
       - Runtime:
-          - geno-iso: skills/geno-iso/index.md
-          - geno-term: skills/geno-term/index.md
-          - geno-ws: skills/geno-ws/index.md
+          - geno-iso:
+              - skills/geno-iso/index.md
+              - geno-iso-containers-enter: skills/geno-iso/geno-iso-containers-enter.md
+              - geno-iso-containers-list: skills/geno-iso/geno-iso-containers-list.md
+              - geno-iso-containers-run: skills/geno-iso/geno-iso-containers-run.md
+              - geno-iso-credentials-extract: skills/geno-iso/geno-iso-credentials-extract.md
+              - geno-iso-dev-guide: skills/geno-iso/geno-iso-dev-guide.md
+              - geno-iso-images-build: skills/geno-iso/geno-iso-images-build.md
+          - geno-term:
+              - skills/geno-term/index.md
+              - geno-term-sessions-restart: skills/geno-term/geno-term-sessions-restart.md
+          - geno-ws:
+              - skills/geno-ws/index.md
+              - geno-ws-init: skills/geno-ws/geno-ws-init.md
       - Tooling:
-          - geno-mine: skills/geno-mine/index.md
+          - geno-mine:
+              - skills/geno-mine/index.md
+              - geno-mine-export: skills/geno-mine/geno-mine-export.md
+              - geno-mine-extract: skills/geno-mine/geno-mine-extract.md
+              - geno-mine-stats: skills/geno-mine/geno-mine-stats.md
       - Data & Research:
-          - geno-kaggle: skills/geno-kaggle/index.md
-          - geno-research: skills/geno-research/index.md
+          - geno-kaggle:
+              - skills/geno-kaggle/index.md
+              - geno-create-benchmark-kaggle: skills/geno-kaggle/geno-create-benchmark-kaggle.md
+              - geno-kaggle-benchmarks-task-generate: skills/geno-kaggle/geno-kaggle-benchmarks-task-generate.md
+              - geno-kaggle-benchmarks-task-review: skills/geno-kaggle/geno-kaggle-benchmarks-task-review.md
+              - geno-kaggle-discussion: skills/geno-kaggle/geno-kaggle-discussion.md
+              - geno-run-kaggle-bench: skills/geno-kaggle/geno-run-kaggle-bench.md
+              - geno-upload-kaggle: skills/geno-kaggle/geno-upload-kaggle.md
+          - geno-research:
+              - skills/geno-research/index.md
+              - geno-research-paper-generate: skills/geno-research/geno-research-paper-generate.md
+              - geno-research-papers-generate: skills/geno-research/geno-research-papers-generate.md
+              - geno-research-repo-docs: skills/geno-research/geno-research-repo-docs.md
+              - geno-research-repos-document: skills/geno-research/geno-research-repos-document.md
+              - geno-research-wiki: skills/geno-research/geno-research-wiki.md
       - Creative:
-          - geno-voice: skills/geno-voice/index.md
           - geno-media: skills/geno-media/index.md
+          - geno-voice: skills/geno-voice/index.md
       - Life:
-          - geno-career: skills/geno-career/index.md
-          - geno-taxes: skills/geno-taxes/index.md
           - geno-budget: skills/geno-budget/index.md
+          - geno-career:
+              - skills/geno-career/index.md
+              - geno-career-applications-track: skills/geno-career/geno-career-applications-track.md
+              - geno-career-jobs-search: skills/geno-career/geno-career-jobs-search.md
+              - geno-career-letters-generate: skills/geno-career/geno-career-letters-generate.md
+              - geno-career-resumes-build: skills/geno-career/geno-career-resumes-build.md
           - geno-hoa: skills/geno-hoa/index.md
           - geno-remodel: skills/geno-remodel/index.md
+          - geno-taxes:
+              - skills/geno-taxes/index.md
+              - geno-tax-checklist: skills/geno-taxes/geno-tax-checklist.md
+              - geno-tax-fetch: skills/geno-taxes/geno-tax-fetch.md
+              - geno-tax-parse: skills/geno-taxes/geno-tax-parse.md
+              - geno-tax-status: skills/geno-taxes/geno-tax-status.md
+              - geno-tax-summary: skills/geno-taxes/geno-tax-summary.md
   - Skillsets:
       - skillsets/index.md
       - Creating a Skillset: skillsets/creating.md
@@ -96,6 +188,7 @@ extra_css:
 
 extra_javascript:
   - javascripts/face.js
+  - javascripts/catalog-filter.js
 
 markdown_extensions:
   - admonition
