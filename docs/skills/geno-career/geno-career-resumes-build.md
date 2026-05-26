@@ -79,8 +79,8 @@ Display a diff summary showing what changed from the base resume.
 
 ### 6. Offer next steps
 
-- "Want me to generate a cover letter for this role?" → `/gt-career-letters-generate`
-- "Want me to add this to your application tracker?" → `/gt-career-applications-track add`
+- "Want me to generate a cover letter for this role?" → `/geno-career-letters-generate`
+- "Want me to add this to your application tracker?" → `/geno-career-applications-track add`
 - "Want me to export to PDF?" (if format was md)
 
 ## Completion

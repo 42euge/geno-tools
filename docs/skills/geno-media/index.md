@@ -15,7 +15,7 @@ Audiobooks, animated videos, podcasts, TTS/STT config
 
     # geno-media
     
-    Media creation skills for Claude Code. Audiobook generation (Kokoro TTS), animated
+    Media creation skills for AI coding agents. Audiobook generation (Kokoro TTS), animated
     video creation (Manim), podcast-style videos, TTS/STT configuration, and audio
     uploads. Optimized for Apple Silicon.
     
@@ -28,13 +28,13 @@ Audiobooks, animated videos, podcasts, TTS/STT config
     
     | Command | Description |
     |---|---|
-    | `/gt-media-audiobook-create [folder]` | Generate audiobook from transcript using Kokoro TTS |
-    | `/gt-media-audiobook-recursive [folder]` | Recursive audiobook generation across subfolders |
-    | `/gt-media-video-create [folder]` | Transcript + audio → animated Manim video |
-    | `/gt-media-podcast-create [folder]` | Transcript + audio → karaoke-style text-on-screen video |
-    | `/gt-media-tts-config` | Configure TTS (voice, speed profile, accent) |
-    | `/gt-media-stt-config` | Configure STT (Whisper model, language, backend) |
-    | `/gt-media-audio-upload` | Upload audio files to Google Drive |
+    | `/geno-media-audiobook-create [folder]` | Generate audiobook from transcript using Kokoro TTS |
+    | `/geno-media-audiobook-recursive [folder]` | Recursive audiobook generation across subfolders |
+    | `/geno-media-video-create [folder]` | Transcript + audio → animated Manim video |
+    | `/geno-media-podcast-create [folder]` | Transcript + audio → karaoke-style text-on-screen video |
+    | `/geno-media-tts-config` | Configure TTS (voice, speed profile, accent) |
+    | `/geno-media-stt-config` | Configure STT (Whisper model, language, backend) |
+    | `/geno-media-audio-upload` | Upload audio files to Google Drive |
     
     ## Runtime
     

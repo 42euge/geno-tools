@@ -67,7 +67,7 @@ Three specialized agent roles cycle through work:
 - Writes a brief handoff note to `checkpoints/impl_<cycle>.md`
 
 ### Evaluator (runs every 2-3 cycles)
-- Pulls latest results from Kaggle using `/gt-kaggle-benchmarks-task-review`
+- Pulls latest results from Kaggle using `/geno-kaggle-benchmarks-task-review`
 - If no new results, checks if a run is in progress or needs to be triggered
 - Compares results against previous runs
 - Writes evaluation to the task's `review/` folder
@@ -177,7 +177,7 @@ After all cycles or early stop:
 ## What NOT to Do
 
 - Don't spend multiple cycles on the same issue without trying a different approach
-- Don't create new tasks without using `/gt-kaggle-benchmarks-task-generate`
+- Don't create new tasks without using `/geno-kaggle-benchmarks-task-generate`
 - Don't modify notebooks without updating the timestamp
 - Don't push broken code — verify changes make sense before committing
 - Don't ignore CLAUDE.md rules (self-contained notebooks, llm as list, etc.)

@@ -38,10 +38,10 @@ Career toolkit — job search, resume building, application tracking
     
     | Command | Description |
     |---|---|
-    | `/gt-career-jobs-search <query>` | Search job boards for matching positions |
-    | `/gt-career-resumes-build <job-url-or-desc>` | Tailor a resume for a specific job posting |
-    | `/gt-career-letters-generate <job-url-or-desc>` | Generate a cover letter for a specific role |
-    | `/gt-career-applications-track [add\|update\|list\|show]` | Track and manage job applications |
+    | `/geno-career-jobs-search <query>` | Search job boards for matching positions |
+    | `/geno-career-resumes-build <job-url-or-desc>` | Tailor a resume for a specific job posting |
+    | `/geno-career-letters-generate <job-url-or-desc>` | Generate a cover letter for a specific role |
+    | `/geno-career-applications-track [add\|update\|list\|show]` | Track and manage job applications |
     
     ## Configuration
     

@@ -50,7 +50,7 @@ COLLECTED & PARSED
 
 COLLECTED, NOT YET PARSED
   {filename} ................. TY2024/investments/coinbase/
-    Run: /gt-tax-parse TY2024/investments/coinbase/{filename}
+    Run: /geno-tax-parse TY2024/investments/coinbase/{filename}
 
 STILL NEEDED
   W-2 from employer
@@ -62,15 +62,15 @@ STILL NEEDED
     Save to: TY2024/income/state-pfml/
 
   Coinbase tax documents
-    Run: /gt-tax-fetch coinbase 2024
+    Run: /geno-tax-fetch coinbase 2024
     Or manually: Coinbase > Taxes > Documents > Download
 
   Robinhood 1099
-    Run: /gt-tax-fetch robinhood 2024
+    Run: /geno-tax-fetch robinhood 2024
     Or manually: Robinhood > Account > Tax Documents
 
   Fidelity/Schwab 1099s
-    Run: /gt-tax-fetch fidelity 2024
+    Run: /geno-tax-fetch fidelity 2024
     Or manually: Fidelity > Accounts > Tax Forms
 
   Mortgage interest (1098)
@@ -83,7 +83,7 @@ STILL NEEDED
 
   Rental expenses (cleaning, supplies, utilities, insurance, HOA)
     Gather receipts, bank/Venmo statements
-    Run: /gt-tax-fetch venmo 2024 for Venmo history
+    Run: /geno-tax-fetch venmo 2024 for Venmo history
     Save to: TY2024/airbnb/expenses/
 ```
 

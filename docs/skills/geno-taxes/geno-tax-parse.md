@@ -16,9 +16,9 @@ description: "Parse Tax Document"
 ## Input
 
 `$ARGUMENTS` — Required. Path to a file. Examples:
-- `/gt-tax-parse ~/Downloads/W2-2024.pdf`
-- `/gt-tax-parse ~/Downloads/1099-B-robinhood.pdf`
-- `/gt-tax-parse ~/Downloads/coinbase-gains.csv`
+- `/geno-tax-parse ~/Downloads/W2-2024.pdf`
+- `/geno-tax-parse ~/Downloads/1099-B-robinhood.pdf`
+- `/geno-tax-parse ~/Downloads/coinbase-gains.csv`
 
 </div>
 

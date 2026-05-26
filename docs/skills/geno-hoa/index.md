@@ -15,7 +15,7 @@ HOA portal automation
 
     # geno-hoa
     
-    HOA portal automation skills for Claude Code. Navigates HOA management portals (MyGreenCondo, AppFolio, BuildingLink, etc.) via browser automation to download documents, check account status, and extract financial data for tax prep or remodel projects.
+    HOA portal automation skills for AI coding agents. Navigates HOA management portals (MyGreenCondo, AppFolio, BuildingLink, etc.) via browser automation to download documents, check account status, and extract financial data for tax prep or remodel projects.
     
     **Local-only skillset.** HOA account data is sensitive; this repo is not published.
     
@@ -27,10 +27,10 @@ HOA portal automation
     
     | Command | Description |
     |---|---|
-    | `/gt-hoa-login` | Navigate to HOA portal, ensure authenticated, save config |
-    | `/gt-hoa-docs [category]` | Browse and download documents from the portal's document library |
-    | `/gt-hoa-account` | Show account status — balance, dues, violations, recent payments |
-    | `/gt-hoa-dues [year]` | Extract annual HOA dues paid for tax deduction (Schedule E) |
+    | `/geno-hoa-login` | Navigate to HOA portal, ensure authenticated, save config |
+    | `/geno-hoa-docs [category]` | Browse and download documents from the portal's document library |
+    | `/geno-hoa-account` | Show account status — balance, dues, violations, recent payments |
+    | `/geno-hoa-dues [year]` | Extract annual HOA dues paid for tax deduction (Schedule E) |
     
     ## Data Storage
     
@@ -45,5 +45,5 @@ HOA portal automation
     
     ## Integration
     
-    - **geno-taxes**: `/gt-hoa-dues 2024` outputs annual dues total for Schedule E line items
-    - **geno-remodel**: `/gt-hoa-docs insurance` fetches the COI and rules docs needed for alteration applications
+    - **geno-taxes**: `/geno-hoa-dues 2024` outputs annual dues total for Schedule E line items
+    - **geno-remodel**: `/geno-hoa-docs insurance` fetches the COI and rules docs needed for alteration applications

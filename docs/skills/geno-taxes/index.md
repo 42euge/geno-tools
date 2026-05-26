@@ -25,7 +25,7 @@ Tax filing — document parsing, checklists, CPA packet prep
 
     # geno-taxes
     
-    Personal tax filing skills for Claude Code. Manages the yearly cycle of collecting 1099s / W-2s / earnings reports, parsing them into YAML organizers under `~/docs/finance/taxes/`, and generating CPA-ready summaries.
+    Personal tax filing skills for AI coding agents. Manages the yearly cycle of collecting 1099s / W-2s / earnings reports, parsing them into YAML organizers under `~/docs/finance/taxes/`, and generating CPA-ready summaries.
     
     **Local-only skillset.** Tax data is sensitive; this repo is not published. Its `geno-tools` registry entry points at this directory's absolute path, and `install` copies it into `~/.geno-tools/geno-taxes/repo/`:
     
@@ -37,11 +37,11 @@ Tax filing — document parsing, checklists, CPA packet prep
     
     | Command | Description |
     |---|---|
-    | `/gt-tax-status [year]` | Show document collection and data entry status across all years |
-    | `/gt-tax-checklist [year]` | List remaining documents with instructions on where to get them |
-    | `/gt-tax-parse <file>` | Parse a PDF/CSV tax doc and populate the YAML organizer |
-    | `/gt-tax-fetch <platform> [year]` | Download tax docs via geno-vla browser automation |
-    | `/gt-tax-summary <year>` | Generate a CPA-ready markdown summary from the YAML organizer |
+    | `/geno-tax-status [year]` | Show document collection and data entry status across all years |
+    | `/geno-tax-checklist [year]` | List remaining documents with instructions on where to get them |
+    | `/geno-tax-parse <file>` | Parse a PDF/CSV tax doc and populate the YAML organizer |
+    | `/geno-tax-fetch <platform> [year]` | Download tax docs via geno-vla browser automation |
+    | `/geno-tax-summary <year>` | Generate a CPA-ready markdown summary from the YAML organizer |
     
     ## Runtime
     

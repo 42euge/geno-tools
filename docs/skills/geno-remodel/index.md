@@ -15,7 +15,7 @@ Home remodel toolkit
 
     # geno-remodel
     
-    Home remodel workflow skills for Claude Code. Upload a photo of any room and plan a remodel through clickable menus — zero typing required. Also manages HOA document retrieval and submission, permit tracking, contractor coordination, and contractor website generation.
+    Home remodel workflow skills for AI coding agents. Upload a photo of any room and plan a remodel through clickable menus — zero typing required. Also manages HOA document retrieval and submission, permit tracking, contractor coordination, and contractor website generation.
     
     **Local-only skillset.** This repo is not published. Install via absolute path:
     
@@ -27,13 +27,13 @@ Home remodel toolkit
     
     | Command | Description |
     |---|---|
-    | `/gt-remodel-plan` | Analyze a room photo and create a remodel plan through guided menus |
-    | `/gt-remodel-status` | Show status of all remodel projects and their HOA/permit status |
-    | `/gt-remodel-hoa-fetch` | Log into HOA portal, find required forms and docs |
-    | `/gt-remodel-hoa-submit` | Fill out and submit HOA approval request |
-    | `/gt-remodel-site-init` | Collect contractor info and configure a website project |
-    | `/gt-remodel-site-build` | Generate a complete static contractor website into `build/` |
-    | `/gt-remodel-site-preview` | Serve the generated site locally and open in browser |
+    | `/geno-remodel-plan` | Analyze a room photo and create a remodel plan through guided menus |
+    | `/geno-remodel-status` | Show status of all remodel projects and their HOA/permit status |
+    | `/geno-remodel-hoa-fetch` | Log into HOA portal, find required forms and docs |
+    | `/geno-remodel-hoa-submit` | Fill out and submit HOA approval request |
+    | `/geno-remodel-site-init` | Collect contractor info and configure a website project |
+    | `/geno-remodel-site-build` | Generate a complete static contractor website into `build/` |
+    | `/geno-remodel-site-preview` | Serve the generated site locally and open in browser |
     
     ## Runtime
     

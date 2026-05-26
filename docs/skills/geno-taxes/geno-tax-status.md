@@ -79,7 +79,7 @@ Display a table like:
 
 List the top 3 most impactful missing items and how to get them:
 - "Download W-2 from employer payroll portal"
-- "Run `/gt-tax-fetch coinbase 2024` to get crypto tax docs"
+- "Run `/geno-tax-fetch coinbase 2024` to get crypto tax docs"
 - etc.
 
 </div>

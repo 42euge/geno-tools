@@ -55,57 +55,57 @@ Project journal, task management, wiki, and site generation
     
     Parse the user's `$ARGUMENTS` and dispatch to the CLI.
     
-    ### `/gt-notes` (no args) or `/gt-notes scope`
+    ### `/geno-notes` (no args) or `/geno-notes scope`
     Show the active scope + both dir paths.
     ```bash
     geno-notes scope
     ```
     
-    ### `/gt-notes init [--global|--project]`
+    ### `/geno-notes init [--global|--project]`
     Scaffold a scope at the right location and write `config.toml`.
     - No flag in a cwd without a project scope → creates `./geno/geno-notes/` (project).
     - `--global` → ensures `~/.geno/geno-notes/` is scaffolded.
     
-    ### `/gt-notes add "<description>" [--tag infra --tag security]`
+    ### `/geno-notes add "<description>" [--tag infra --tag security]`
     Create a new task in Backlog. Returns the task ID.
     
-    ### `/gt-notes start <pattern>`
+    ### `/geno-notes start <pattern>`
     Move a task from Backlog → Active. Fuzzy matches on id, slug, or title (exact > prefix > substring). If multiple tasks match in the top tier, the CLI lists them and exits 1 — ask the user to disambiguate.
     
-    ### `/gt-notes done <pattern>`  /  `/gt-notes abandon <pattern>`
+    ### `/geno-notes done <pattern>`  /  `/geno-notes abandon <pattern>`
     Complete or abandon a task. Same fuzzy-match rules.
     
-    ### `/gt-notes note "<text>" [--task <pattern>] [--kind note|finding|decision|bug|milestone]`
+    ### `/geno-notes note "<text>" [--task <pattern>] [--kind note|finding|decision|bug|milestone]`
     Append a timestamped entry to `journal/YYYY/YYYY-MM.{md,jsonl}`. If `--task` is given, also appends a backlink to the task's `## Journal refs` section.
     
-    ### `/gt-notes inbox "<text>"`
+    ### `/geno-notes inbox "<text>"`
     Free-floating quick capture — appends to `inbox.md`. Promote later with `triage`.
     
-    ### `/gt-notes triage`
+    ### `/geno-notes triage`
     Interactively walk inbox items, promoting each to a task or discarding.
     
-    ### `/gt-notes list [--status active|backlog|done|abandoned] [--json] [--all]`
+    ### `/geno-notes list [--status active|backlog|done|abandoned] [--json] [--all]`
     List tasks in the active scope. `--all` unions both scopes. `--json` for programmatic use.
     
-    ### `/gt-notes show <pattern> [--all]`
+    ### `/geno-notes show <pattern> [--all]`
     Render a task file + its journal refs.
     
-    ### `/gt-notes search <query> [--all]`
+    ### `/geno-notes search <query> [--all]`
     Plain-text grep across tasks, journal, plans, inbox.
     
-    ### `/gt-notes promote <pattern> [--to global|project]`
+    ### `/geno-notes promote <pattern> [--to global|project]`
     Move a task (and its plan file, if any) between scopes. Useful when a project-scope task turns out to be cross-cutting.
     
-    ### `/gt-notes reindex`
+    ### `/geno-notes reindex`
     Regenerate `index.md` and `tasks/_index.md`. The CLI does this automatically on every mutation, so run manually only after hand-editing a task file.
     
-    ### `/gt-notes compile`
+    ### `/geno-notes compile`
     Compile primary sources into wiki pages. See `/geno-notes-wiki-compile` for the full workflow.
     
-    ### `/gt-notes site [--serve] [--open] [--port PORT]`
+    ### `/geno-notes site [--serve] [--open] [--port PORT]`
     Generate a MkDocs Material website from notes. See `/geno-notes-sites-generate` for the full workflow.
     
-    ### `/gt-notes lint`
+    ### `/geno-notes lint`
     Health-check the wiki against primary sources. See `/geno-notes-wiki-lint` for the full workflow.
     
     ## Architecture

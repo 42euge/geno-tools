@@ -15,7 +15,7 @@ Personal budget and expense categorization
 
     # geno-budget
     
-    Expense categorization and budgeting skills for Claude Code. Imports transaction data from bank and credit card accounts, classifies each transaction as business (Airbnb rental) or personal, and exports categorized totals for tax prep.
+    Expense categorization and budgeting skills for AI coding agents. Imports transaction data from bank and credit card accounts, classifies each transaction as business (Airbnb rental) or personal, and exports categorized totals for tax prep.
     
     **Local-only skillset.** Financial data is sensitive; this repo is not published.
     
@@ -27,11 +27,11 @@ Personal budget and expense categorization
     
     | Command | Description |
     |---|---|
-    | `/gt-budget-fetch <platform> [year]` | Download transaction CSVs via browser automation |
-    | `/gt-budget-import <file>` | Import transactions from a CSV/OFX/PDF bank statement |
-    | `/gt-budget-categorize [year]` | Interactively classify uncategorized transactions as business/personal |
-    | `/gt-budget-review [year]` | Show spending summary by category, flag anomalies |
-    | `/gt-budget-export [year]` | Export business expenses grouped for Schedule E / CPA packet |
+    | `/geno-budget-fetch <platform> [year]` | Download transaction CSVs via browser automation |
+    | `/geno-budget-import <file>` | Import transactions from a CSV/OFX/PDF bank statement |
+    | `/geno-budget-categorize [year]` | Interactively classify uncategorized transactions as business/personal |
+    | `/geno-budget-review [year]` | Show spending summary by category, flag anomalies |
+    | `/geno-budget-export [year]` | Export business expenses grouped for Schedule E / CPA packet |
     
     ## Supported Platforms (fetch)
     
@@ -70,9 +70,9 @@ Personal budget and expense categorization
     
     ## Integration
     
-    - **geno-taxes**: `/gt-budget-export 2024` produces categorized expense totals for Schedule E line items
+    - **geno-taxes**: `/geno-budget-export 2024` produces categorized expense totals for Schedule E line items
     - **geno-hoa**: HOA dues are auto-imported from `~/docs/home/hoa/annual-dues-summary.yaml`
     
     ## Runtime
     
-    No venv or scripts — all commands are pure markdown workflows. `/gt-budget-import` can optionally use `geno-vla` for browser-based bank statement downloads.
+    No venv or scripts — all commands are pure markdown workflows. `/geno-budget-import` can optionally use `geno-vla` for browser-based bank statement downloads.

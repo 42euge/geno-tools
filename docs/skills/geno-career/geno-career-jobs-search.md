@@ -67,9 +67,9 @@ and highlight strong matches based on the user's profile keywords from config.
 ### 5. Offer next steps
 
 After presenting results, offer:
-- "Want me to tailor your resume for any of these?" → `/gt-career-resumes-build`
-- "Want me to write a cover letter?" → `/gt-career-letters-generate`
-- "Want me to add any to your tracker?" → `/gt-career-applications-track add`
+- "Want me to tailor your resume for any of these?" → `/geno-career-resumes-build`
+- "Want me to write a cover letter?" → `/geno-career-letters-generate`
+- "Want me to add any to your tracker?" → `/geno-career-applications-track add`
 
 ## Completion
 

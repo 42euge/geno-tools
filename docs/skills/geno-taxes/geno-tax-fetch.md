@@ -20,9 +20,9 @@ description: Retrieve tax documents from financial platforms using geno-vla (Pla
 - Year: defaults to 2024 if omitted
 
 Examples:
-- `/gt-tax-fetch coinbase 2024`
-- `/gt-tax-fetch robinhood 2025`
-- `/gt-tax-fetch venmo 2024`
+- `/geno-tax-fetch coinbase 2024`
+- `/geno-tax-fetch robinhood 2025`
+- `/geno-tax-fetch venmo 2024`
 
 
 ## Prerequisites

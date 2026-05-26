@@ -85,7 +85,7 @@ Save to:
 ### 6. Offer next steps
 
 - "Want me to adjust the tone or emphasis?"
-- "Want me to add this to your application tracker?" → `/gt-career-applications-track add`
+- "Want me to add this to your application tracker?" → `/geno-career-applications-track add`
 
 ## Completion
 
