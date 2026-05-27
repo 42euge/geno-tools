@@ -30,22 +30,18 @@ Install by full repo name (e.g. `geno-tools install geno-<name>`):
 | geno-kaggle | Kaggle benchmarks, competition notebooks, discussion scraping |
 | geno-dev | Developer utilities, Colab uploads, commit rewriting |
 
-## Infrastructure Skills
+## Sub-skillsets
 
-| Skill | Description |
-|-------|-------------|
-| geno-alias | Create, remove, and list custom slash-command aliases |
-| geno-audit | Audit a geno-ecosystem repo for compliance with skillset conventions |
-| geno-data-workspaces-init | Create data workspaces for personal/life skills (taxes, remodel, career) |
-| geno-icons | Generate pixel-art icons for geno ecosystem repos |
-| geno-onboarding | Onboarding wizard for new geno ecosystem skillsets |
-| geno-skills-create | Scaffold a new skill in a geno ecosystem repo |
-| geno-tools-create-skillset-repo | Scaffold a new geno ecosystem skillset repo from scratch |
-| geno-skills-install | Install skills from a local repo checkout globally |
-| geno-skills-status | Show version, commit, and freshness of installed skillsets |
-| geno-tools-improve | Run the self-improvement cycle — health report, retro triage, session mining |
-| geno-tools-open-docs | Open the geno-tools documentation site |
-| geno-tools-update | Pull the latest version of installed skillsets and re-register with all agents |
+Skills are organized into 6 functional areas (full convention in [docs/skillsets/upstream-conventions.md](../../docs/skillsets/upstream-conventions.md)):
+
+| Sub-skillset | Slash command | Skills |
+|--------------|---------------|--------|
+| **lifecycle** | /geno-lifecycle | repo-create, skill-create, install, status — skill & skillset CRUD |
+| **compliance** | /geno-compliance | audit, onboarding — admission gate to the ecosystem |
+| **self** | /geno-self | update, improve, session-spawn, docs-open — geno-tools self-management |
+| **workspaces** | /geno-workspaces | data-init — data workspace scaffolding |
+| **assets** | /geno-assets | icons — generated branding assets |
+| **config** | /geno-config | alias — user personalization |
 
 ## Commands
 

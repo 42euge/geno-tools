@@ -7,22 +7,30 @@
 
 ## Skills
 
+Skills are organized into 6 functional sub-skillsets under `skills/`. The full naming and layout convention is in [docs/skillsets/upstream-conventions.md](docs/skillsets/upstream-conventions.md).
+
 | Skill | Sub-skillset | Slash command |
-|-------|-------------|---------------|
+|-------|--------------|---------------|
 | geno-tools | — | — (umbrella) |
-| geno-alias | — | /geno-alias |
-| geno-audit | — | /geno-audit |
-| geno-icons | — | /geno-icons |
-| geno-onboarding | — | /geno-onboarding |
-| geno-data-workspaces-init | — | /geno-data-workspaces-init |
-| geno-skills-create | — | /geno-skills-create |
-| geno-skills-install | — | /geno-skills-install |
-| geno-skills-status | — | /geno-skills-status |
-| geno-tools-open-docs | — | /geno-tools-open-docs |
-| geno-tools-sessions-spawn | — | /geno-tools-sessions-spawn |
-| geno-tools-create-skillset-repo | — | /geno-tools-create-skillset-repo |
-| geno-tools-improve | — | /geno-tools-improve |
-| geno-tools-update | — | /geno-tools-update |
+| geno-lifecycle | lifecycle | — (sub-umbrella) |
+| geno-lifecycle-repo-create | lifecycle | /geno-lifecycle-repo-create |
+| geno-lifecycle-skill-create | lifecycle | /geno-lifecycle-skill-create |
+| geno-lifecycle-install | lifecycle | /geno-lifecycle-install |
+| geno-lifecycle-status | lifecycle | /geno-lifecycle-status |
+| geno-compliance | compliance | — (sub-umbrella) |
+| geno-compliance-audit | compliance | /geno-compliance-audit |
+| geno-compliance-onboarding | compliance | /geno-compliance-onboarding |
+| geno-self | self | — (sub-umbrella) |
+| geno-self-update | self | /geno-self-update |
+| geno-self-improve | self | /geno-self-improve |
+| geno-self-session-spawn | self | /geno-self-session-spawn |
+| geno-self-docs-open | self | /geno-self-docs-open |
+| geno-workspaces | workspaces | — (sub-umbrella) |
+| geno-workspaces-data-init | workspaces | /geno-workspaces-data-init |
+| geno-assets | assets | — (sub-umbrella) |
+| geno-assets-icons | assets | /geno-assets-icons |
+| geno-config | config | — (sub-umbrella) |
+| geno-config-alias | config | /geno-config-alias |
 
 ## Repo structure
 
@@ -45,19 +53,39 @@ geno-tools/
 │   ├── paths.py                   #   on-disk layout utilities
 │   ├── registry.py                #   curated registry of known skillsets
 │   └── trace.py                   #   skill trace system (emit/list/health)
-├── skills/                        # skill definitions
-│   ├── geno-tools/SKILL.md        #   umbrella skill
-│   ├── geno-alias/SKILL.md        #   custom skill aliasing
-│   ├── geno-audit/SKILL.md        #   ecosystem compliance auditor
-│   ├── geno-icons/SKILL.md        #   pixel art icon generator
-│   ├── geno-onboarding/SKILL.md   #   skillset onboarding wizard
-│   ├── geno-data-workspaces-init/SKILL.md  # data workspace scaffolder
-│   ├── geno-skills-create/SKILL.md #  skill scaffolder
-│   ├── geno-skills-install/SKILL.md #  local skill installer
-│   ├── geno-skills-status/SKILL.md #  ecosystem status reporter
-│   ├── geno-tools-improve/SKILL.md #  self-improvement cycle
-│   ├── geno-tools-update/SKILL.md #   ecosystem updater
-│   └── geno-tools-open-docs/SKILL.md      # docs site opener
+├── skills/                        # skill definitions (nested tree per upstream conventions)
+│   ├── geno-tools/SKILL.md        #   skillset-root umbrella mirror
+│   ├── lifecycle/                 #   sub-skillset: skill & skillset CRUD
+│   │   ├── SKILL.md
+│   │   └── skills/
+│   │       ├── repo-create/       #     bootstrap a new geno-* repo (+ rules/)
+│   │       ├── skill-create/
+│   │       ├── install/
+│   │       └── status/
+│   ├── compliance/                #   sub-skillset: audit + onboarding gate
+│   │   ├── SKILL.md
+│   │   └── skills/
+│   │       ├── audit/             #     compliance auditor (+ rules/)
+│   │       └── onboarding/
+│   ├── self/                      #   sub-skillset: geno-tools self-mgmt
+│   │   ├── SKILL.md
+│   │   └── skills/
+│   │       ├── update/
+│   │       ├── improve/
+│   │       ├── session-spawn/
+│   │       └── docs-open/
+│   ├── workspaces/                #   sub-skillset: data workspace scaffolding
+│   │   ├── SKILL.md
+│   │   └── skills/
+│   │       └── data-init/
+│   ├── assets/                    #   sub-skillset: generated branding
+│   │   ├── SKILL.md
+│   │   └── skills/
+│   │       └── icons/
+│   └── config/                    #   sub-skillset: user personalization
+│       ├── SKILL.md
+│       └── skills/
+│           └── alias/
 ├── config/defaults.yaml           # reference config with aliases schema
 ├── scripts/bootstrap.sh           # self-installs geno-tools onto PATH
 ├── hooks/                         # Claude Code SessionStart hook
@@ -166,13 +194,13 @@ The canonical version lives in `genotools.yaml` (`version` field). The same valu
 
 ### Adding a new skill
 
-To add a new skill to this repo:
+This repo uses the nested skill tree layout — see [docs/skillsets/upstream-conventions.md § Nested skill trees](docs/skillsets/upstream-conventions.md#nested-skill-trees) for the rules.
 
-1. Create a directory under `skills/` named with the full skill name (e.g., `skills/geno-tools-foo/`).
-2. Write a `SKILL.md` inside it with YAML frontmatter containing at minimum `name` and `description`.
-3. Update the umbrella skill description in `skills/geno-tools/SKILL.md` to list the new skill.
-4. Add the skill to the skills table in this file (`GENO.md`).
-5. If the skill needs docs, add a page under `docs/`.
+1. Pick a sub-skillset for the new skill (`lifecycle`, `compliance`, `self`, `workspaces`, `assets`, `config`) or create a new one. Create a directory under `skills/{sub-skillset}/skills/{leaf}/` named with a bare noun/verb (no `geno-` prefix).
+2. Write a `SKILL.md` inside the leaf directory. Frontmatter `name:` is the **fully qualified** name (e.g. `name: geno-self-foo`) — this is the registered skill name regardless of directory shape.
+3. Update the parent sub-skillset's umbrella `SKILL.md` (`skills/{sub-skillset}/SKILL.md`) to list the new leaf.
+4. Add a row to the skills table in this file.
+5. If the skill needs docs, add a page under `docs/skills/geno-tools/{sub-skillset}/`.
 6. Bump the version in all four files: `genotools.yaml`, `pyproject.toml`, `package.json`, `genotools/__init__.py`.
 
 ### What a skillset repo needs to provide
@@ -210,6 +238,6 @@ Skills that declare observability should also include a `## Completion` section 
 
 geno-tools ships platform-specific plugin manifests following the `obra/superpowers` conventions so it can be installed as a native plugin on each supported CLI. Skills are platform-agnostic; each CLI-specific manifest points at the shared `skills/` directory.
 
-Skill registration uses `npx skills add <active-worktree> --agent '*' --global --skill '*' --yes`. Uninstall enumerates skills (root SKILL.md + `skills/*/SKILL.md`) and calls `npx skills remove`.
+Skill registration uses `npx skills add <active-worktree> --agent '*' --global --skill '*' --yes`. Uninstall enumerates skills by walking the `skills/` tree at any depth (`genotools.commands._walk_skill_dirs`) and calls `npx skills remove` with the frontmatter `name:` of each registered skill.
 
 This absorption layer is what makes geno-tools a meta-harness rather than just a CLI — external skill systems (Superpowers conventions, Vercel Labs Skills backend) are normalized into the same `SKILL.md` + `genotools.yaml` contract.

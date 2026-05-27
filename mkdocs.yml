@@ -65,17 +65,29 @@ nav:
               - geno-notes-wiki-lint: skills/geno-notes/geno-notes-wiki-lint.md
           - geno-tools:
               - skills/geno-tools/index.md
-              - geno-alias: skills/geno-tools/geno-alias.md
-              - geno-audit: skills/geno-tools/geno-audit.md
-              - geno-data-workspaces-init: skills/geno-tools/geno-data-workspaces-init.md
-              - geno-icons: skills/geno-tools/geno-icons.md
-              - geno-onboarding: skills/geno-tools/geno-onboarding.md
-              - geno-skills-create: skills/geno-tools/geno-skills-create.md
-              - geno-skills-install: skills/geno-tools/geno-skills-install.md
-              - geno-skills-status: skills/geno-tools/geno-skills-status.md
-              - geno-tools-open-docs: skills/geno-tools/geno-tools-open-docs.md
-              - geno-tools-sessions-spawn: skills/geno-tools/geno-tools-sessions-spawn.md
-              - geno-tools-update: skills/geno-tools/geno-tools-update.md
+              - lifecycle:
+                  - skills/geno-tools/lifecycle/index.md
+                  - skill-create: skills/geno-tools/lifecycle/skill-create.md
+                  - install: skills/geno-tools/lifecycle/install.md
+                  - status: skills/geno-tools/lifecycle/status.md
+              - compliance:
+                  - skills/geno-tools/compliance/index.md
+                  - audit: skills/geno-tools/compliance/audit.md
+                  - onboarding: skills/geno-tools/compliance/onboarding.md
+              - self:
+                  - skills/geno-tools/self/index.md
+                  - update: skills/geno-tools/self/update.md
+                  - session-spawn: skills/geno-tools/self/session-spawn.md
+                  - docs-open: skills/geno-tools/self/docs-open.md
+              - workspaces:
+                  - skills/geno-tools/workspaces/index.md
+                  - data-init: skills/geno-tools/workspaces/data-init.md
+              - assets:
+                  - skills/geno-tools/assets/index.md
+                  - icons: skills/geno-tools/assets/icons.md
+              - config:
+                  - skills/geno-tools/config/index.md
+                  - alias: skills/geno-tools/config/alias.md
       - Developer:
           - geno-dev:
               - skills/geno-dev/index.md
@@ -166,6 +178,7 @@ nav:
       - skillsets/index.md
       - Creating a Skillset: skillsets/creating.md
       - Nomenclature: skillsets/nomenclature.md
+      - Upstream Conventions: skillsets/upstream-conventions.md
   - Onboarding:
       - onboarding/index.md
       - Audit Process: onboarding/audit.md
