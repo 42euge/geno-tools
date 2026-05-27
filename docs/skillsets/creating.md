@@ -2,6 +2,8 @@
 
 Build your own `geno-{name}` skillset that geno-tools can install, update, and manage.
 
+> geno layers conventions on top of the upstream Agent Skills format from `vercel-labs/agent-skills`. If you're coming from upstream or planning to publish to a wider audience, see [Upstream Conventions](upstream-conventions.md) for what's shared, what's extended, and migration recipes.
+
 ## Minimum viable skillset
 
 ```

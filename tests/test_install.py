@@ -80,6 +80,108 @@ class TestEnumerateSkillDirs:
             assert (d / "SKILL.md").exists()
 
 
+class TestEnumerateNestedSkills:
+    """Nested skill trees: skills/{sub}/skills/{leaf}/SKILL.md at any depth.
+
+    Verifies that the enumerator walks the whole tree, not just the first
+    level under skills/.
+    """
+
+    def _write_skill(self, skill_dir: Path, name: str) -> None:
+        skill_dir.mkdir(parents=True, exist_ok=True)
+        (skill_dir / "SKILL.md").write_text(
+            f"---\nname: {name}\ndescription: fake nested skill\n---\n# {name}\n"
+        )
+
+    def _setup_nested(self, fake_skillset, tmp_root: Path) -> Path:
+        # Skillset root with umbrella SKILL.md but no flat sub-skills.
+        fake_skillset("geno-dev")
+        skills = tmp_root / "geno-dev" / "main" / "skills"
+        skills.mkdir()
+        # Sub-skillset 'tasks' with leaf 'start' at depth 2.
+        self._write_skill(skills / "tasks", "geno-dev-tasks")
+        self._write_skill(skills / "tasks" / "skills" / "start", "geno-dev-tasks-start")
+        # Sub-skillset 'commits' with two leaves.
+        self._write_skill(skills / "commits", "geno-dev-commits")
+        self._write_skill(skills / "commits" / "skills" / "rewrite", "geno-dev-commits-rewrite")
+        self._write_skill(skills / "commits" / "skills" / "amend", "geno-dev-commits-amend")
+        return skills
+
+    def test_finds_leaves_at_depth_two(self, fake_skillset, tmp_root):
+        self._setup_nested(fake_skillset, tmp_root)
+        names = commands._enumerate_skills("geno-dev")
+        assert "geno-dev-tasks-start" in names
+        assert "geno-dev-commits-rewrite" in names
+        assert "geno-dev-commits-amend" in names
+
+    def test_finds_sub_skillset_umbrellas(self, fake_skillset, tmp_root):
+        self._setup_nested(fake_skillset, tmp_root)
+        names = commands._enumerate_skills("geno-dev")
+        assert "geno-dev-tasks" in names
+        assert "geno-dev-commits" in names
+
+    def test_uses_frontmatter_name_not_dir_name(self, fake_skillset, tmp_root):
+        """Nested leaf dirs are bare nouns; their full names come from
+        the frontmatter, not the directory name."""
+        self._setup_nested(fake_skillset, tmp_root)
+        names = commands._enumerate_skills("geno-dev")
+        # Bare dir names like 'start', 'rewrite' must NOT appear — only
+        # the fully-qualified names from frontmatter.
+        assert "start" not in names
+        assert "rewrite" not in names
+        assert "amend" not in names
+
+    def test_includes_umbrella(self, fake_skillset, tmp_root):
+        self._setup_nested(fake_skillset, tmp_root)
+        names = commands._enumerate_skills("geno-dev")
+        assert "geno-dev" in names
+
+    def test_recurses_to_depth_three(self, fake_skillset, tmp_root):
+        """Tree shape is fractal — depth is unbounded."""
+        fake_skillset("geno-deep")
+        skills = tmp_root / "geno-deep" / "main" / "skills"
+        skills.mkdir()
+        self._write_skill(
+            skills / "a" / "skills" / "b" / "skills" / "leaf",
+            "geno-deep-a-b-leaf",
+        )
+        names = commands._enumerate_skills("geno-deep")
+        assert "geno-deep-a-b-leaf" in names
+
+    def test_falls_back_to_dirname_when_no_frontmatter(self, fake_skillset, tmp_root):
+        """If a SKILL.md lacks frontmatter, the directory name is used —
+        backwards compatibility with skills authored before the rule.
+        """
+        fake_skillset("geno-dev")
+        skills = tmp_root / "geno-dev" / "main" / "skills"
+        skills.mkdir()
+        legacy = skills / "geno-dev-legacy"
+        legacy.mkdir()
+        (legacy / "SKILL.md").write_text("# legacy skill, no frontmatter\n")
+
+        names = commands._enumerate_skills("geno-dev")
+        assert "geno-dev-legacy" in names
+
+    def test_ignores_dirs_without_skill_md_at_any_depth(self, fake_skillset, tmp_root):
+        fake_skillset("geno-dev")
+        skills = tmp_root / "geno-dev" / "main" / "skills"
+        skills.mkdir()
+        self._write_skill(skills / "tasks" / "skills" / "start", "geno-dev-tasks-start")
+        # An empty intermediate dir at depth 1 with no SKILL.md.
+        (skills / "tasks").mkdir(exist_ok=True)
+        # An empty leaf dir at depth 2 — no SKILL.md.
+        (skills / "tasks" / "skills" / "bogus").mkdir(parents=True)
+
+        dirs = commands._enumerate_skill_dirs("geno-dev")
+        names = commands._enumerate_skills("geno-dev")
+        # The 'tasks' sub-skillset has no SKILL.md so it isn't registered.
+        assert not any(d.name == "tasks" and "skills" not in str(d.parent.name) for d in dirs)
+        # The bogus leaf is excluded because it has no SKILL.md.
+        assert "bogus" not in names
+        # The real leaf is included.
+        assert "geno-dev-tasks-start" in names
+
+
 # ── npx skills install ────────────────────────────────────────────────────
 
 

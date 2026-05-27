@@ -92,13 +92,47 @@ class TestSkills:
             assert fm.get("name"), f"{skill_dir.name}: frontmatter missing 'name'"
             assert fm.get("description"), f"{skill_dir.name}: frontmatter missing 'description'"
 
-    def test_skill_dir_name_matches_frontmatter_name(self, skill_dirs):
+    def test_frontmatter_name_starts_with_geno_prefix(self, skill_dirs):
+        """Frontmatter `name:` is the source of truth and always carries
+        the fully qualified `geno-{...}` form regardless of whether the
+        directory tree is flat or nested. See
+        docs/skillsets/upstream-conventions.md § Nested skill trees.
+        """
         for skill_dir in skill_dirs:
             text = (skill_dir / "SKILL.md").read_text()
             end = text.index("---", 3)
             fm = yaml.safe_load(text[3:end])
-            assert fm["name"] == skill_dir.name, (
-                f"dir name '{skill_dir.name}' != frontmatter name '{fm['name']}'"
+            assert fm["name"].startswith("geno-"), (
+                f"{skill_dir.name}: frontmatter name '{fm['name']}' "
+                f"must start with 'geno-' prefix"
+            )
+
+    def test_umbrella_mirror_has_full_prefixed_name(self):
+        """The skillset-root umbrella mirror at skills/geno-tools/SKILL.md
+        is the one place where the directory name keeps the full prefixed
+        form (matches the repo name).
+        """
+        umbrella = REPO_ROOT / "skills" / "geno-tools" / "SKILL.md"
+        assert umbrella.exists(), "skills/geno-tools/SKILL.md (umbrella mirror) missing"
+        text = umbrella.read_text()
+        end = text.index("---", 3)
+        fm = yaml.safe_load(text[3:end])
+        assert fm["name"] == "geno-tools", (
+            f"umbrella mirror frontmatter name must be 'geno-tools', got '{fm['name']}'"
+        )
+
+    def test_non_umbrella_dirs_use_bare_nouns(self, skill_dirs):
+        """Per the nested-skill-tree convention, non-umbrella directories
+        under skills/ use bare nouns (no `geno-` prefix). Only the
+        skillset-root umbrella mirror (`skills/geno-tools/`) keeps the
+        full prefixed name.
+        """
+        for skill_dir in skill_dirs:
+            if skill_dir.name == "geno-tools":
+                continue  # the umbrella mirror exception
+            assert not skill_dir.name.startswith("geno-"), (
+                f"non-umbrella dir '{skill_dir.name}' must use a bare "
+                f"noun, not a 'geno-' prefix"
             )
 
     def test_umbrella_skill_exists(self, skill_dirs):

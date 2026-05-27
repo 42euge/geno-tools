@@ -363,20 +363,18 @@ def _uninstall_skills_via_npx(full: str) -> None:
 def _enumerate_skill_dirs(full: str) -> list[Path]:
     """Return flat list of skill dirs to register.
 
-    When sub-skills exist under ``skills/``, return only those dirs — skip
-    the umbrella root so ``npx skills add`` doesn't copy the whole tree and
-    stop at the root SKILL.md (it stops when it finds a root SKILL.md
-    unless ``--full-depth`` is passed).  For skillsets with no sub-skills,
-    return the root dir.
+    Walks the ``skills/`` tree to any depth — every directory containing a
+    ``SKILL.md`` is a registrable skill. Nested layouts following the
+    ``skills/{sub}/skills/{leaf}/SKILL.md`` recursion are flattened here.
+    The umbrella root is omitted when ``skills/`` exists so ``npx skills
+    add`` doesn't copy the whole tree and stop at the root SKILL.md (it
+    stops when it finds one unless ``--full-depth`` is passed). For
+    skillsets with no sub-skills, return the root dir.
     """
     active = paths.skillset_active(full)
     skills_dir = active / "skills"
     if skills_dir.exists():
-        sub = sorted(
-            (p for p in skills_dir.iterdir()
-             if p.is_dir() and (p / "SKILL.md").exists()),
-            key=lambda p: p.name,
-        )
+        sub = sorted(_walk_skill_dirs(skills_dir), key=lambda p: str(p))
         if sub:
             return sub
     if (active / "SKILL.md").exists():
@@ -384,10 +382,54 @@ def _enumerate_skill_dirs(full: str) -> list[Path]:
     return []
 
 
+def _walk_skill_dirs(root: Path) -> list[Path]:
+    """Recursively yield every directory under ``root`` containing a
+    ``SKILL.md``. Recurses through nested ``skills/`` interstitials at any
+    depth. Does not yield ``root`` itself.
+    """
+    out: list[Path] = []
+    if not root.is_dir():
+        return out
+    for child in root.iterdir():
+        if not child.is_dir():
+            continue
+        if (child / "SKILL.md").exists():
+            out.append(child)
+        nested = child / "skills"
+        if nested.is_dir():
+            out.extend(_walk_skill_dirs(nested))
+    return out
+
+
+def _read_skill_name(skill_dir: Path) -> str:
+    """Read the ``name:`` frontmatter field from ``SKILL.md``. Falls back
+    to ``skill_dir.name`` if absent — preserves behavior for legacy
+    skills that didn't carry frontmatter, though all current ones do.
+    """
+    skill_md = skill_dir / "SKILL.md"
+    if not skill_md.exists():
+        return skill_dir.name
+    try:
+        text = skill_md.read_text(encoding="utf-8")
+    except OSError:
+        return skill_dir.name
+    if not text.startswith("---"):
+        return skill_dir.name
+    end = text.find("\n---", 3)
+    if end == -1:
+        return skill_dir.name
+    try:
+        meta = yaml.safe_load(text[3:end]) or {}
+    except yaml.YAMLError:
+        return skill_dir.name
+    name = meta.get("name") if isinstance(meta, dict) else None
+    return str(name) if isinstance(name, str) and name else skill_dir.name
+
+
 def _enumerate_skills(full: str) -> list[str]:
     active = paths.skillset_active(full)
     dirs = _enumerate_skill_dirs(full)
-    names = [d.name if d != active else full for d in dirs]
+    names = [full if d == active else _read_skill_name(d) for d in dirs]
     if (active / "SKILL.md").exists() and active not in dirs:
         names.insert(0, full)
     return names
