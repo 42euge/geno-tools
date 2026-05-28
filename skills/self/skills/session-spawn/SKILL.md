@@ -157,7 +157,7 @@ Tell the user:
 When this skill finishes, emit a trace:
 
 ```bash
-geno-trace emit \
+"$CLAUDE_PLUGIN_ROOT/skills/self/skills/improve/resources/trace-emit.sh" \
   --skill geno-tools-sessions-spawn \
   --status <success|failure> \
   --tool-calls <count> \

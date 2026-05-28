@@ -7,7 +7,7 @@ description: >-
   multi-repo workspace. Use when user says /geno-skills-install, wants to
   register local skill changes globally, or test skills from a dev checkout.
 argument-hint: "[repo-path|repo-name]"
-allowed-tools: "Bash(npx *) Bash(find *) Bash(ls *) Bash(grep *) Bash(git *) Bash(python3 *) Read(*)"
+allowed-tools: "Bash(*) Read(*)"
 license: MIT
 metadata:
   author: 42euge
@@ -16,7 +16,12 @@ metadata:
 
 # geno-skills-install — Install Local Skills Globally
 
-Registers all skills from a local geno ecosystem repo checkout as global slash commands across all supported agents. This is the dev-loop companion to `geno-tools install` — instead of cloning from a remote, it installs from whatever is on disk right now so you can test local changes immediately.
+Registers all skills from a local geno ecosystem repo checkout as global slash
+commands across all supported agents. This is the dev-loop companion to the
+full install flow at
+`$PLUGIN_ROOT/skills/lifecycle/skills/install/resources/install.sh` — instead
+of cloning from a remote, it installs from whatever is on disk right now so
+you can test local changes immediately.
 
 ## When to invoke
 
@@ -162,7 +167,7 @@ This helps the user know exactly what version of the skills they just installed.
 ## Don'ts
 
 - Don't clone or fetch — this skill works on the local checkout as-is.
-- Don't create venvs, bin symlinks, or worktrees — those are `geno-tools install` responsibilities.
+- Don't create venvs, bin symlinks, or worktrees — those are responsibilities of `resources/install.sh`.
 - Don't modify any files in the target repo.
-- Don't use `geno-tools install` — this skill calls `npx skills add` directly because it's registering from a local path, not going through the full install flow.
+- Don't invoke `resources/install.sh` — this skill calls `npx skills add` directly because it's registering from a local path, not going through the full install flow.
 - Don't use aliased prefixes like `gt-` in any output — always use canonical `geno-` prefix.

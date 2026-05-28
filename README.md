@@ -11,17 +11,20 @@ Agent-agnostic meta package manager for AI coding agents. Discovers, absorbs, ev
 `geno-tools` discovers skills from open-source registries and private ecosystems, absorbs external skill systems ([vercel-labs/skills](https://github.com/vercel-labs/skills), [obra/superpowers](https://github.com/obra/superpowers), Ralphy Loop plugins) into a unified framework, and manages their full lifecycle:
 
 - **Discovery** — find candidate skills from a curated registry, GitHub/GitLab/Bitbucket orgs, private mirrors, or any git URL
-- **Absorption** — normalize heterogeneous skill formats into `SKILL.md` + `genotools.yaml`; register with all agents via a single `geno-tools install`
-- **Meta-harness** — `fork`/`use`/`promote` with git worktrees to evaluate, refine, and iterate on skill variations in isolation
+- **Absorption** — normalize heterogeneous skill formats into `SKILL.md` + `genotools.yaml`; register with all agents via a single install script
 - **Auditing** — built-in compliance scanning gates every onboarding path (prompt injection, dependency hygiene, filesystem/network boundaries)
-- **Per-skillset venvs** — isolated at `~/.geno-tools/geno-{name}/venvs/`
-- **Zero telemetry** — local execution, no call-home
+- **Per-skillset venvs** — isolated at `~/.geno-tools/geno-{name}/venvs/` (only created when a skillset ships a `pyproject.toml`)
+- **Zero telemetry** — local execution, no call-home, pure shell
+
+geno-tools itself is implemented as standalone bash resource scripts under each
+sub-skillset's `resources/` directory. There is no Python runtime, no
+unified CLI binary; capabilities are invoked by their script path.
 
 ## Install
 
-geno-tools ships as a native plugin/extension on each supported coding CLI. Pick the snippet for the CLI you use — every path bootstraps `~/.geno/` from `config/defaults.yaml` and self-installs the `geno-tools` shell command onto PATH (via `pipx`, falling back to `pip install --user`) the first time the agent loads the plugin.
+geno-tools ships as a native plugin/extension on each supported coding CLI. Pick the snippet for the CLI you use — every path seeds `~/.geno/config.yaml` from `config/defaults.yaml` the first time the agent loads the plugin.
 
-The bootstrap lives at `scripts/bootstrap.sh`. CLIs that expose a startup hook for arbitrary commands (Claude Code, OpenCode) run it automatically. The others (Gemini CLI, Codex, Cursor) need a one-time `bash <plugin-root>/scripts/bootstrap.sh` invocation, shown inline below.
+The bootstrap lives at `scripts/bootstrap.sh` and only handles config seeding. CLIs that expose a startup hook (Claude Code, OpenCode) run it automatically; others can invoke it once manually as shown below.
 
 ### Claude Code
 
@@ -31,7 +34,7 @@ The bootstrap lives at `scripts/bootstrap.sh`. CLIs that expose a startup hook f
 /plugin install geno-tools@geno-tools
 ```
 
-The first command registers this repo as a marketplace (reads `.claude-plugin/marketplace.json`); the second installs the plugin defined in `.claude-plugin/plugin.json`. The SessionStart hook in `hooks/hooks.json` then runs `scripts/bootstrap.sh` automatically — no separate pipx step required. Verify with `/plugin list`.
+The first command registers this repo as a marketplace (reads `.claude-plugin/marketplace.json`); the second installs the plugin defined in `.claude-plugin/plugin.json`. The SessionStart hook in `hooks/hooks.json` then runs `scripts/bootstrap.sh` automatically. Verify with `/plugin list`.
 
 ### Codex CLI
 
@@ -43,7 +46,7 @@ The first command registers this repo as a marketplace (reads `.claude-plugin/ma
 bash ~/.codex/plugins/cache/geno-tools/geno-tools/*/scripts/bootstrap.sh
 ```
 
-The marketplace catalog at `.agents/plugins/marketplace.json` exposes the plugin; pick `geno-tools` from the `/plugins` browser and toggle it on. (Plugins are cached at `~/.codex/plugins/cache/geno-tools/geno-tools/<version>/`.) Codex doesn't expose a portable startup hook for arbitrary commands, so run `bootstrap.sh` once — it's idempotent on later invocations.
+The marketplace catalog at `.agents/plugins/marketplace.json` exposes the plugin; pick `geno-tools` from the `/plugins` browser and toggle it on. (Plugins are cached at `~/.codex/plugins/cache/geno-tools/geno-tools/<version>/`.) Codex doesn't expose a portable startup hook, so run `bootstrap.sh` once — it's idempotent.
 
 ### Gemini CLI
 
@@ -52,7 +55,7 @@ gemini extensions install https://github.com/42euge/geno-tools
 bash ~/.gemini/extensions/geno-tools/scripts/bootstrap.sh
 ```
 
-Gemini clones the repo into `~/.gemini/extensions/geno-tools/`, reads `gemini-extension.json`, and registers the bundled `skills/` and `hooks/hooks.json`. Restart the CLI to pick it up. Update later with `gemini extensions update geno-tools`. Gemini extensions don't run arbitrary startup commands, so the one-time `bootstrap.sh` invocation is what puts `geno-tools` on PATH.
+Gemini clones the repo into `~/.gemini/extensions/geno-tools/`, reads `gemini-extension.json`, and registers the bundled `skills/` and `hooks/hooks.json`. Restart the CLI to pick it up. Update later with `gemini extensions update geno-tools`. The one-time `bootstrap.sh` seeds `~/.geno/config.yaml`.
 
 ### Cursor
 
@@ -70,7 +73,7 @@ Add to `opencode.json`:
 { "plugins": ["geno-tools@git+https://github.com/42euge/geno-tools.git"] }
 ```
 
-Then restart OpenCode — the bundled plugin in `.opencode/plugins/geno-tools.js` registers the skills path and spawns `scripts/bootstrap.sh` on startup, so the `geno-tools` CLI appears on PATH without any extra step.
+Then restart OpenCode — the bundled plugin in `.opencode/plugins/geno-tools.js` registers the skills path and spawns `scripts/bootstrap.sh` on startup.
 
 ### Verify
 
@@ -82,22 +85,28 @@ After install, the following skills appear as slash commands:
 /geno-icons            # generate pixel art project icons
 ```
 
-To use the CLI directly: `geno-tools ls --available`, `geno-tools install geno-<name>`.
-If `geno-tools` isn't on PATH (because the bootstrap log shows pipx/pip is missing — see `~/.geno/bootstrap.log`), install pipx (`python3 -m pip install --user pipx`) and re-run `scripts/bootstrap.sh` from the plugin directory.
+To run the resource scripts directly:
+
+```bash
+ROOT="$CLAUDE_PLUGIN_ROOT"   # or wherever the plugin lives
+"$ROOT/skills/lifecycle/skills/install/resources/ls.sh" --available
+"$ROOT/skills/lifecycle/skills/install/resources/install.sh" geno-<name>
+```
 
 ## Usage
 
 Skillsets are referenced by their full repo name (e.g. `geno-<name>` in the public namespace, or `acme-<name>` for a private one) so the same form works whether the entry comes from the public registry, a private mirror, or a direct git URL.
 
 ```bash
-geno-tools ls --available                       # registry
-geno-tools install geno-<name>                  # install by full repo name from the registry
-geno-tools install <git-url>                    # install any compliant repo by URL
-geno-tools dev geno-<name> ~/src/geno-<name>    # link a local dev checkout
-geno-tools ls                                   # installed
-geno-tools doctor                               # verify links, venvs, targets
-geno-tools update [geno-<name>]                 # update one or all
-geno-tools remove geno-<name> [--keep-data]
+ROOT="$CLAUDE_PLUGIN_ROOT"
+
+"$ROOT/skills/lifecycle/skills/install/resources/ls.sh" --available
+"$ROOT/skills/lifecycle/skills/install/resources/install.sh" geno-<name>
+"$ROOT/skills/lifecycle/skills/install/resources/install.sh" <git-url>
+"$ROOT/skills/lifecycle/skills/install/resources/ls.sh"
+"$ROOT/skills/lifecycle/skills/status/resources/status.sh"
+"$ROOT/skills/self/skills/update/resources/update.sh" [geno-<name>]
+"$ROOT/skills/lifecycle/skills/install/resources/remove.sh" geno-<name> [--keep-data]
 ```
 
 ## Layout
@@ -128,11 +137,10 @@ Subskillsets keep individual SKILL.md files small and tightly scoped, while the 
 
 ## Onboarding a skillset
 
-There are three ways to make a skillset installable through `geno-tools install`:
+There are two ways to make a skillset installable:
 
-1. **Curated registry** — submit a PR adding `"<repo-name>": "<git-url>"` to `genotools/registry.py`. After that, `geno-tools install <repo-name>` works for everyone.
-2. **Direct git URL** — anyone can install any compliant repo without a registry entry: `geno-tools install https://github.com/you/your-skillset.git`. This is the recommended path for private, internal, or experimental skillsets.
-3. **Local dev link** — `geno-tools dev <repo-name> ~/src/<repo-name>` to iterate on a checkout without committing.
+1. **Curated registry** — submit a PR adding a `name<TAB>url` line to the fallback table in `skills/geno-tools/lib/registry.sh`, or just push your repo to the `42euge` org and let registry discovery via `gh` find it.
+2. **Direct git URL** — anyone can install any compliant repo without a registry entry: `install.sh https://github.com/you/your-skillset.git`. This is the recommended path for private, internal, or experimental skillsets.
 
 A minimum viable skillset only needs a root `SKILL.md`, a `genotools.yaml`, and a `GENO.md`; everything else (venv, runtime symlinks, configs, subskillsets) is opt-in.
 
@@ -142,7 +150,7 @@ All public repos in the `geno-*` namespace, grouped by role.
 
 ### Skillsets
 
-Installable by full repo name via `geno-tools install <repo>`:
+Installable by full repo name via the install resource script:
 
 | Repo | Description |
 |------|-------------|
@@ -190,8 +198,8 @@ How it works in practice:
 
 1. **Pick your namespace**. Use your company slug as the prefix (`acme-`, `globex-`, etc.). All internal skillsets share that prefix the way public ones share `geno-`.
 2. **Host privately**. Put the repos in your own GitHub Enterprise / GitLab / Bitbucket / private mirror. geno-tools resolves any git URL — there is no central registry it has to call out to.
-3. **Run geno-tools internally**. Pin the upstream OSS release, fork it, or vendor it. The CLI is plain Python, has no telemetry, and the install flow only talks to the git remote you point it at.
-4. **Mix public and private freely**. A developer can run `geno-tools install geno-<name>` (public) alongside `geno-tools install git@github.acme.com:platform/acme-<name>.git` (private) on the same machine. They share `~/.geno-tools/`, the same venv strategy, and the same slash-command surface in Claude Code / Codex / Cursor / Gemini CLI / OpenCode.
+3. **Run geno-tools internally**. Pin the upstream OSS release, fork it, or vendor it. The implementation is plain bash, has no telemetry, and the install flow only talks to the git remote you point it at.
+4. **Mix public and private freely**. A developer can install `geno-<name>` (public) alongside a private `git@github.acme.com:platform/acme-<name>.git` URL on the same machine. They share `~/.geno-tools/`, the same venv strategy, and the same slash-command surface in Claude Code / Codex / Cursor / Gemini CLI / OpenCode.
 
 The result: sensitive prompts, datasets, and domain knowledge stay inside the company boundary, while the runtime, the file format, and the multi-agent integrations are the same fast-moving open-source code everyone else uses. You inherit upstream improvements without giving up control of your skill content.
 

@@ -4,7 +4,7 @@ description: >-
   Update installed geno ecosystem skillsets to the latest main branch.
   Use when user says /geno-tools-update, asks to update the ecosystem,
   pull latest, or sync repos.
-allowed-tools: "Bash(geno-tools *)"
+allowed-tools: "Bash(*)"
 license: MIT
 metadata:
   author: 42euge
@@ -19,22 +19,22 @@ Pull the latest main branch for installed geno-* skillsets, re-register skills, 
 
 Update all installed skillsets:
 ```bash
-geno-tools update
+"$CLAUDE_PLUGIN_ROOT/skills/self/skills/update/resources/update.sh"
 ```
 
 Update a single skillset:
 ```bash
-geno-tools update <name>
+"$CLAUDE_PLUGIN_ROOT/skills/self/skills/update/resources/update.sh" <name>
 ```
 
 The `<name>` accepts both full (`geno-dev`) and bare (`dev`) forms.
 
 ## Behavior
 
-For each skillset the command will:
+For each skillset the script will:
 1. Fetch from origin
 2. Fast-forward the main worktree to the latest commit
-3. Reinstall the Python venv if `pyproject.toml` changed
+3. Reinstall the Python venv if `pyproject.toml` changed (only for skillsets that ship one)
 4. Re-register skills via `npx skills add` if any SKILL.md files changed
 
 Skillsets are **skipped** (not errored) when:
