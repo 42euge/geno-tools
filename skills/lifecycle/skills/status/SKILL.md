@@ -5,7 +5,7 @@ description: >-
   branch, and freshness of each installed skillset. Use when user says
   /geno-skills-status, wants to check what's installed, or asks about
   ecosystem versions.
-allowed-tools: "Bash(geno-tools *) Bash(git *) Bash(ls *) Bash(cat *) Bash(find *) Bash(python3 *) Bash(readlink *) Read(*)"
+allowed-tools: "Bash(*) Read(*)"
 license: MIT
 metadata:
   author: 42euge
@@ -20,7 +20,7 @@ Shows the current state of every installed geno skillset: version from the manif
 
 - The user asks "what's installed", "what version am I on", "is everything up to date".
 - Before troubleshooting — to see which skillsets are present and at what revision.
-- After running `geno-tools update` to verify results.
+- After running the update script to verify results.
 
 ## Input
 
@@ -32,13 +32,13 @@ Shows the current state of every installed geno skillset: version from the manif
 
 ### 1. Report geno-tools itself
 
-Get the geno-tools version and source:
+Read the version from the plugin's `genotools.yaml` at the plugin root:
 
 ```bash
-geno-tools --version
+yq -r '.version // "unknown"' "$CLAUDE_PLUGIN_ROOT/genotools.yaml"
 ```
 
-Determine where the geno-tools plugin is loaded from. Check the plugin root — this is the repo the agent session loaded geno-tools from. Use `$CLAUDE_PLUGIN_ROOT` if set, otherwise check the known install locations:
+Determine where the geno-tools plugin is loaded from. Use `$CLAUDE_PLUGIN_ROOT` if set, otherwise check the known install locations:
 - `~/.claude/plugins/geno-tools/`
 - The current repo if it has `.claude-plugin/plugin.json`
 
@@ -47,6 +47,12 @@ Report:
 ```
 geno-tools v{version}
   plugin: {plugin-path}
+```
+
+For a full structural check (broken worktrees, dangling bin symlinks), run:
+
+```bash
+"$CLAUDE_PLUGIN_ROOT/skills/lifecycle/skills/status/resources/status.sh"
 ```
 
 ### 2. Enumerate installed skillsets
@@ -131,12 +137,7 @@ For the all-skillsets overview, skip fetching to keep the report fast.
 Read `requires:` from `genotools.yaml`:
 
 ```bash
-python3 -c "
-import yaml, sys
-data = yaml.safe_load(open(sys.argv[1]))
-for r in data.get('requires', []):
-    print(r)
-" ~/.geno-tools/geno-{name}/active/genotools.yaml 2>/dev/null
+yq -r '.requires // [] | .[]' ~/.geno-tools/geno-{name}/active/genotools.yaml 2>/dev/null
 ```
 
 ### 4. Format the report
@@ -204,10 +205,10 @@ List each skill by reading the `skills/` directory names. Mark the umbrella. Lis
 
 After the report, if any issues are detected, suggest next steps:
 
-- Skillsets behind origin: "Run `geno-tools update {name}` to pull latest."
+- Skillsets behind origin: "Run `$CLAUDE_PLUGIN_ROOT/skills/self/skills/update/resources/update.sh {name}` to pull latest."
 - Skillsets with no manifest: "Add a `genotools.yaml` to {name} for version tracking."
-- Active variant not `main`: "Switch back with `geno-tools use {name}@main`."
-- Dirty worktree detected: "Uncommitted changes in {name}; `geno-tools update` will skip it."
+- Active variant not `main`: "Repoint `~/.geno-tools/{name}/active` symlink manually."
+- Dirty worktree detected: "Uncommitted changes in {name}; the update script will skip it."
 
 ## Don'ts
 

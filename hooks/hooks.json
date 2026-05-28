@@ -11,7 +11,7 @@
           },
           {
             "type": "command",
-            "command": "geno-trace health --refresh 2>/dev/null || true",
+            "command": "${CLAUDE_PLUGIN_ROOT}/skills/self/skills/improve/resources/trace-health.sh --refresh 2>/dev/null || true",
             "timeout": 5000
           },
           {

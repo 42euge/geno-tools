@@ -1,26 +1,29 @@
 ---
 name: geno-tools
 description: >-
-  Meta-CLI for installing and managing geno-* skillsets.
-  Use when user asks about installing, removing, listing, or updating
-  geno ecosystem skillsets.
-allowed-tools: "Bash(geno-tools *) Bash(python3 -m genotools *)"
+  Meta package manager for geno-* skillsets. Use when user asks about
+  installing, removing, listing, or updating geno ecosystem skillsets.
+allowed-tools: "Bash(*) Read(*)"
 metadata:
   author: 42euge
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # geno-tools — Skillset Manager
 
-Orchestrator for the geno-* ecosystem. Manages installation, removal, and updates of skillset repos.
-
-```!
-which geno-tools >/dev/null 2>&1 || echo "geno-tools CLI not on PATH. The plugin's SessionStart hook (Claude Code) and OpenCode plugin loader run scripts/bootstrap.sh automatically. On Gemini CLI / Codex / Cursor, run 'bash \$PLUGIN_ROOT/scripts/bootstrap.sh' once (\$PLUGIN_ROOT is e.g. ~/.gemini/extensions/geno-tools)."
-```
+Orchestrator for the geno-* ecosystem. Manages installation, removal, and
+updates of skillset repos. Each capability lives as a standalone shell script
+under the relevant sub-skillset's `resources/` directory; there is no unified
+`geno-tools` CLI binary — invoke the resource scripts directly.
 
 ## Available Skillsets
 
-Install by full repo name (e.g. `geno-tools install geno-<name>`):
+Install by full repo name. Resource scripts live under
+`$PLUGIN_ROOT/skills/lifecycle/skills/install/resources/`:
+
+```bash
+$PLUGIN_ROOT/skills/lifecycle/skills/install/resources/install.sh geno-<name>
+```
 
 | Repo | Description |
 |------|-------------|
@@ -43,18 +46,29 @@ Skills are organized into 6 functional areas (full convention in [docs/skillsets
 | **assets** | /geno-assets | icons — generated branding assets |
 | **config** | /geno-config | alias — user personalization |
 
-## Commands
+## Resource scripts
 
-- `geno-tools ls` — list installed skillsets and their active variant
-- `geno-tools ls --available` — show all registered skillsets in the registry
-- `geno-tools install <repo|url|path>` — install a skillset (clone, venv, register with all agents)
-- `geno-tools remove <repo> [--keep-data]` — uninstall a skillset from all agents
-- `geno-tools update [repo]` — pull latest for one or all skillsets
-- `geno-tools doctor` — verify symlinks, worktrees, venvs
+| Capability | Path (relative to plugin root) |
+|------------|-------------------------------|
+| list installed | `skills/lifecycle/skills/install/resources/ls.sh` |
+| list available | `skills/lifecycle/skills/install/resources/ls.sh --available` |
+| install | `skills/lifecycle/skills/install/resources/install.sh <repo\|url\|path>` |
+| remove | `skills/lifecycle/skills/install/resources/remove.sh <repo> [--keep-data]` |
+| dependency tree | `skills/lifecycle/skills/install/resources/deps.sh <repo>` |
+| update | `skills/self/skills/update/resources/update.sh [repo]` |
+| status / doctor | `skills/lifecycle/skills/status/resources/status.sh` |
+| discover candidates | `skills/compliance/skills/onboarding/resources/discover.sh` |
+| scan into queue | `skills/compliance/skills/onboarding/resources/scan.sh` |
+| build mkdocs pages | `skills/self/skills/docs-open/resources/docs-build.sh` |
+| trace emit / list / health / queue | `skills/self/skills/improve/resources/trace-*.sh` |
 
-## Source Resolution
+Shared bash helpers (paths, config, registry, discovery providers) live at
+`skills/geno-tools/lib/` and are sourced via `lib/load.sh`.
 
-The `<repo>` argument resolves in order:
-1. Registered repo name (e.g. `geno-<name>`) -> git URL. Bare slug (e.g. `<name>`) is also accepted for backwards compatibility.
+## Source resolution
+
+The install script's `<repo|url|path>` resolves in order:
+1. Registered repo name (e.g. `geno-<name>`) → git URL. Bare slug (e.g. `<name>`) is also accepted.
 2. Local directory path
 3. Git URL (https:// or git@)
+4. Discovered candidate from `~/.geno/config.yaml` discovery sources

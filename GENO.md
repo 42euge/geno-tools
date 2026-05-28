@@ -44,36 +44,30 @@ geno-tools/
 ├── AGENTS.md                      # Codex pointer -> GENO.md
 ├── gemini-extension.json          # Gemini CLI extension descriptor
 ├── package.json                   # npm metadata (OpenCode plugin entry)
-├── pyproject.toml                 # Python package metadata
-├── genotools/                     # Python CLI package
-│   ├── cli.py                     #   argparse, subcommand routing
-│   ├── commands.py                #   install/remove/update/ls/deps
-│   ├── config.py                  #   user config from ~/.geno/config.yaml
-│   ├── discovery.py               #   enterprise repo discovery
-│   ├── paths.py                   #   on-disk layout utilities
-│   ├── registry.py                #   curated registry of known skillsets
-│   └── trace.py                   #   skill trace system (emit/list/health)
-├── skills/                        # skill definitions (nested tree per upstream conventions)
-│   ├── geno-tools/SKILL.md        #   skillset-root umbrella mirror
+├── skills/                        # skill definitions + bash implementation
+│   ├── geno-tools/                #   umbrella + shared bash lib
+│   │   ├── SKILL.md
+│   │   └── lib/                   #     paths.sh, common.sh, config.sh,
+│   │                              #     registry.sh, discovery.sh, load.sh
 │   ├── lifecycle/                 #   sub-skillset: skill & skillset CRUD
 │   │   ├── SKILL.md
 │   │   └── skills/
 │   │       ├── repo-create/       #     bootstrap a new geno-* repo (+ rules/)
 │   │       ├── skill-create/
-│   │       ├── install/
-│   │       └── status/
+│   │       ├── install/           #     resources/{install,remove,ls,deps}.sh
+│   │       └── status/            #     resources/status.sh
 │   ├── compliance/                #   sub-skillset: audit + onboarding gate
 │   │   ├── SKILL.md
 │   │   └── skills/
 │   │       ├── audit/             #     compliance auditor (+ rules/)
-│   │       └── onboarding/
+│   │       └── onboarding/        #     resources/{discover,scan}.sh
 │   ├── self/                      #   sub-skillset: geno-tools self-mgmt
 │   │   ├── SKILL.md
 │   │   └── skills/
-│   │       ├── update/
-│   │       ├── improve/
+│   │       ├── update/            #     resources/update.sh
+│   │       ├── improve/           #     resources/trace-{emit,list,health,queue}.sh
 │   │       ├── session-spawn/
-│   │       └── docs-open/
+│   │       └── docs-open/         #     resources/docs-build.sh
 │   ├── workspaces/                #   sub-skillset: data workspace scaffolding
 │   │   ├── SKILL.md
 │   │   └── skills/
@@ -87,45 +81,37 @@ geno-tools/
 │       └── skills/
 │           └── alias/
 ├── config/defaults.yaml           # reference config with aliases schema
-├── scripts/bootstrap.sh           # self-installs geno-tools onto PATH
+├── scripts/bootstrap.sh           # seeds ~/.geno/config.yaml on session start
 ├── hooks/                         # Claude Code SessionStart hook
 ├── docs/                          # MkDocs Material documentation site
 ├── .claude-plugin/plugin.json     # Claude Code plugin manifest
 ├── .codex-plugin/plugin.json      # Codex CLI plugin manifest
 ├── .cursor-plugin/plugin.json     # Cursor plugin manifest
-├── .opencode/                     # OpenCode plugin
-└── tests/                         # pytest suite
+└── .opencode/                     # OpenCode plugin
 ```
 
-## Entry point
+## Implementation
 
-```toml
-[project.scripts]
-geno-tools = "genotools.cli:main"
-geno-trace = "genotools.trace:main"
-```
+geno-tools has no Python runtime and no unified CLI binary. Each capability is a
+standalone bash script under the relevant sub-skillset's `resources/` directory.
+Shared bash helpers (paths, config, registry, discovery providers) live at
+`skills/geno-tools/lib/` and are sourced via `lib/load.sh`.
 
-`genotools/cli.py` parses subcommands and lazy-imports `genotools.commands` to keep `--version`/`--help` fast.
+| Capability | Resource script |
+|------------|-----------------|
+| list installed / available | `skills/lifecycle/skills/install/resources/ls.sh` |
+| install | `skills/lifecycle/skills/install/resources/install.sh` |
+| remove | `skills/lifecycle/skills/install/resources/remove.sh` |
+| dependency tree | `skills/lifecycle/skills/install/resources/deps.sh` |
+| update | `skills/self/skills/update/resources/update.sh` |
+| status / doctor | `skills/lifecycle/skills/status/resources/status.sh` |
+| discover candidates | `skills/compliance/skills/onboarding/resources/discover.sh` |
+| scan into queue | `skills/compliance/skills/onboarding/resources/scan.sh` |
+| build mkdocs pages | `skills/self/skills/docs-open/resources/docs-build.sh` |
+| trace emit / list / health / queue | `skills/self/skills/improve/resources/trace-*.sh` |
 
-`genotools/trace.py` provides the `geno-trace` CLI for emitting and querying skill traces. Traces are append-only JSONL at `~/.geno/traces/YYYY/YYYY-MM.jsonl`. Health cards are aggregated per-skill at `~/.geno/health/<skill>.json`.
-
-## Subcommands
-
-| Command | Status |
-|---------|--------|
-| `geno-tools ls [--available]` | implemented |
-| `geno-tools install <name\|url\|path> [--here]` | implemented |
-| `geno-tools remove <name> [--keep-data]` | implemented |
-| `geno-tools update [name]` | implemented |
-| `geno-tools deps <name>` | implemented |
-| `geno-tools dev <name> <path>` | stub |
-| `geno-tools fork <name> <variant> [--isolated-venv]` | stub |
-| `geno-tools use <name>@<variant> [--here]` | stub |
-| `geno-tools promote <name> <variant>` | stub |
-| `geno-tools doctor` | stub |
-| `geno-tools discover [--dry-run]` | implemented |
-| `geno-tools scan [--namespace] [--dry-run]` | implemented |
-| `geno-tools docs [--docs-dir] [--dry-run]` | implemented |
+Traces are append-only JSONL at `~/.geno/traces/YYYY/YYYY-MM.jsonl`. Health
+cards are aggregated per-skill at `~/.geno/health/<skill>.json`.
 
 ## Dependency management
 
@@ -138,27 +124,28 @@ requires:
   - geno-specs
 ```
 
-During `geno-tools install`, dependencies are resolved from the registry and installed recursively before the target skillset. Already-installed deps are skipped. Circular dependencies are detected and reported.
+During an install, dependencies are resolved from the registry and installed recursively before the target skillset. Already-installed deps are skipped. Circular dependencies are detected and reported.
 
 ## Source resolution
 
 `<name|url|path>` resolves in this order:
 
-1. **Registered repo name** — git URL from `genotools/registry.py`. Bare slugs (the part after `geno-`) are also accepted.
+1. **Registered repo name** — git URL from `skills/geno-tools/lib/registry.sh` (queries `gh` for the `42euge` org with a hardcoded fallback list). Bare slugs (the part after `geno-`) are also accepted.
 2. **Existing local directory** — installed from disk.
 3. **Git URL** (`http(s)://`, `git@`, or `*.git`) — cloned.
-4. **Discovery sources** (`genotools/discovery.py`) — repos found in `~/.geno/config.yaml` `discovery.sources` that match the configured prefix and have a top-level `SKILL.md`.
+4. **Discovery sources** (`skills/geno-tools/lib/discovery.sh`) — repos found in `~/.geno/config.yaml` `discovery.sources` that match the configured prefix and have a top-level `SKILL.md`.
 
 ## Install flow
 
 ```
-geno-tools install media
-    ├── _resolve_source("media")         # registry -> git URL
-    ├── _clone_and_worktree()            # bare clone + main worktree
-    ├── _create_venv_if_needed()         # venv + pip install deps + editable install
-    ├── _materialize_bin_symlinks()       # ~/.local/bin/ symlinks to venv binaries
+install.sh media
+    ├── resolve_source("media")          # registry -> git URL
+    ├── clone_and_worktree()             # bare clone + main worktree
+    ├── install_requires() (recursive)   # walk genotools.yaml requires:
+    ├── create_venv_if_needed()          # venv + pip install deps + editable install
+    ├── materialize_bin_symlinks()       # ~/.local/bin/ symlinks to venv binaries
     ├── active -> main symlink
-    └── _install_skills_via_npx()        # npx skills add (all agents, global)
+    └── install_skills_via_npx()         # npx skills add (all agents, global)
 ```
 
 ## Per-skillset layout
@@ -172,7 +159,7 @@ geno-tools install media
     ├── main/                      # primary worktree
     ├── .worktrees/<variant>/      # additional worktrees (via fork)
     ├── venvs/<venv-name>/         # isolated Python env(s)
-    └── active -> main             # symlink; `geno-tools use` repoints this
+    └── active -> main             # symlink (variant switching is manual)
 ```
 
 ## Conventions
@@ -186,11 +173,11 @@ aliases:
   command_prefix: "gt"   # gt-install, gt-media-audiobook-create, etc.
 ```
 
-The prefix is applied at install time by `geno-tools install` when materializing skills via `npx skills add`. Never hardcode an aliased prefix like `gt-` in SKILL.md descriptions, GENO.md, or any committed file. See `config/defaults.yaml` for the full schema.
+The prefix is applied at install time by the install script when materializing skills via `npx skills add`. Never hardcode an aliased prefix like `gt-` in SKILL.md descriptions, GENO.md, or any committed file. See `config/defaults.yaml` for the full schema.
 
 ### Versioning
 
-The canonical version lives in `genotools.yaml` (`version` field). The same value must appear in `pyproject.toml` (`project.version`), `package.json` (`version`), and `genotools/__init__.py` (`__version__`). Bump the version whenever skills are added, removed, or behavior changes. Keep all four files in sync.
+The canonical version lives in `genotools.yaml` (`version` field). The same value must appear in `package.json` (`version`). Bump the version whenever skills are added, removed, or behavior changes. Keep both files in sync.
 
 ### Adding a new skill
 
@@ -201,7 +188,7 @@ This repo uses the nested skill tree layout — see [docs/skillsets/upstream-con
 3. Update the parent sub-skillset's umbrella `SKILL.md` (`skills/{sub-skillset}/SKILL.md`) to list the new leaf.
 4. Add a row to the skills table in this file.
 5. If the skill needs docs, add a page under `docs/skills/geno-tools/{sub-skillset}/`.
-6. Bump the version in all four files: `genotools.yaml`, `pyproject.toml`, `package.json`, `genotools/__init__.py`.
+6. Bump the version in `genotools.yaml` and `package.json`.
 
 ### What a skillset repo needs to provide
 
@@ -232,12 +219,12 @@ observability:
     - "what knowledge this skill produces"
 ```
 
-Skills that declare observability should also include a `## Completion` section at the end of their workflow that emits a trace via `geno-trace emit`. This feeds the self-improvement loop (health cards, retro, mining).
+Skills that declare observability should also include a `## Completion` section at the end of their workflow that emits a trace via `skills/self/skills/improve/resources/trace-emit.sh`. This feeds the self-improvement loop (health cards, retro, mining).
 
 ## Plugin structure
 
 geno-tools ships platform-specific plugin manifests following the `obra/superpowers` conventions so it can be installed as a native plugin on each supported CLI. Skills are platform-agnostic; each CLI-specific manifest points at the shared `skills/` directory.
 
-Skill registration uses `npx skills add <active-worktree> --agent '*' --global --skill '*' --yes`. Uninstall enumerates skills by walking the `skills/` tree at any depth (`genotools.commands._walk_skill_dirs`) and calls `npx skills remove` with the frontmatter `name:` of each registered skill.
+Skill registration uses `npx skills add <active-worktree> --agent '*' --global --skill '*' --yes`. Uninstall enumerates skills by walking the `skills/` tree at any depth (the bash `walk_skill_dirs` helper in `skills/geno-tools/lib/common.sh`) and calls `npx skills remove` with the frontmatter `name:` of each registered skill.
 
-This absorption layer is what makes geno-tools a meta-harness rather than just a CLI — external skill systems (Superpowers conventions, Vercel Labs Skills backend) are normalized into the same `SKILL.md` + `genotools.yaml` contract.
+This absorption layer is what makes geno-tools a meta-harness rather than just a wrapper — external skill systems (Superpowers conventions, Vercel Labs Skills backend) are normalized into the same `SKILL.md` + `genotools.yaml` contract.

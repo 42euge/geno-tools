@@ -41,7 +41,7 @@ Check the current working directory for signs of a geno ecosystem repo:
 
 If inside a workspace (has `.geno/.workspace/workspace.yaml`), check `repos:` to find the target repo.
 
-If no geno repo is detected, use `AskUserQuestion` to ask which repo to target. Accept a path, a skillset name (resolved via `geno-tools ls`), or a GitHub URL.
+If no geno repo is detected, use `AskUserQuestion` to ask which repo to target. Accept a path, a skillset name (resolved via `skills/lifecycle/skills/install/resources/ls.sh`), or a GitHub URL.
 
 Once identified, record:
 - `$REPO_ROOT` — absolute path to the repo root
@@ -223,7 +223,7 @@ Tell the user:
 - Created `skills/{skill-name}/SKILL.md`
 - Updated umbrella skill at `skills/{skillset}/SKILL.md`
 - Updated `GENO.md` skills table (or "GENO.md not found — update manually")
-- Reminder: after fleshing out the skill body, re-register with `geno-tools update {skillset}` or reinstall to pick up the new skill in agent sessions
+- Reminder: after fleshing out the skill body, re-register with `"$CLAUDE_PLUGIN_ROOT/skills/self/skills/update/resources/update.sh" {skillset}` or reinstall to pick up the new skill in agent sessions
 
 ## Don'ts
 

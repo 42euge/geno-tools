@@ -5,7 +5,7 @@ description: >-
   retro unhealthy skills, mine recent sessions, and report what changed. Use when
   user says /geno-tools-improve or wants to run self-improvement.
 argument-hint: "[--dry-run] [--skip-retro] [--skip-mine] [--skill <name>]"
-allowed-tools: "Bash(geno-trace *) Bash(geno-mine *) Bash(cat *) Bash(wc *) Bash(ls *) Bash(python3 *) Bash(find *) Bash(date *) Bash(jq *) Read(*) Skill(geno-dev-skills-retro)"
+allowed-tools: "Bash(*) Read(*) Skill(geno-dev-skills-retro)"
 license: MIT
 metadata:
   author: 42euge
@@ -45,38 +45,25 @@ Parse `$ARGUMENTS` for:
 Rebuild health cards from raw traces:
 
 ```bash
-geno-trace health --refresh
+TRACE="$CLAUDE_PLUGIN_ROOT/skills/self/skills/improve/resources/trace-health.sh"
+"$TRACE" --refresh
 ```
 
 If `--skill <name>` was given:
 
 ```bash
-geno-trace health --refresh --skill <name>
+"$TRACE" --refresh --skill <name>
 ```
 
-If `geno-trace` is not on PATH or no traces exist yet, report "no trace data — emit traces from skills first" and stop.
+If the script is missing or no traces exist yet, report "no trace data — emit traces from skills first" and stop.
 
 ### 2. Health report
 
 Read all health cards and sort by success rate:
 
 ```bash
-python3 -c "
-import json, glob, os
-cards = []
-for f in sorted(glob.glob(os.path.expanduser('~/.geno/health/*.json'))):
-    with open(f) as fh:
-        card = json.load(fh)
-        cards.append(card)
-cards.sort(key=lambda c: c.get('success_rate', 1.0))
-for c in cards:
-    name = c.get('skill', os.path.basename(f).replace('.json',''))
-    rate = c.get('success_rate', 0)
-    total = c.get('total_invocations', 0)
-    retro = c.get('needs_retro', False)
-    flag = ' ← NEEDS RETRO' if retro else ''
-    print(f'  {name:<40} {rate:>5.0%}  ({total} runs){flag}')
-"
+jq -s 'sort_by(.stats.success_rate)' ~/.geno/health/*.json \
+  | jq -r '.[] | "  \(.skill | tostring | (. + (\" \" * 40))[0:40]) \((.stats.success_rate * 100 | floor) | tostring + \"%\")  (\(.stats.total_invocations) runs)\(if .needs_retro then \" ← NEEDS RETRO\" else \"\" end)"'
 ```
 
 Present a table:
@@ -102,7 +89,7 @@ If `--skill <name>` was given, show only that skill's card in detail (error type
 ### 3. Check retro queue
 
 ```bash
-geno-trace queue --json 2>/dev/null || echo "[]"
+"$CLAUDE_PLUGIN_ROOT/skills/self/skills/improve/resources/trace-queue.sh" --json 2>/dev/null || echo "[]"
 ```
 
 Count entries. If the queue has entries, list them grouped by skill:
@@ -157,16 +144,7 @@ Skip this step if `--skip-mine` was passed.
 Check if there are new traces since the last mine:
 
 ```bash
-python3 -c "
-import json, os
-manifest = os.path.expanduser('~/.geno/datasets/manifest.json')
-if os.path.exists(manifest):
-    with open(manifest) as f:
-        m = json.load(f)
-        print(m.get('latest', 'never'))
-else:
-    print('never')
-"
+jq -r '.latest // "never"' ~/.geno/datasets/manifest.json 2>/dev/null || echo "never"
 ```
 
 If new traces exist since the last mine and `geno-mine` is available:
@@ -208,7 +186,7 @@ Omit sections that were skipped (e.g., mining if `--skip-mine`).
 
 ## Error Recovery
 
-- If `geno-trace` is not installed: report "geno-trace CLI not found — install geno-tools first" and stop.
+- If `trace-health.sh` is missing: report "trace-health.sh not found at expected path — geno-tools install corrupted" and stop.
 - If `~/.geno/traces/` is empty: report "no trace data yet — skills need to emit traces before self-improvement can run" and stop.
 - If `geno-dev-skills-retro` is not available: report health only, skip retro steps, note "install geno-dev for retro analysis".
 - If `geno-mine` is not available: skip mining silently.
@@ -224,7 +202,7 @@ Omit sections that were skipped (e.g., mining if `--skip-mine`).
 ## Completion
 
 ```bash
-geno-trace emit \
+"$CLAUDE_PLUGIN_ROOT/skills/self/skills/improve/resources/trace-emit.sh" \
   --skill geno-tools-improve \
   --status <success|partial|failure> \
   --tool-calls <count> \

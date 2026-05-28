@@ -5,7 +5,7 @@ description: >-
   Use when user says /geno-compliance-audit, wants to check if a repo is
   a valid geno-* skillset, or needs to verify ecosystem compliance
   before publishing.
-allowed-tools: "Bash(find *) Bash(ls *) Bash(cat *) Bash(grep *) Bash(git *) Bash(python3 -c *) Read(*)"
+allowed-tools: "Bash(*) Read(*)"
 license: MIT
 metadata:
   author: 42euge
@@ -29,7 +29,7 @@ When you need to verify a specific rule, read the matching `rules/*.md` file. Wh
 ## Procedure
 
 1. **Resolve the target.** `$ARGUMENTS` accepts:
-   - A skillset short name (e.g. `dev`, `media`) — resolve via the registry (`genotools/registry.py` or `geno-tools ls --available`)
+   - A skillset short name (e.g. `dev`, `media`) — resolve via the registry (`skills/geno-tools/lib/registry.sh` or `skills/lifecycle/skills/install/resources/ls.sh --available`)
    - A GitHub URL — use directly
    - A local path or empty — work in-place
 
@@ -45,25 +45,13 @@ When you need to verify a specific rule, read the matching `rules/*.md` file. Wh
 
 4. **Load rules and run checks.** Read [`rules/audit-checklist.md`](rules/audit-checklist.md) for the full tiered check list. For each check, determine PASS / FAIL / WARN / INFO and capture a short reason. When a check needs deeper context (e.g. what's in a valid `genotools.yaml`), consult [`rules/skillset-shape.md`](rules/skillset-shape.md) or [`rules/geno-convention.md`](rules/geno-convention.md).
 
-5. **Parse YAML safely.** Use Python:
+5. **Parse YAML safely.** Use `yq`:
    ```bash
-   python3 -c "
-   import yaml, sys, json
-   with open(sys.argv[1]) as f:
-       print(json.dumps(yaml.safe_load(f), default=str))
-   " <file>
+   yq -o=json '.' <file>
    ```
    For SKILL.md frontmatter, extract YAML between the first pair of `---`:
    ```bash
-   python3 -c "
-   import yaml, sys, json
-   text = open(sys.argv[1]).read()
-   if text.startswith('---'):
-       end = text.index('---', 3)
-       print(json.dumps(yaml.safe_load(text[3:end]), default=str))
-   else:
-       print('null')
-   " <file>
+   awk 'BEGIN{c=0} /^---$/{c++; next} c==1' <file> | yq -o=json '.'
    ```
 
 6. **Fix all auto-fixable items.** After running checks, address every FAIL, WARN, INFO that can be:
@@ -128,7 +116,7 @@ INFO:
 When this skill finishes, emit a trace:
 
 ```bash
-geno-trace emit \
+"$CLAUDE_PLUGIN_ROOT/skills/self/skills/improve/resources/trace-emit.sh" \
   --skill geno-compliance-audit \
   --status <success|failure|abandoned> \
   --tool-calls <approximate count> \

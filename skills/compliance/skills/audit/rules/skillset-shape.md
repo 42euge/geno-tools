@@ -4,7 +4,7 @@ Everything a `geno-{name}` repo must have to be installable and operable across 
 
 ## Manifest — `genotools.yaml`
 
-`genotools.yaml` is the manifest file every geno-* skillset must have at its root. It's what `geno-tools install` reads to know how to set up the skillset: what it's called, what version it is, whether it needs a Python venv, what scripts to symlink into `~/.geno/{project-name}/`, and what config files to copy on first install. Without a valid manifest, `geno-tools` doesn't know what it's installing and the install will fail.
+`genotools.yaml` is the manifest file every geno-* skillset must have at its root. It's what `skills/lifecycle/skills/install/resources/install.sh` reads to know how to set up the skillset: what it's called, what version it is, whether it needs a Python venv, what scripts to symlink into `~/.geno/{project-name}/`, and what config files to copy on first install. Without a valid manifest, the installer doesn't know what it's installing and the install will fail.
 
 **Required:**
 - File exists at repo root
@@ -39,7 +39,7 @@ The `version` field in `genotools.yaml` is the canonical version for every skill
 
 ## Umbrella Skill — `SKILL.md`
 
-`SKILL.md` at the repo root is the umbrella manifest that describes the skillset to Claude Code and other agents. When `geno-tools install` runs `npx skills add`, this file is what gets registered — it tells the agent what the skillset does, when to use it, and what tools it's allowed to call. A skillset without a valid `SKILL.md` will install on disk but won't be usable by any agent.
+`SKILL.md` at the repo root is the umbrella manifest that describes the skillset to Claude Code and other agents. When the installer runs `npx skills add`, this file is what gets registered — it tells the agent what the skillset does, when to use it, and what tools it's allowed to call. A skillset without a valid `SKILL.md` will install on disk but won't be usable by any agent.
 
 **Required:**
 - File exists at repo root
@@ -62,7 +62,7 @@ Quick reference: `{skillset}-{sub-skillset}-{skill}` where sub-skillset is a **p
 
 ### Legacy `commands/` directory
 
-Some repos still have a `commands/` directory with `gt-*.md` files from the old slash-command convention. This is legacy — all skill definitions now live under `skills/` as `SKILL.md` files. If a repo has both `commands/` and `skills/`, the `commands/` directory must be removed. Do not keep it for backward compatibility — `geno-tools install` registers skills from `skills/`, not `commands/`.
+Some repos still have a `commands/` directory with `gt-*.md` files from the old slash-command convention. This is legacy — all skill definitions now live under `skills/` as `SKILL.md` files. If a repo has both `commands/` and `skills/`, the `commands/` directory must be removed. Do not keep it for backward compatibility — the installer registers skills from `skills/`, not `commands/`.
 
 If `commands/` contains content that hasn't been migrated to `skills/` yet, migrate it: create the appropriate `skills/{skillset}-{sub-skillset}-{skill}/SKILL.md` file with proper frontmatter, move the command body into it, then delete the command file. Do not leave both in place.
 
@@ -218,20 +218,20 @@ The geno ecosystem is CLI-agnostic — skillsets work with Claude Code, Gemini C
 
 ## Installation Compliance
 
-Geno-* skillsets must be installed through `geno-tools`, not by calling `npx skills add` directly. `geno-tools install` does more than just register skills — it clones the repo, creates venvs, materializes bin symlinks, and sets up the `~/.geno/geno-{name}/` directory structure. Bypassing it leaves the skillset partially installed.
+Geno-* skillsets must be installed through the geno-tools install resource script, not by calling `npx skills add` directly. The installer at `skills/lifecycle/skills/install/resources/install.sh` does more than just register skills — it clones the repo, creates venvs, materializes bin symlinks, and sets up the `~/.geno/geno-{name}/` directory structure. Bypassing it leaves the skillset partially installed.
 
-Docs should always use the canonical `geno-tools install geno-{name}` or `/geno-tools install geno-{name}` form. Command aliases are user-configured per installation, so they must never appear in repo documentation.
+Docs should always reference the canonical install script path: `"$CLAUDE_PLUGIN_ROOT/skills/lifecycle/skills/install/resources/install.sh" geno-{name}`. Command aliases are user-configured per installation, so they must never appear in repo documentation.
 
 **Recommended:**
 - No file in the repo contains `npx skills add` as a user-facing install instruction. Check `README.md`, `docs/**/*.md`, `GENO.md`, `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, and `SKILL.md` for this pattern.
-- Install instructions use the canonical `geno-tools install geno-{name}` or `/geno-tools install geno-{name}` form.
+- Install instructions reference the canonical install script path.
 
 ## Ecosystem Freshness
 
-Installed skillsets should stay on the latest main branch. Stale installs lead to agents using outdated skill definitions, missing features, and broken cross-skillset interactions. `geno-tools update` pulls the latest main for all installed skillsets.
+Installed skillsets should stay on the latest main branch. Stale installs lead to agents using outdated skill definitions, missing features, and broken cross-skillset interactions. The update script at `skills/self/skills/update/resources/update.sh` pulls the latest main for all installed skillsets.
 
 **Recommended:**
-- Run `geno-tools update` as part of the audit to ensure the target repo's installed copy (if any) is on the latest main. If behind origin, note how many commits behind.
+- Run the update script as part of the audit to ensure the target repo's installed copy (if any) is on the latest main. If behind origin, note how many commits behind.
 - If the target repo's `main` worktree at `~/.geno-tools/geno-{name}/main/` has a dirty working tree or is on a non-default branch, warn that the install is in a non-standard state.
 
 **Info:**
@@ -248,7 +248,7 @@ aliases:
   # or ""                # /install
 ```
 
-The prefix is applied at install time by `geno-tools install`. Repo source files — SKILL.md frontmatter, SKILL.md body, GENO.md, README.md, docs — must always use the **canonical name** with the `geno-` prefix.
+The prefix is applied at install time by the install script. Repo source files — SKILL.md frontmatter, SKILL.md body, GENO.md, README.md, docs — must always use the **canonical name** with the `geno-` prefix.
 
 ### What to check
 
