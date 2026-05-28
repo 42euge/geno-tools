@@ -21,8 +21,10 @@ Meta-CLI — install, update, and manage skillsets across all agents
 | [geno-skills-create](geno-skills-create.md) | `/geno-skills-create` | Scaffold a new skill in a geno ecosystem repo |
 | [geno-skills-install](geno-skills-install.md) | `/geno-skills-install` | Install skills from a local geno ecosystem repo checkout globally via npx skills add |
 | [geno-skills-status](geno-skills-status.md) | `/geno-skills-status` | Show the installation status of the geno ecosystem |
+| [geno-tools-create-skillset-repo](geno-tools-create-skillset-repo.md) | `/geno-tools-create-skillset-repo` | Scaffold a new geno ecosystem skillset repo from scratch |
+| [geno-tools-improve](geno-tools-improve.md) | `/geno-tools-improve` | Run the self-improvement cycle — health report, retro triage, session mining |
 | [geno-tools-open-docs](geno-tools-open-docs.md) | `/geno-tools-open-docs` | Open the current repo's GitHub Pages documentation site in the default browser |
-| [geno-tools-sessions-spawn](geno-tools-sessions-spawn.md) | `/geno-tools-sessions-spawn` | Spawn a named Claude Code session in a new Terminal window with remote-control enabled and an initial briefing |
+| [geno-tools-sessions-spawn](geno-tools-sessions-spawn.md) | `/geno-tools-sessions-spawn` | Spawn a named agent session in a new Terminal window with remote-control enabled and an initial briefing |
 | [geno-tools-update](geno-tools-update.md) | `/geno-tools-update` | Update installed geno ecosystem skillsets to the latest main branch |
 
 ## Overview

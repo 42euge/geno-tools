@@ -73,6 +73,8 @@ nav:
               - geno-skills-create: skills/geno-tools/geno-skills-create.md
               - geno-skills-install: skills/geno-tools/geno-skills-install.md
               - geno-skills-status: skills/geno-tools/geno-skills-status.md
+              - geno-tools-create-skillset-repo: skills/geno-tools/geno-tools-create-skillset-repo.md
+              - geno-tools-improve: skills/geno-tools/geno-tools-improve.md
               - geno-tools-open-docs: skills/geno-tools/geno-tools-open-docs.md
               - geno-tools-sessions-spawn: skills/geno-tools/geno-tools-sessions-spawn.md
               - geno-tools-update: skills/geno-tools/geno-tools-update.md
