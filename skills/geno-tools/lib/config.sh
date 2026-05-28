@@ -7,7 +7,7 @@ CONFIG_FILE="$GENO_DIR/config.yaml"
 _defaults_yaml() {
   local lib_dir
   lib_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-  printf '%s/../../../config/defaults.yaml\n' "$lib_dir"
+  printf '%s/../../../.geno/geno-tools/config/defaults.yaml\n' "$lib_dir"
 }
 
 # Create ~/.geno/ and seed config.yaml from packaged defaults if missing.

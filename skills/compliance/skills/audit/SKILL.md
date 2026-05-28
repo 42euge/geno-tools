@@ -14,14 +14,29 @@ metadata:
 
 # geno-compliance-audit
 
-Validates that a `geno-{name}` repo meets the conventions required for installation and management by `geno-tools`. Runs three tiers of checks: **required** (FAIL), **recommended** (WARN), **optional** (INFO). A repo passing all required checks is installable via `geno-tools install`.
+Validates that a `geno-{name}` repo meets the conventions required for installation and management by the geno-tools installer. Runs three tiers of checks: **required** (FAIL), **recommended** (WARN), **optional** (INFO). A repo passing all required checks is installable via `skills/lifecycle/skills/install/resources/install.sh`.
+
+## Layout variants
+
+The audit recognizes two repo layouts and accepts either:
+
+- **Legacy** (flat root): `genotools.yaml`, `VISION.md`, `TENETS.md`, `GENO.md`, `mkdocs.yml`, `docs/`, `.opencode/`, `.agents/` all at the repo root. `CLAUDE.md` / `GEMINI.md` / `AGENTS.md` are thin pointers to `GENO.md`.
+- **Namespaced** (vendor-style root): only `AGENTS.md`, `CLAUDE.md`, `README.md`, `skills.sh.json`, `package.json`, `gemini-extension.json`, `GEMINI.md`, `LICENSE`, `.gitignore` at the root. Everything else lives under `.geno/<sub-namespace>/`:
+  - `.geno/geno-specs/{VISION,TENETS}.md`, `.geno/geno-specs/.specs/`
+  - `.geno/geno-docs/mkdocs.yml`, `.geno/geno-docs/docs/`
+  - `.geno/geno-tools/{scripts,hooks,config}/`, `.geno/geno-tools/genotools.yaml`
+  - `.geno/plugins/opencode/`, `.geno/plugins/codex-agents/`
+
+In the namespaced layout `AGENTS.md` is the source of truth and `CLAUDE.md` is a **literal copy** of `AGENTS.md` (CI-enforced via `.github/workflows/check-claude-md.yml`); there is no `GENO.md`.
+
+`skills.sh.json` (Vercel agent-skills-compatible manifest) is required at the root in the namespaced layout and recommended in the legacy layout.
 
 ## Rules
 
 The substantive rules live in three sibling docs, loaded only when needed:
 
-- [`rules/geno-convention.md`](rules/geno-convention.md) — the `~/.geno/` and `.geno/` directory convention plus its audit checks.
-- [`rules/skillset-shape.md`](rules/skillset-shape.md) — manifest, versioning, umbrella, naming, agent files, docs, hygiene, agent-agnostic language, install compliance, prefix aliasing, single source of truth.
+- [`rules/geno-convention.md`](rules/geno-convention.md) — the `~/.geno/`, `.geno/` workspace, and `.geno/<sub-namespace>/` repo conventions plus their audit checks.
+- [`rules/skillset-shape.md`](rules/skillset-shape.md) — manifest (`genotools.yaml` + `skills.sh.json`), versioning, umbrella, naming, agent files (AGENTS↔CLAUDE sync), docs, hygiene, agent-agnostic language, install compliance, prefix aliasing, single source of truth.
 - [`rules/audit-checklist.md`](rules/audit-checklist.md) — the tiered checklist of every assertion, grouped by domain, with stable IDs.
 
 When you need to verify a specific rule, read the matching `rules/*.md` file. When you need a one-pass overview of every assertion, read `rules/audit-checklist.md`.

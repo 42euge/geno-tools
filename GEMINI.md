@@ -1,1 +1,1 @@
-@./GENO.md
+@./AGENTS.md

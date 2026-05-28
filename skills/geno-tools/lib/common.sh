@@ -70,9 +70,15 @@ read_skill_name() {
 
 # Read the top-level `requires:` list from genotools.yaml. Newline-separated.
 # Usage: read_requires <worktree_dir>
+# Looks in the legacy root location first for backward-compatibility with
+# existing geno-* skillsets, then falls back to the new .geno/geno-tools/
+# location used by skillsets that have adopted the namespaced layout.
 read_requires() {
   local worktree=$1
   local manifest="$worktree/genotools.yaml"
+  if [[ ! -f $manifest ]]; then
+    manifest="$worktree/.geno/geno-tools/genotools.yaml"
+  fi
   [[ -f $manifest ]] || return 0
   if command -v yq >/dev/null 2>&1; then
     yq -r '.requires // [] | .[]' "$manifest" 2>/dev/null || true

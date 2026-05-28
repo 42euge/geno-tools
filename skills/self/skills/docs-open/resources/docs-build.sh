@@ -165,6 +165,7 @@ for i in "${!SEARCH_NAMES[@]}"; do
   SEEN[$name]=1
 
   manifest="$base/genotools.yaml"
+  [[ -f $manifest ]] || manifest="$base/.geno/geno-tools/genotools.yaml"
   desc="" version=""
   if [[ -f $manifest ]]; then
     desc=$(yq -r '.description // ""' "$manifest" 2>/dev/null || printf '')

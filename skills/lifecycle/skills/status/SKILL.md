@@ -32,10 +32,10 @@ Shows the current state of every installed geno skillset: version from the manif
 
 ### 1. Report geno-tools itself
 
-Read the version from the plugin's `genotools.yaml` at the plugin root:
+Read the version from the plugin's `genotools.yaml` (now namespaced under `.geno/geno-tools/`):
 
 ```bash
-yq -r '.version // "unknown"' "$CLAUDE_PLUGIN_ROOT/genotools.yaml"
+yq -r '.version // "unknown"' "$CLAUDE_PLUGIN_ROOT/.geno/geno-tools/genotools.yaml"
 ```
 
 Determine where the geno-tools plugin is loaded from. Use `$CLAUDE_PLUGIN_ROOT` if set, otherwise check the known install locations:

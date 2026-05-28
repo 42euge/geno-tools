@@ -22,9 +22,9 @@ unified CLI binary; capabilities are invoked by their script path.
 
 ## Install
 
-geno-tools ships as a native plugin/extension on each supported coding CLI. Pick the snippet for the CLI you use — every path seeds `~/.geno/config.yaml` from `config/defaults.yaml` the first time the agent loads the plugin.
+geno-tools ships as a native plugin/extension on each supported coding CLI. Pick the snippet for the CLI you use — every path seeds `~/.geno/config.yaml` from `.geno/geno-tools/config/defaults.yaml` the first time the agent loads the plugin.
 
-The bootstrap lives at `scripts/bootstrap.sh` and only handles config seeding. CLIs that expose a startup hook (Claude Code, OpenCode) run it automatically; others can invoke it once manually as shown below.
+The bootstrap lives at `.geno/geno-tools/scripts/bootstrap.sh` and only handles config seeding. CLIs that expose a startup hook (Claude Code, OpenCode) run it automatically; others can invoke it once manually as shown below.
 
 ### Claude Code
 
@@ -34,7 +34,7 @@ The bootstrap lives at `scripts/bootstrap.sh` and only handles config seeding. C
 /plugin install geno-tools@geno-tools
 ```
 
-The first command registers this repo as a marketplace (reads `.claude-plugin/marketplace.json`); the second installs the plugin defined in `.claude-plugin/plugin.json`. The SessionStart hook in `hooks/hooks.json` then runs `scripts/bootstrap.sh` automatically. Verify with `/plugin list`.
+The first command registers this repo as a marketplace (reads `.claude-plugin/marketplace.json`); the second installs the plugin defined in `.claude-plugin/plugin.json`. The plugin manifest's `hooks` field points at `.geno/geno-tools/hooks/hooks.json`, whose SessionStart hook runs `.geno/geno-tools/scripts/bootstrap.sh` automatically. Verify with `/plugin list`.
 
 ### Codex CLI
 
@@ -43,26 +43,26 @@ The first command registers this repo as a marketplace (reads `.claude-plugin/ma
 /plugin marketplace add 42euge/geno-tools
 /plugins
 # in your shell, once the plugin is on disk:
-bash ~/.codex/plugins/cache/geno-tools/geno-tools/*/scripts/bootstrap.sh
+bash ~/.codex/plugins/cache/geno-tools/geno-tools/*/.geno/geno-tools/scripts/bootstrap.sh
 ```
 
-The marketplace catalog at `.agents/plugins/marketplace.json` exposes the plugin; pick `geno-tools` from the `/plugins` browser and toggle it on. (Plugins are cached at `~/.codex/plugins/cache/geno-tools/geno-tools/<version>/`.) Codex doesn't expose a portable startup hook, so run `bootstrap.sh` once — it's idempotent.
+The marketplace catalog at `.geno/plugins/codex-agents/plugins/marketplace.json` exposes the plugin; pick `geno-tools` from the `/plugins` browser and toggle it on. (Plugins are cached at `~/.codex/plugins/cache/geno-tools/geno-tools/<version>/`.) Codex doesn't expose a portable startup hook, so run `bootstrap.sh` once — it's idempotent.
 
 ### Gemini CLI
 
 ```bash
 gemini extensions install https://github.com/42euge/geno-tools
-bash ~/.gemini/extensions/geno-tools/scripts/bootstrap.sh
+bash ~/.gemini/extensions/geno-tools/.geno/geno-tools/scripts/bootstrap.sh
 ```
 
-Gemini clones the repo into `~/.gemini/extensions/geno-tools/`, reads `gemini-extension.json`, and registers the bundled `skills/` and `hooks/hooks.json`. Restart the CLI to pick it up. Update later with `gemini extensions update geno-tools`. The one-time `bootstrap.sh` seeds `~/.geno/config.yaml`.
+Gemini clones the repo into `~/.gemini/extensions/geno-tools/`, reads `gemini-extension.json`, and registers the bundled `skills/` and `.geno/geno-tools/hooks/hooks.json`. Restart the CLI to pick it up. Update later with `gemini extensions update geno-tools`. The one-time `bootstrap.sh` seeds `~/.geno/config.yaml`.
 
 ### Cursor
 
 Install via Cursor's plugin manager (it reads `.cursor-plugin/plugin.json`), or clone the repo into your Cursor plugins directory. Then run the bootstrap once from wherever the plugin landed:
 
 ```bash
-bash <cursor-plugins-dir>/geno-tools/scripts/bootstrap.sh
+bash <cursor-plugins-dir>/geno-tools/.geno/geno-tools/scripts/bootstrap.sh
 ```
 
 ### OpenCode
@@ -73,7 +73,7 @@ Add to `opencode.json`:
 { "plugins": ["geno-tools@git+https://github.com/42euge/geno-tools.git"] }
 ```
 
-Then restart OpenCode — the bundled plugin in `.opencode/plugins/geno-tools.js` registers the skills path and spawns `scripts/bootstrap.sh` on startup.
+Then restart OpenCode — the bundled plugin in `.geno/plugins/opencode/plugins/geno-tools.js` registers the skills path and spawns `.geno/geno-tools/scripts/bootstrap.sh` on startup.
 
 ### Verify
 
@@ -142,7 +142,7 @@ There are two ways to make a skillset installable:
 1. **Curated registry** — submit a PR adding a `name<TAB>url` line to the fallback table in `skills/geno-tools/lib/registry.sh`, or just push your repo to the `42euge` org and let registry discovery via `gh` find it.
 2. **Direct git URL** — anyone can install any compliant repo without a registry entry: `install.sh https://github.com/you/your-skillset.git`. This is the recommended path for private, internal, or experimental skillsets.
 
-A minimum viable skillset only needs a root `SKILL.md`, a `genotools.yaml`, and a `GENO.md`; everything else (venv, runtime symlinks, configs, subskillsets) is opt-in.
+A minimum viable skillset only needs an `AGENTS.md` (with a literal-copy `CLAUDE.md`), a `skills.sh.json` manifest, a `skills/{name}/SKILL.md`, and a `.geno/geno-tools/genotools.yaml`; everything else (venv, runtime symlinks, configs, subskillsets) is opt-in.
 
 ## Existing geno-* repos
 
