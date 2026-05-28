@@ -8,16 +8,16 @@
 # Works under any CLI that can run a shell command at session start —
 # Claude Code exports ${CLAUDE_PLUGIN_ROOT}; for everything else we
 # resolve the plugin root from this script's own location (scripts/
-# sits one level under the plugin root).
+# sits at .geno/geno-tools/scripts/ — three levels under the plugin root).
 
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-plugin_root="${CLAUDE_PLUGIN_ROOT:-${script_dir%/scripts}}"
+plugin_root="${CLAUDE_PLUGIN_ROOT:-$(cd "${script_dir}/../../.." && pwd)}"
 
 target_dir="${HOME}/.geno"
 target_file="${target_dir}/config.yaml"
-default_config="${plugin_root}/config/defaults.yaml"
+default_config="${plugin_root}/.geno/geno-tools/config/defaults.yaml"
 
 mkdir -p "${target_dir}"
 

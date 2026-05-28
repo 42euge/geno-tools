@@ -35,7 +35,7 @@ $PLUGIN_ROOT/skills/lifecycle/skills/install/resources/install.sh geno-<name>
 
 ## Sub-skillsets
 
-Skills are organized into 6 functional areas (full convention in [docs/skillsets/upstream-conventions.md](../../docs/skillsets/upstream-conventions.md)):
+Skills are organized into 6 functional areas (full convention in [.geno/geno-docs/docs/skillsets/upstream-conventions.md](../../.geno/geno-docs/docs/skillsets/upstream-conventions.md)):
 
 | Sub-skillset | Slash command | Skills |
 |--------------|---------------|--------|

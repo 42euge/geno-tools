@@ -4,9 +4,11 @@ import { existsSync } from "node:fs";
 import { spawn } from "node:child_process";
 
 const __filename = fileURLToPath(import.meta.url);
-const pluginRoot = resolve(dirname(__filename), "..", "..");
+// This file lives at .geno/plugins/opencode/plugins/geno-tools.js — walk up
+// four levels to reach the repo root.
+const pluginRoot = resolve(dirname(__filename), "..", "..", "..", "..");
 const skillsDir = resolve(pluginRoot, "skills");
-const bootstrapScript = resolve(pluginRoot, "scripts", "bootstrap.sh");
+const bootstrapScript = resolve(pluginRoot, ".geno", "geno-tools", "scripts", "bootstrap.sh");
 
 export default async function GenoToolsPlugin({ config }) {
   if (!existsSync(skillsDir)) return;

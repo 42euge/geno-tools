@@ -1,0 +1,68 @@
+{
+  "$schema": "https://skills.sh/schemas/skills.sh.schema.json",
+  "notGrouped": "bottom",
+  "groupings": [
+    {
+      "title": "Lifecycle",
+      "description": "Skill and skillset CRUD — install, remove, status, repo and skill scaffolding.",
+      "skills": [
+        "geno-lifecycle",
+        "geno-lifecycle-install",
+        "geno-lifecycle-repo-create",
+        "geno-lifecycle-skill-create",
+        "geno-lifecycle-status"
+      ]
+    },
+    {
+      "title": "Compliance",
+      "description": "Audit and onboarding gates — verify skillset shape, discover and scan candidates.",
+      "skills": [
+        "geno-compliance",
+        "geno-compliance-audit",
+        "geno-compliance-onboarding"
+      ]
+    },
+    {
+      "title": "Self",
+      "description": "geno-tools self-management — update, self-improvement traces, sessions, docs.",
+      "skills": [
+        "geno-self",
+        "geno-self-update",
+        "geno-self-improve",
+        "geno-self-session-spawn",
+        "geno-self-docs-open"
+      ]
+    },
+    {
+      "title": "Workspaces",
+      "description": "Personal and data workspace scaffolding.",
+      "skills": [
+        "geno-workspaces",
+        "geno-workspaces-data-init"
+      ]
+    },
+    {
+      "title": "Assets",
+      "description": "Generated branding — pixel-art icons and other repo assets.",
+      "skills": [
+        "geno-assets",
+        "geno-assets-icons"
+      ]
+    },
+    {
+      "title": "Config",
+      "description": "User personalization — slash-command aliases and runtime preferences.",
+      "skills": [
+        "geno-config",
+        "geno-config-alias"
+      ]
+    },
+    {
+      "title": "Umbrella",
+      "description": "The geno-tools meta-CLI itself.",
+      "skills": [
+        "geno-tools"
+      ]
+    }
+  ]
+}
