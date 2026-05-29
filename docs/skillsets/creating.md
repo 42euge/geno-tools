@@ -186,7 +186,7 @@ Slash commands use a configurable prefix. Users set their preferred prefix in `~
 
 ```yaml
 aliases:
-  command_prefix: "gt"   # /gt-myskill, /gt-myskill-tasks-start
+  command_prefix: "gt"   # /geno-myskill, /geno-myskill-tasks-start
   # or "geno"            # /geno-myskill, /geno-myskill-tasks-start
   # or ""                # /myskill, /myskill-tasks-start
 ```

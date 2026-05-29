@@ -177,7 +177,7 @@ geno-dev v0.1.0
   git commit history rewriting, worktree management, workspace creation,
   and session forking.
 
-  Commit:   3eff77d — Merge pull request #19 from 42euge/feat/gt-snooze
+  Commit:   3eff77d — Merge pull request #19 from 42euge/feat/geno-snooze
   Date:     2026-04-30
   Branch:   main
   Active:   main

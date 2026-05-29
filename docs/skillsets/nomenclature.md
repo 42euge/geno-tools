@@ -37,7 +37,7 @@ aliases:
   command_prefix: "gt"
 ```
 
-This produces `/gt-dev-tasks-start` at runtime. Never hardcode aliased prefixes in source files.
+This produces `/geno-dev-tasks-start` at runtime. Never hardcode aliased prefixes in source files.
 
 ## Umbrella skills
 
