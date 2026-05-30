@@ -1,0 +1,84 @@
+From 0247c65d2b66b5824b09276d8c2de5e89cbc1467 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sat, 30 May 2026 12:12:34 +0000
+Subject: [PATCH] chore(geno-audit): bring geno-dev into ecosystem compliance
+
+- Remove /gt-pr alias from geno-dev-prs-check SKILL.md description (command prefix compliance)
+- Replace agent-specific "Claude Code" language with agent-neutral equivalents in docs
+- Add versioning guidance to GENO.md Conventions section
+- Register geno-dev-sessions-remote in GENO.md skills table and repo structure
+
+https://claude.ai/code/session_01Y1qoFoZiNFdcH3jMGxTTgS
+---
+ GENO.md                            | 3 +++
+ docs/concepts.md                   | 2 +-
+ docs/getting-started.md            | 2 +-
+ skills/geno-dev-prs-check/SKILL.md | 2 +-
+ 4 files changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/GENO.md b/GENO.md
+index 28d5e79..5fafb1d 100644
+--- a/GENO.md
++++ b/GENO.md
+@@ -12,6 +12,7 @@ Developer and infrastructure skills for AI coding agents: task execution from la
+ | geno-dev-worktrees-manage | worktrees | /geno-dev-worktrees-manage |
+ | geno-dev-workspaces-init | workspaces | /geno-dev-workspaces-init |
+ | geno-dev-sessions-fork | sessions | /geno-dev-sessions-fork |
++| geno-dev-sessions-remote | sessions | /geno-dev-sessions-remote |
+ | geno-dev-prs-check | prs | /geno-dev-prs-check |
+ | geno-dev-branches-audit | branches | /geno-dev-branches-audit |
+ | geno-dev-scheduling-snooze | scheduling | /geno-dev-scheduling-snooze |
+@@ -32,6 +33,7 @@ geno-dev/
+ │   ├── geno-dev/        #   umbrella
+ │   ├── geno-dev-commits-rewrite/
+ │   ├── geno-dev-sessions-fork/
++│   ├── geno-dev-sessions-remote/
+ │   ├── geno-dev-tasks-start/
+ │   ├── geno-dev-workspaces-init/
+ │   ├── geno-dev-worktrees-manage/
+@@ -77,3 +79,4 @@ Pure markdown skillset — no Python package, no venv, no scripts. Each skill is
+ - This skill never modifies a project's `.gitignore` or tracked config files.
+ - **Prefix aliasing**: Slash commands use the canonical `geno-` prefix in source (e.g., `/geno-dev-tasks-start`). Short `/gt-` aliases are configured per-install by geno-tools and are not part of the skill source.
+ - **Adding a new skill**: Create a directory under `skills/` named after the skill, add a `SKILL.md` with valid frontmatter (name, description, argument-hint, license, metadata), then register the skill in the skills table and repo structure tree in this file.
++- **Versioning**: The canonical version lives in `genotools.yaml`. The same value must appear in `package.json` and in each skill's `metadata.version`. Bump the version in all files whenever skills are added, removed, or behavior changes.
+diff --git a/docs/concepts.md b/docs/concepts.md
+index abe4a69..692a198 100644
+--- a/docs/concepts.md
++++ b/docs/concepts.md
+@@ -164,6 +164,6 @@ The output includes:
+ Start a new session with this document and it picks up where the original left off.
+ 
+ !!! info "Prerequisite"
+-    `/geno-dev-sessions-fork` requires [geno-mon](https://github.com/42euge/geno-mon), a session monitor for Claude Code. It must be installed and available on `$PATH`.
++    `/geno-dev-sessions-fork` requires [geno-mon](https://github.com/42euge/geno-mon), a session monitor for AI coding agents. It must be installed and available on `$PATH`.
+ 
+ **Managed by:** [`/geno-dev-sessions-fork`](commands.md#fork-session)
+diff --git a/docs/getting-started.md b/docs/getting-started.md
+index 0ead7b1..7d3bb80 100644
+--- a/docs/getting-started.md
++++ b/docs/getting-started.md
+@@ -10,7 +10,7 @@
+ | Tool | Needed by | What it is | Install |
+ |------|-----------|-----------|---------|
+ | [geno-notes](https://github.com/42euge/geno-notes) | `/geno-dev-tasks-start` | Project journal — tasks, notes, plans | `geno-tools install geno-notes` |
+-| [geno-mon](https://github.com/42euge/geno-mon) | `/geno-dev-sessions-fork` | Session monitor for Claude Code | See [geno-mon docs](https://github.com/42euge/geno-mon) |
++| [geno-mon](https://github.com/42euge/geno-mon) | `/geno-dev-sessions-fork` | Session monitor for AI coding agents | See [geno-mon docs](https://github.com/42euge/geno-mon) |
+ 
+ ## Installation
+ 
+diff --git a/skills/geno-dev-prs-check/SKILL.md b/skills/geno-dev-prs-check/SKILL.md
+index 978fda0..c3e16d8 100644
+--- a/skills/geno-dev-prs-check/SKILL.md
++++ b/skills/geno-dev-prs-check/SKILL.md
+@@ -2,7 +2,7 @@
+ name: geno-dev-prs-check
+ description: >-
+   Check open PRs for repos in the current session and show which ones
+-  may need to be closed. Use when user says /geno-dev-prs-check or /gt-pr.
++  may need to be closed. Use when user says /geno-dev-prs-check.
+ argument-hint: "[repo|--all]"
+ license: MIT
+ metadata:
+-- 
+2.43.0
+
