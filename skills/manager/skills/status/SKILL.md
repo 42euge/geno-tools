@@ -1,9 +1,9 @@
 ---
-name: geno-lifecycle-status
+name: geno-manager-status
 description: >-
   Show the installation status of the geno ecosystem — version, commit,
   branch, and freshness of each installed skillset. Use when user says
-  /geno-skills-status, wants to check what's installed, or asks about
+  /geno-manager-status, wants to check what's installed, or asks about
   ecosystem versions.
 allowed-tools: "Bash(*) Read(*)"
 license: MIT
@@ -12,7 +12,7 @@ metadata:
   version: "0.1.0"
 ---
 
-# geno-skills-status — Ecosystem Installation Status
+# geno-manager-status — Ecosystem Installation Status
 
 Shows the current state of every installed geno skillset: version from the manifest, git commit, branch, skill count, and whether the install is behind origin. Also reports the geno-tools version itself and the geno-tools plugin source.
 
@@ -52,7 +52,7 @@ geno-tools v{version}
 For a full structural check (broken worktrees, dangling bin symlinks), run:
 
 ```bash
-"$CLAUDE_PLUGIN_ROOT/skills/lifecycle/skills/status/resources/status.sh"
+"$CLAUDE_PLUGIN_ROOT/skills/manager/skills/status/resources/status.sh"
 ```
 
 ### 2. Enumerate installed skillsets

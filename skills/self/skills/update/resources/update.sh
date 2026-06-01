@@ -11,7 +11,7 @@ set -euo pipefail
 LIB="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../../geno-tools/lib" && pwd)"
 . "$LIB/load.sh"
 # reach into install/_lib.sh for venv + npx helpers
-INSTALL_LIB="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../../lifecycle/skills/install/resources" && pwd)/_lib.sh"
+INSTALL_LIB="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../../manager/skills/install/resources" && pwd)/_lib.sh"
 . "$INSTALL_LIB"
 
 declare -a UPDATED=() UP_TO_DATE=() SKIPPED=() ERRORS=()

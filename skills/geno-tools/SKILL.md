@@ -16,33 +16,18 @@ updates of skillset repos. Each capability lives as a standalone shell script
 under the relevant sub-skillset's `resources/` directory; there is no unified
 `geno-tools` CLI binary — invoke the resource scripts directly.
 
-## Available Skillsets
+Other geno-* skillsets are discovered at install time from the registry and any `discovery.sources` configured in `~/.geno/config.yaml` — there is no committed list. Run `skills/manager/skills/install/resources/ls.sh --available` to see what's currently visible.
 
-Install by full repo name. Resource scripts live under
-`$PLUGIN_ROOT/skills/lifecycle/skills/install/resources/`:
+## Skills
 
-```bash
-$PLUGIN_ROOT/skills/lifecycle/skills/install/resources/install.sh geno-<name>
-```
+Skills are organized into 7 functional areas (full convention in [.geno/geno-docs/docs/skillsets/upstream-conventions.md](../../.geno/geno-docs/docs/skillsets/upstream-conventions.md)):
 
-| Repo | Description |
-|------|-------------|
-| geno-agents | Agent coordination, presence, and multi-agent networking |
-| geno-media | Audiobooks (Kokoro TTS), animated videos (Manim), podcasts |
-| geno-research | Wiki-based research notes, paper generation, repo docs |
-| geno-kaggle | Kaggle benchmarks, competition notebooks, discussion scraping |
-| geno-dev | Developer utilities, Colab uploads, commit rewriting |
-
-## Sub-skillsets
-
-Skills are organized into 6 functional areas (full convention in [.geno/geno-docs/docs/skillsets/upstream-conventions.md](../../.geno/geno-docs/docs/skillsets/upstream-conventions.md)):
-
-| Sub-skillset | Slash command | Skills |
-|--------------|---------------|--------|
-| **lifecycle** | /geno-lifecycle | repo-create, skill-create, install, status — skill & skillset CRUD |
-| **compliance** | /geno-compliance | audit, onboarding — admission gate to the ecosystem |
-| **self** | /geno-self | update, improve, session-spawn, docs-open — geno-tools self-management |
-| **workspaces** | /geno-workspaces | data-init — data workspace scaffolding |
+| Skill | Slash command | Leaf skills |
+|-------|---------------|-------------|
+| **lifecycle** | /geno-lifecycle | repo-create, skill-create, onboarding-public, onboarding-enterprise — skill & skillset authoring |
+| **manager** | /geno-manager | install, status — package management of installed skillsets |
+| **compliance** | /geno-compliance | audit — admission gate to the ecosystem |
+| **self** | /geno-self | update, improve — geno-tools self-management |
 | **assets** | /geno-assets | icons — generated branding assets |
 | **config** | /geno-config | alias — user personalization |
 
@@ -50,16 +35,15 @@ Skills are organized into 6 functional areas (full convention in [.geno/geno-doc
 
 | Capability | Path (relative to plugin root) |
 |------------|-------------------------------|
-| list installed | `skills/lifecycle/skills/install/resources/ls.sh` |
-| list available | `skills/lifecycle/skills/install/resources/ls.sh --available` |
-| install | `skills/lifecycle/skills/install/resources/install.sh <repo\|url\|path>` |
-| remove | `skills/lifecycle/skills/install/resources/remove.sh <repo> [--keep-data]` |
-| dependency tree | `skills/lifecycle/skills/install/resources/deps.sh <repo>` |
+| list installed | `skills/manager/skills/install/resources/ls.sh` |
+| list available | `skills/manager/skills/install/resources/ls.sh --available` |
+| install | `skills/manager/skills/install/resources/install.sh <repo\|url\|path>` |
+| remove | `skills/manager/skills/install/resources/remove.sh <repo> [--keep-data]` |
+| dependency tree | `skills/manager/skills/install/resources/deps.sh <repo>` |
 | update | `skills/self/skills/update/resources/update.sh [repo]` |
-| status / doctor | `skills/lifecycle/skills/status/resources/status.sh` |
-| discover candidates | `skills/compliance/skills/onboarding/resources/discover.sh` |
-| scan into queue | `skills/compliance/skills/onboarding/resources/scan.sh` |
-| build mkdocs pages | `skills/self/skills/docs-open/resources/docs-build.sh` |
+| status / doctor | `skills/manager/skills/status/resources/status.sh` |
+| discover candidates | `skills/lifecycle/skills/onboarding-enterprise/resources/discover.sh` |
+| scan into queue | `skills/lifecycle/skills/onboarding-enterprise/resources/scan.sh` |
 | trace emit / list / health / queue | `skills/self/skills/improve/resources/trace-*.sh` |
 
 Shared bash helpers (paths, config, registry, discovery providers) live at

@@ -4,41 +4,39 @@
   "groupings": [
     {
       "title": "Lifecycle",
-      "description": "Skill and skillset CRUD — install, remove, status, repo and skill scaffolding.",
+      "description": "Skill and skillset authoring — onboard new sources, scaffold repos and skills.",
       "skills": [
         "geno-lifecycle",
-        "geno-lifecycle-install",
+        "geno-lifecycle-onboarding-public",
+        "geno-lifecycle-onboarding-enterprise",
         "geno-lifecycle-repo-create",
-        "geno-lifecycle-skill-create",
-        "geno-lifecycle-status"
+        "geno-lifecycle-skill-create"
+      ]
+    },
+    {
+      "title": "Manager",
+      "description": "Package management for installed skillsets — install local checkouts globally and inspect status.",
+      "skills": [
+        "geno-manager",
+        "geno-manager-install",
+        "geno-manager-status"
       ]
     },
     {
       "title": "Compliance",
-      "description": "Audit and onboarding gates — verify skillset shape, discover and scan candidates.",
+      "description": "Audit gate — verify skillset shape against ecosystem conventions.",
       "skills": [
         "geno-compliance",
-        "geno-compliance-audit",
-        "geno-compliance-onboarding"
+        "geno-compliance-audit"
       ]
     },
     {
       "title": "Self",
-      "description": "geno-tools self-management — update, self-improvement traces, sessions, docs.",
+      "description": "geno-tools self-management — update, self-improvement traces, docs.",
       "skills": [
         "geno-self",
         "geno-self-update",
-        "geno-self-improve",
-        "geno-self-session-spawn",
-        "geno-self-docs-open"
-      ]
-    },
-    {
-      "title": "Workspaces",
-      "description": "Personal and data workspace scaffolding.",
-      "skills": [
-        "geno-workspaces",
-        "geno-workspaces-data-init"
+        "geno-self-improve"
       ]
     },
     {

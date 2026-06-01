@@ -15,10 +15,10 @@ Skills are organized into 6 functional sub-skillsets. The full naming and layout
 
 | Area | Slash command | Skills |
 |------|---------------|--------|
-| [lifecycle](lifecycle/index.md) | `/geno-lifecycle` | repo-create, skill-create, install, status — skill & skillset CRUD |
-| [compliance](compliance/index.md) | `/geno-compliance` | audit, onboarding — admission gate to the ecosystem |
-| [self](self/index.md) | `/geno-self` | update, improve, session-spawn, docs-open — geno-tools self-management |
-| [workspaces](workspaces/index.md) | `/geno-workspaces` | data-init — data workspace scaffolding |
+| [lifecycle](lifecycle/index.md) | `/geno-lifecycle` | repo-create, skill-create, onboarding-public, onboarding-enterprise — skill & skillset authoring |
+| [manager](manager/index.md) | `/geno-manager` | install, status — package management of installed skillsets |
+| [compliance](compliance/index.md) | `/geno-compliance` | audit — admission gate to the ecosystem |
+| [self](self/index.md) | `/geno-self` | update, improve, session-spawn — geno-tools self-management |
 | [assets](assets/index.md) | `/geno-assets` | icons — generated branding assets |
 | [config](config/index.md) | `/geno-config` | alias — user personalization |
 
@@ -29,16 +29,16 @@ Version 0.3.0 re-architected the skill tree by intent. Slash commands renamed:
 | Old | New |
 |-----|-----|
 | `/geno-skills-create` | `/geno-lifecycle-skill-create` |
-| `/geno-skills-install` | `/geno-lifecycle-install` |
-| `/geno-skills-status` | `/geno-lifecycle-status` |
+| `/geno-skills-install` | `/geno-manager-install` |
+| `/geno-skills-status` | `/geno-manager-status` |
 | `/geno-tools-create-skillset-repo` | `/geno-lifecycle-repo-create` |
 | `/geno-audit` | `/geno-compliance-audit` |
-| `/geno-onboarding` | `/geno-compliance-onboarding` |
+| `/geno-onboarding` (public) | `/geno-lifecycle-onboarding-public` |
+| `/geno-onboarding` (enterprise) | `/geno-lifecycle-onboarding-enterprise` |
 | `/geno-tools-update` | `/geno-self-update` |
 | `/geno-tools-improve` | `/geno-self-improve` |
 | `/geno-tools-sessions-spawn` | `/geno-self-session-spawn` |
-| `/geno-tools-open-docs` | `/geno-self-docs-open` |
-| `/geno-data-workspaces-init` | `/geno-workspaces-data-init` |
+| `/geno-data-workspaces-init` | `/geno-ws-data-init` (moved to geno-ws skillset) |
 | `/geno-icons` | `/geno-assets-icons` |
 | `/geno-alias` | `/geno-config-alias` |
 | `/geno-tools` | unchanged (umbrella) |

@@ -45,7 +45,7 @@ Parse `$ARGUMENTS` for:
 Rebuild health cards from raw traces:
 
 ```bash
-TRACE="$CLAUDE_PLUGIN_ROOT/skills/self/skills/improve/resources/trace-health.sh"
+TRACE="$CLAUDE_PLUGIN_ROOT/skills/meta/improve/resources/trace-health.sh"
 "$TRACE" --refresh
 ```
 
@@ -89,7 +89,7 @@ If `--skill <name>` was given, show only that skill's card in detail (error type
 ### 3. Check retro queue
 
 ```bash
-"$CLAUDE_PLUGIN_ROOT/skills/self/skills/improve/resources/trace-queue.sh" --json 2>/dev/null || echo "[]"
+"$CLAUDE_PLUGIN_ROOT/skills/meta/improve/resources/trace-queue.sh" --json 2>/dev/null || echo "[]"
 ```
 
 Count entries. If the queue has entries, list them grouped by skill:
@@ -202,7 +202,7 @@ Omit sections that were skipped (e.g., mining if `--skip-mine`).
 ## Completion
 
 ```bash
-"$CLAUDE_PLUGIN_ROOT/skills/self/skills/improve/resources/trace-emit.sh" \
+"$CLAUDE_PLUGIN_ROOT/skills/meta/improve/resources/trace-emit.sh" \
   --skill geno-tools-improve \
   --status <success|partial|failure> \
   --tool-calls <count> \

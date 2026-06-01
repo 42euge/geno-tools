@@ -68,20 +68,19 @@ nav:
               - lifecycle:
                   - skills/geno-tools/lifecycle/index.md
                   - skill-create: skills/geno-tools/lifecycle/skill-create.md
-                  - install: skills/geno-tools/lifecycle/install.md
-                  - status: skills/geno-tools/lifecycle/status.md
+                  - onboarding-public: skills/geno-tools/lifecycle/onboarding-public.md
+                  - onboarding-enterprise: skills/geno-tools/lifecycle/onboarding-enterprise.md
+              - manager:
+                  - skills/geno-tools/manager/index.md
+                  - install: skills/geno-tools/manager/install.md
+                  - status: skills/geno-tools/manager/status.md
               - compliance:
                   - skills/geno-tools/compliance/index.md
                   - audit: skills/geno-tools/compliance/audit.md
-                  - onboarding: skills/geno-tools/compliance/onboarding.md
               - self:
                   - skills/geno-tools/self/index.md
                   - update: skills/geno-tools/self/update.md
                   - session-spawn: skills/geno-tools/self/session-spawn.md
-                  - docs-open: skills/geno-tools/self/docs-open.md
-              - workspaces:
-                  - skills/geno-tools/workspaces/index.md
-                  - data-init: skills/geno-tools/workspaces/data-init.md
               - assets:
                   - skills/geno-tools/assets/index.md
                   - icons: skills/geno-tools/assets/icons.md
