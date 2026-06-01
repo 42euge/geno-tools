@@ -1,40 +1,31 @@
-From 186e7ce862c71e12f0d7a0637fc83fcc0dcd791c Mon Sep 17 00:00:00 2001
+From 5ed76982852ede2187fb7dac42c5aa44d24b019c Mon Sep 17 00:00:00 2001
 From: Claude <noreply@anthropic.com>
-Date: Sun, 31 May 2026 00:14:55 +0000
-Subject: [PATCH] chore: geno-audit compliance fixes
+Date: Mon, 1 Jun 2026 12:18:23 +0000
+Subject: [PATCH] chore(geno-audit): bring geno-iso into ecosystem compliance
 
-- Remove /gt- slash command reference from Conventions explanation; rephrase
-  to use neutral alias-config language (S11)
-- Add Versioning subsection to Conventions in GENO.md (S6)
-
-https://claude.ai/code/session_01Dqzmmn7MSPhTfSMwZC8hHW
+- S6: add Versioning subsection to GENO.md Conventions section
+- S11: remove /gt-iso-containers-run alias example from prefix-aliasing
+  prose in GENO.md; use neutral alias-config language instead
 ---
  GENO.md | 6 +++++-
  1 file changed, 5 insertions(+), 1 deletion(-)
 
 diff --git a/GENO.md b/GENO.md
-index ee2a51a..954d788 100644
+index ee2a51a..7fbbb2a 100644
 --- a/GENO.md
 +++ b/GENO.md
-@@ -48,7 +48,7 @@ geno-iso/
+@@ -48,7 +48,11 @@ geno-iso/
  
  ### Command prefix aliasing
  
 -Skills in this repo use the canonical `geno-` prefix in source (e.g., `geno-iso-containers-run`). When installed via `geno-tools`, the installer may configure shorter `/gt-` aliases (e.g., `/gt-iso-containers-run`) depending on the user's settings. Always author skill names and docs with the canonical `geno-` prefix; alias mapping is handled at install time and never committed to this repo.
-+Skills in this repo use the canonical `geno-` prefix in source (e.g., `geno-iso-containers-run`). When installed via `geno-tools`, the installer may configure shorter aliases depending on the user's `~/.geno/config.yaml` `aliases.command_prefix` setting. Always author skill names and docs with the canonical `geno-` prefix; alias mapping is handled at install time and never committed to this repo.
++Skills in this repo use the canonical `geno-` prefix in source (e.g., `/geno-iso-containers-run`). The prefix users type at runtime is configured in `~/.geno/config.yaml` under `aliases.command_prefix` and applied at install time by `geno-tools install`. Always author skill names and docs with the canonical `geno-` prefix; never hardcode an aliased prefix like `/gt-` in SKILL.md descriptions, GENO.md, or any committed file.
++
++### Versioning
++
++`genotools.yaml` is the canonical version source. Keep `pyproject.toml` `project.version`, `package.json` `version`, and `geno_iso/__init__.py` `__version__` in sync with it. Bump the version whenever skills are added, removed, or behavior changes.
  
  ### Adding a new skill
  
-@@ -58,6 +58,10 @@ Skills in this repo use the canonical `geno-` prefix in source (e.g., `geno-iso-
- 4. Add a row to the Skills table in this file.
- 5. If the skill belongs to a sub-skillset, note it in the table's Sub-skillset column.
- 
-+### Versioning
-+
-+The canonical version lives in `genotools.yaml` (`version` field). Keep `pyproject.toml` (`project.version`) and `package.json` (`version`) in sync. Bump the version when skills are added, removed, or behavior changes.
-+
- ## CLI
- 
- Entry point: `geno-iso = "geno_iso.cli:main"`
 -- 
 2.43.0

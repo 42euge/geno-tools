@@ -1,59 +1,43 @@
-From 324b800eecbdfee532f822eb441cccc0488f47a7 Mon Sep 17 00:00:00 2001
+From b44dacdbc9e34084b3a482e4ec5c24270d279413 Mon Sep 17 00:00:00 2001
 From: Claude <noreply@anthropic.com>
-Date: Sun, 31 May 2026 00:16:25 +0000
-Subject: [PATCH] chore: geno-audit compliance fixes
+Date: Mon, 1 Jun 2026 12:17:58 +0000
+Subject: [PATCH] chore(geno-audit): bring geno-agents into ecosystem
+ compliance
 
-- Fix genotools.yaml name: "agents" -> "geno-agents" to match repo basename (S2)
-- Replace /gt- slash command references with canonical /geno- in SKILL.md files
-  (root, skills/geno-agents, skills/geno-agents-supercharge,
-  skills/geno-agents-tasks-start) (S11)
-- Rewrite Conventions prefix-aliasing text to remove /gt- examples (S11)
-- Add Versioning subsection to Conventions in GENO.md (S6)
-
-https://claude.ai/code/session_01Dqzmmn7MSPhTfSMwZC8hHW
+- S2: genotools.yaml name: agents -> name: geno-agents
+- S6: add versioning guidance to GENO.md Conventions; remove /gt- alias
+  examples from prefix-aliasing prose
+- S9: soften CLAUDE_SESSION_ID framing in umbrella SKILL.md to not
+  imply Claude Code is the only supported agent
+- S11: replace /gt-supercharge, /gt-kaggle-benchmarks-task-review,
+  /gt-kaggle-benchmarks-task-generate with canonical /geno-* prefixes
+  in supercharge SKILL.md; replace /gt-supercharge in umbrella SKILL.md;
+  replace /gt-tasks-start hardcoded alias in tasks-start SKILL.md
 ---
  GENO.md                                 | 6 +++++-
- SKILL.md                                | 2 +-
  genotools.yaml                          | 2 +-
  skills/geno-agents-supercharge/SKILL.md | 6 +++---
  skills/geno-agents-tasks-start/SKILL.md | 2 +-
- skills/geno-agents/SKILL.md             | 2 +-
- 6 files changed, 12 insertions(+), 8 deletions(-)
+ skills/geno-agents/SKILL.md             | 4 ++--
+ 5 files changed, 12 insertions(+), 8 deletions(-)
 
 diff --git a/GENO.md b/GENO.md
-index 44b332c..ffc8d49 100644
+index 44b332c..d264251 100644
 --- a/GENO.md
 +++ b/GENO.md
-@@ -59,7 +59,7 @@ Projects declare agent identity via a `.geno-agents` YAML file at the repo root.
+@@ -59,7 +59,11 @@ Projects declare agent identity via a `.geno-agents` YAML file at the repo root.
  
  ### Prefix aliasing
  
 -Source code and documentation use the canonical `geno-` prefix (e.g., `geno-agents`, `/geno-agents-supercharge`). Short `/gt-` aliases (e.g., `/gt-supercharge`, `/gt-agents`) are configured per-install by `geno-tools` and are not defined in this repo. When adding new skills or commands, always use the canonical `geno-agents` prefix; the installer handles alias generation.
-+Source code and documentation use the canonical `geno-` prefix (e.g., `geno-agents`, `/geno-agents-supercharge`). Shorter aliases are configured per-install by `geno-tools` based on the user's `~/.geno/config.yaml` `aliases.command_prefix` setting and are not defined in this repo. When adding new skills or commands, always use the canonical `geno-agents` prefix; the installer handles alias generation.
- 
- ### Adding a new skill
- 
-@@ -71,3 +71,7 @@ To add a new skill to the geno-agents skillset:
- 4. If the skill needs new CLI subcommands, add them in `geno_agents/cli.py`.
- 5. If the skill needs new MCP tools, add them in `geno_agents/mcp_server.py` and list them in the `allowed-tools` front-matter field.
- 6. Update `genotools.yaml` with the new skill entry so `geno-tools install` picks it up.
++Source code and documentation use the canonical `geno-` prefix (e.g., `geno-agents`, `/geno-agents-supercharge`). User-configured short aliases are applied at install time by `geno-tools install` and are never defined in this repo. When adding new skills or commands, always use the canonical `geno-agents` prefix; the installer handles alias generation.
 +
 +### Versioning
 +
-+The canonical version lives in `genotools.yaml` (`version` field). Keep `pyproject.toml` (`project.version`) and `package.json` (`version`) in sync. Bump the version when skills are added, removed, or behavior changes.
-diff --git a/SKILL.md b/SKILL.md
-index 77ec2d2..ac7fa7e 100644
---- a/SKILL.md
-+++ b/SKILL.md
-@@ -4,7 +4,7 @@ description: >-
-   Agent coordination — register as an agent, see who's online, update status.
-   Also includes autonomous agent loops (supercharge).
-   Use when user says /geno-agents, wants to register this session, check who's online,
--  update what they're working on, or /gt-supercharge.
-+  update what they're working on, or /geno-agents-supercharge.
- allowed-tools: "Bash(geno-agents *) mcp__geno-agents__list_agents mcp__geno-agents__who mcp__geno-agents__whois mcp__geno-agents__update_agent mcp__geno-agents__register_agent"
- argument-hint: "[who|whois|ls|register|update|status] [args...]"
- license: MIT
++`genotools.yaml` is the canonical version source. Keep `pyproject.toml` `project.version`, `package.json` `version`, and root `SKILL.md` `metadata.version` in sync with it. Bump the version whenever skills are added, removed, or behavior changes.
+ 
+ ### Adding a new skill
+ 
 diff --git a/genotools.yaml b/genotools.yaml
 index af44b62..b142fbb 100644
 --- a/genotools.yaml
@@ -96,7 +80,7 @@ index b8962cd..58a8dc2 100644
  - Don't push broken code — verify changes make sense before committing
  - Don't ignore CLAUDE.md rules (self-contained notebooks, llm as list, etc.)
 diff --git a/skills/geno-agents-tasks-start/SKILL.md b/skills/geno-agents-tasks-start/SKILL.md
-index c614003..76dc3fe 100644
+index c614003..c87e274 100644
 --- a/skills/geno-agents-tasks-start/SKILL.md
 +++ b/skills/geno-agents-tasks-start/SKILL.md
 @@ -4,7 +4,7 @@ description: >-
@@ -104,12 +88,12 @@ index c614003..76dc3fe 100644
    plan if needed, and start executing. Workspace-only — global-scope tasks
    are out of scope for v0.1.
 -  Installed by geno-tools as the /gt-tasks-start slash command.
-+  Use when user says /geno-agents-tasks-start.
++  Use when user says /geno-agents-tasks-start or asks to start the next task.
  license: MIT
  metadata:
    author: 42euge
 diff --git a/skills/geno-agents/SKILL.md b/skills/geno-agents/SKILL.md
-index 7a3ceaa..4964bb7 100644
+index 7a3ceaa..d72db3c 100644
 --- a/skills/geno-agents/SKILL.md
 +++ b/skills/geno-agents/SKILL.md
 @@ -4,7 +4,7 @@ description: >-
@@ -121,5 +105,14 @@ index 7a3ceaa..4964bb7 100644
  allowed-tools: "Bash(geno-agents *) mcp__geno-agents__list_agents mcp__geno-agents__who mcp__geno-agents__whois mcp__geno-agents__update_agent mcp__geno-agents__register_agent"
  argument-hint: "[who|whois|ls|register|update|status] [args...]"
  license: MIT
+@@ -90,7 +90,7 @@ You can check if you're registered by running `/geno-agents status`.
+ 
+ ## Session ID environment variable
+ 
+-The commands above use `$CLAUDE_SESSION_ID`, which is the session identifier set by Claude Code. Other coding agents (e.g., Gemini CLI, Cursor, Windsurf) may expose their session ID under a different environment variable. The `--session-id` flag accepts any string, so adapt the env var reference to match the agent in use. The Python CLI (`geno_agents/cli.py`) currently falls back to `CLAUDE_SESSION_ID` when no `--session-id` is provided; extending that fallback chain to other agents is tracked as a future improvement.
++The commands above use `$CLAUDE_SESSION_ID` as a session identifier example. Different coding agents expose their session ID under different environment variables (e.g., Gemini CLI, Codex, and OpenCode each have their own). The `--session-id` flag accepts any string, so adapt the env var reference to match the agent in use. The Python CLI (`geno_agents/cli.py`) currently falls back to `CLAUDE_SESSION_ID` when no `--session-id` is provided; extending that fallback chain to other agents is tracked as a future improvement.
+ 
+ ## `.geno-agents` File Format
+ 
 -- 
 2.43.0
