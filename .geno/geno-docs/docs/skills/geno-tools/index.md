@@ -54,18 +54,6 @@ To preserve old muscle memory, set up aliases via `/geno-config-alias add <old> 
 - `geno-tools update [repo]` — pull latest for one or all skillsets
 - `geno-tools doctor` — verify symlinks, worktrees, venvs
 
-## Available skillsets
-
-Install by full repo name (e.g. `geno-tools install geno-<name>`):
-
-| Repo | Description |
-|------|-------------|
-| geno-agents | Agent coordination, presence, and multi-agent networking |
-| geno-media | Audiobooks (Kokoro TTS), animated videos (Manim), podcasts |
-| geno-research | Wiki-based research notes, paper generation, repo docs |
-| geno-kaggle | Kaggle benchmarks, competition notebooks, discussion scraping |
-| geno-dev | Developer utilities, Colab uploads, commit rewriting |
-
 ## Source resolution
 
 The `<repo>` argument resolves in order:
