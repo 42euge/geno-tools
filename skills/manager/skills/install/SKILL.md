@@ -1,30 +1,27 @@
 ---
-title: geno-skills-install
-description: Install skills from a local geno ecosystem repo checkout globally via npx skills add
+name: geno-manager-install
+description: >-
+  Install skills from a local geno ecosystem repo checkout globally via
+  npx skills add. Detects the repo from the current directory, accepts a
+  path or name as an argument, or offers selection when called from a
+  multi-repo workspace. Use when user says /geno-manager-install, wants to
+  register local skill changes globally, or test skills from a dev checkout.
+argument-hint: "[repo-path|repo-name]"
+allowed-tools: "Bash(*) Read(*)"
+license: MIT
+metadata:
+  author: 42euge
+  version: "0.1.0"
 ---
 
-# geno-skills-install
+# geno-manager-install — Install Local Skills Globally
 
-`/geno-skills-install "[repo-path|repo-name]"`
-
-> Install skills from a local geno ecosystem repo checkout globally via npx skills add
-
-<div class="zoom-depth" markdown>
-
-<div class="zoom-section zoom-section-3" markdown>
-
-## Input
-
-`$ARGUMENTS` — one of:
-- **Empty** — detect from context (see Resolution below)
-- **A path** — absolute or relative path to a geno repo checkout
-- **A repo name** — e.g. `geno-dev`, `geno-media` — resolved as a subdirectory of the current workspace
-
-</div>
-
-<div class="zoom-section zoom-section-4" markdown>
-
----
+Registers all skills from a local geno ecosystem repo checkout as global slash
+commands across all supported agents. This is the dev-loop companion to the
+full install flow at
+`$PLUGIN_ROOT/skills/manager/skills/install/resources/install.sh` — instead
+of cloning from a remote, it installs from whatever is on disk right now so
+you can test local changes immediately.
 
 ## When to invoke
 
@@ -32,6 +29,13 @@ description: Install skills from a local geno ecosystem repo checkout globally v
 - You've added a new skill directory and need to register it.
 - You want to test a skillset branch before merging.
 - The user says "install these skills", "register skills globally", or "pick up my skill changes".
+
+## Input
+
+`$ARGUMENTS` — one of:
+- **Empty** — detect from context (see Resolution below)
+- **A path** — absolute or relative path to a geno repo checkout
+- **A repo name** — e.g. `geno-dev`, `geno-media` — resolved as a subdirectory of the current workspace
 
 ## Resolution
 
@@ -163,40 +167,7 @@ This helps the user know exactly what version of the skills they just installed.
 ## Don'ts
 
 - Don't clone or fetch — this skill works on the local checkout as-is.
-- Don't create venvs, bin symlinks, or worktrees — those are `geno-tools install` responsibilities.
+- Don't create venvs, bin symlinks, or worktrees — those are responsibilities of `resources/install.sh`.
 - Don't modify any files in the target repo.
-- Don't use `geno-tools install` — this skill calls `npx skills add` directly because it's registering from a local path, not going through the full install flow.
+- Don't invoke `resources/install.sh` — this skill calls `npx skills add` directly because it's registering from a local path, not going through the full install flow.
 - Don't use aliased prefixes like `gt-` in any output — always use canonical `geno-` prefix.
-
-## Completion
-
-When this skill finishes, emit a trace:
-
-```bash
-geno-trace emit \
-  --skill geno-skills-install \
-  --status <success|failure|abandoned> \
-  --tool-calls <approximate count> \
-  --errors <count of tool/command errors>
-```
-
-- `success` = all skills registered globally via npx skills add
-- `failure` = no geno repo detected, validation failed, or npx registration errors
-- `abandoned` = user stopped early
-
-</div>
-
-<div class="zoom-section zoom-section-5" markdown>
-
----
-
-### Rationale
-
-- **Explicit don'ts** — negative constraints are crucial for LLM-driven workflows. Without them, agents drift toward plausible-but-wrong approaches.
-- **Observability contract** — emitting traces at completion feeds the self-improvement loop (health cards, retro, mining).
-
-</div>
-
-</div>
-
-[:material-arrow-left: Back to geno-tools](index.md)

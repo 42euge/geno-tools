@@ -68,7 +68,7 @@ discovery:
 
 `geno-tools ls --available` runs each source through the appropriate provider, filters to repos that pass the candidate check, and lists them with their canonical repo name. `geno-tools install <repo>` then resolves through the same source. No extra step beyond editing the config.
 
-The discovery layer is intentionally pluggable — adding a new provider (Bitbucket, Gitea, Azure DevOps) is a matter of implementing a small `list_repos()` function, not changing the install flow. Walking through onboarding with an agent is automated by the [`geno-compliance-onboarding`](../skills/geno-tools/compliance/onboarding.md) skill.
+The discovery layer is intentionally pluggable — adding a new provider (Bitbucket, Gitea, Azure DevOps) is a matter of implementing a small `list_repos()` function, not changing the install flow. Walking through onboarding with an agent is automated by two sibling skills: [`geno-lifecycle-onboarding-public`](../skills/geno-tools/lifecycle/onboarding-public.md) for the curated public registry, and [`geno-lifecycle-onboarding-enterprise`](../skills/geno-tools/lifecycle/onboarding-enterprise.md) for `{company-slug}-*` namespaces with discovery.
 
 ## What "onboarded" means in practice
 

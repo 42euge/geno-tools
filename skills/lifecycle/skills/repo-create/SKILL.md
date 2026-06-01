@@ -49,7 +49,7 @@ If `$ARGUMENTS` is freeform or empty, ask:
 > What domain does this skillset cover? Give a short name (1-2 words, noun).
 > Examples: pipelines, career, fitness, finance
 
-Construct `geno-{slug}`. The slug must be lowercase, hyphen-separated if multi-word, a noun, and not already taken — check with `"$CLAUDE_PLUGIN_ROOT/skills/lifecycle/skills/install/resources/ls.sh" --available 2>/dev/null` and `ls ~/.geno-tools/`.
+Construct `geno-{slug}`. The slug must be lowercase, hyphen-separated if multi-word, a noun, and not already taken — check with `"$CLAUDE_PLUGIN_ROOT/skills/manager/skills/install/resources/ls.sh" --available 2>/dev/null` and `ls ~/.geno-tools/`.
 
 Record:
 - `$NAME` — bare slug (e.g. `career`)
@@ -134,7 +134,7 @@ Files: see rules/repo-template.md, rules/ci-template.md, rules/docs-template.md
 
 Next steps:
   1. Add skills:        /geno-lifecycle-skill-create  (from inside the repo)
-  2. Install locally:   "$CLAUDE_PLUGIN_ROOT/skills/lifecycle/skills/install/resources/install.sh" $TARGET_DIR/$REPO
+  2. Install locally:   "$CLAUDE_PLUGIN_ROOT/skills/manager/skills/install/resources/install.sh" $TARGET_DIR/$REPO
   3. Audit compliance:  /geno-compliance-audit         (from inside the repo)
 ```
 

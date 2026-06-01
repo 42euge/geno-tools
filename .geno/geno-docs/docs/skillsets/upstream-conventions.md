@@ -59,7 +59,7 @@ agent-skills/
 | Bash `#!/bin/bash` + `set -e`; Node `#!/usr/bin/env node` + `.mjs` | upstream | identical |
 | Status to stderr, JSON to stdout | upstream | identical |
 | Keep `SKILL.md` under 500 lines | upstream guideline | enforced by `/geno-compliance-audit` (`skills/compliance/skills/audit/SKILL.md`) |
-| `npx skills add` for installation | upstream tool | wrapped by `/geno-lifecycle-install` (`skills/lifecycle/skills/install/SKILL.md`) |
+| `npx skills add` for installation | upstream tool | wrapped by `/geno-manager-install` (`skills/manager/skills/install/SKILL.md`) |
 
 ## What geno extends
 

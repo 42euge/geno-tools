@@ -1,34 +1,17 @@
 ---
-name: geno-lifecycle-install
-description: >-
-  Install skills from a local geno ecosystem repo checkout globally via
-  npx skills add. Detects the repo from the current directory, accepts a
-  path or name as an argument, or offers selection when called from a
-  multi-repo workspace. Use when user says /geno-skills-install, wants to
-  register local skill changes globally, or test skills from a dev checkout.
-argument-hint: "[repo-path|repo-name]"
-allowed-tools: "Bash(*) Read(*)"
-license: MIT
-metadata:
-  author: 42euge
-  version: "0.1.0"
+title: geno-manager-install
+description: Install skills from a local geno ecosystem repo checkout globally via npx skills add
 ---
 
-# geno-skills-install — Install Local Skills Globally
+# geno-manager-install
 
-Registers all skills from a local geno ecosystem repo checkout as global slash
-commands across all supported agents. This is the dev-loop companion to the
-full install flow at
-`$PLUGIN_ROOT/skills/lifecycle/skills/install/resources/install.sh` — instead
-of cloning from a remote, it installs from whatever is on disk right now so
-you can test local changes immediately.
+`/geno-manager-install "[repo-path|repo-name]"`
 
-## When to invoke
+> Install skills from a local geno ecosystem repo checkout globally via npx skills add
 
-- You've edited a SKILL.md and want to pick up the changes in new agent sessions.
-- You've added a new skill directory and need to register it.
-- You want to test a skillset branch before merging.
-- The user says "install these skills", "register skills globally", or "pick up my skill changes".
+<div class="zoom-depth" markdown>
+
+<div class="zoom-section zoom-section-3" markdown>
 
 ## Input
 
@@ -36,6 +19,19 @@ you can test local changes immediately.
 - **Empty** — detect from context (see Resolution below)
 - **A path** — absolute or relative path to a geno repo checkout
 - **A repo name** — e.g. `geno-dev`, `geno-media` — resolved as a subdirectory of the current workspace
+
+</div>
+
+<div class="zoom-section zoom-section-4" markdown>
+
+---
+
+## When to invoke
+
+- You've edited a SKILL.md and want to pick up the changes in new agent sessions.
+- You've added a new skill directory and need to register it.
+- You want to test a skillset branch before merging.
+- The user says "install these skills", "register skills globally", or "pick up my skill changes".
 
 ## Resolution
 
@@ -167,7 +163,40 @@ This helps the user know exactly what version of the skills they just installed.
 ## Don'ts
 
 - Don't clone or fetch — this skill works on the local checkout as-is.
-- Don't create venvs, bin symlinks, or worktrees — those are responsibilities of `resources/install.sh`.
+- Don't create venvs, bin symlinks, or worktrees — those are `geno-tools install` responsibilities.
 - Don't modify any files in the target repo.
-- Don't invoke `resources/install.sh` — this skill calls `npx skills add` directly because it's registering from a local path, not going through the full install flow.
+- Don't use `geno-tools install` — this skill calls `npx skills add` directly because it's registering from a local path, not going through the full install flow.
 - Don't use aliased prefixes like `gt-` in any output — always use canonical `geno-` prefix.
+
+## Completion
+
+When this skill finishes, emit a trace:
+
+```bash
+geno-trace emit \
+  --skill geno-manager-install \
+  --status <success|failure|abandoned> \
+  --tool-calls <approximate count> \
+  --errors <count of tool/command errors>
+```
+
+- `success` = all skills registered globally via npx skills add
+- `failure` = no geno repo detected, validation failed, or npx registration errors
+- `abandoned` = user stopped early
+
+</div>
+
+<div class="zoom-section zoom-section-5" markdown>
+
+---
+
+### Rationale
+
+- **Explicit don'ts** — negative constraints are crucial for LLM-driven workflows. Without them, agents drift toward plausible-but-wrong approaches.
+- **Observability contract** — emitting traces at completion feeds the self-improvement loop (health cards, retro, mining).
+
+</div>
+
+</div>
+
+[:material-arrow-left: Back to geno-tools](index.md)

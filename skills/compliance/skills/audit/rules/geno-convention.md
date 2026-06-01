@@ -1,12 +1,20 @@
 # `.geno` Directory Convention
 
-Every project in the geno ecosystem uses a two-tier `.geno` directory structure for runtime state, configuration, and tooling data. Neither tier should ever be committed to git — they contain machine-local paths, user-specific config, and transient runtime state that would break on any other machine.
+The geno ecosystem uses **three** distinct `.geno` directory contexts. Two of them are runtime/workspace state and must never be committed to git; the third is the *namespaced repo layout* — checked-in source files organized under `.geno/<sub-namespace>/` so the repo root stays minimal and matches the upstream `vendor/vercel-labs/agent-skills` shape.
+
+| Context | Path | Tracked by git? |
+|---------|------|-----------------|
+| Global runtime | `~/.geno/` | No (lives outside the repo entirely) |
+| Workspace runtime | `.geno/.workspace/` (inside any repo or workspace dir) | No |
+| Namespaced repo layout | `.geno/geno-tools/`, `.geno/geno-specs/`, `.geno/geno-docs/`, `.geno/plugins/` | **Yes** |
+
+The first two are machine-local, user-specific, transient. The third is the canonical place a geno-* repo puts its source-controlled internal machinery.
 
 ## Global — `~/.geno/`
 
 The global `.geno` directory at `~/.geno/` is the ecosystem-wide root. It contains shared infrastructure and per-project state that persists across workspaces:
 
-```
+```text
 ~/.geno/
 ├── config.yaml                    # ecosystem-wide settings
 ├── agents/                        # agent registration and presence
@@ -22,31 +30,67 @@ The global `.geno` directory at `~/.geno/` is the ecosystem-wide root. It contai
     └── active -> main             # symlink to active variant
 ```
 
-This is where `geno-tools install` clones repos, creates venvs, and materializes bin symlinks. Other ecosystem tools also keep state here — `geno-notes` stores the global task journal at `~/.geno/geno-notes/`, `geno-agents` stores registration data at `~/.geno/agents/`, etc.
+This is where the install resource script clones repos, creates venvs, and materializes bin symlinks. Other ecosystem tools also keep state here — `geno-notes` stores the global task journal at `~/.geno/geno-notes/`, `geno-agents` stores registration data at `~/.geno/agents/`, etc.
 
-## Local — `.geno/`
+## Workspace runtime — `.geno/.workspace/`
 
-The local `.geno/` directory at the repo or workspace root holds per-workspace state. It has a fixed structure with a reserved `.workspace/` subdirectory for workspace metadata, and optional `{project-name}/` subdirectories for tools that need local state.
+Per-workspace runtime state lives under `.geno/.workspace/` inside the workspace dir. This is **not committed**.
 
-```
-.geno/
-├── .workspace/                    # workspace metadata (managed by geno-dev-workspaces-init)
-│   ├── workspace.yaml             # slug, status, repos, color, ticket
-│   └── worktrees/                 # local worktree checkouts
-│       └── {repo}/{branch}/       # one per active worktree
-└── {project-name}/                # per-tool local state (optional)
-    └── ...                        # tool-specific files
+```text
+.geno/.workspace/                  # workspace metadata (managed by geno-dev-workspaces-init)
+├── workspace.yaml                 # slug, status, repos, color, ticket
+└── worktrees/                     # local worktree checkouts
+    └── {repo}/{branch}/           # one per active worktree
 ```
 
-**`.workspace/`** contains workspace metadata — the `workspace.yaml` (slug, status, repos, color assignment, source ticket) and any worktree checkouts created for repos in this workspace. This is always under `.workspace/` to keep it separate from tool state.
+Tools may also create per-tool runtime state under `.geno/<tool>/` *inside a workspace dir* (not inside a repo) — for example `geno-notes` writes per-project tasks to a workspace's `.geno/geno-notes/`. Workspace-scoped tool state is also untracked.
 
-**`{project-name}/`** directories are created by individual tools when they need workspace-scoped state. For example, `geno-notes` may create `.geno/geno-notes/` to store project-scoped tasks and journal entries (as opposed to the global journal at `~/.geno/geno-notes/`). Not every workspace will have these — they appear only when a tool that needs local state is used in that workspace.
+## Namespaced repo layout — `.geno/<sub-namespace>/`
+
+Inside a `geno-*` *repo* (not a workspace), the `.geno/` directory holds checked-in source files organized by sub-namespace. This keeps the repo root minimal and parallels `vendor/vercel-labs/agent-skills` so external consumers can find the canonical entry points (`AGENTS.md`, `CLAUDE.md`, `README.md`, `skills.sh.json`, `package.json`) without wading through internal machinery.
+
+```text
+geno-{name}/                       # repo root — vendor-style minimal surface
+├── AGENTS.md                      #   source of truth (Codex reads this)
+├── CLAUDE.md                      #   literal copy of AGENTS.md (CI-enforced)
+├── GEMINI.md                      #   standalone Gemini context
+├── README.md
+├── LICENSE
+├── skills.sh.json                 #   canonical Vercel-schema skills manifest
+├── package.json
+├── gemini-extension.json
+├── skills/                        #   skill definitions + resource scripts
+└── .geno/                         #   internal machinery, namespaced
+    ├── geno-tools/                #     installer assets
+    │   ├── genotools.yaml         #       install manifest
+    │   ├── scripts/bootstrap.sh
+    │   ├── hooks/hooks.json
+    │   └── config/defaults.yaml
+    ├── geno-specs/                #     strategic docs
+    │   ├── VISION.md
+    │   ├── TENETS.md
+    │   └── .specs/                #       drafts, feature specs
+    ├── geno-docs/                 #     mkdocs site
+    │   ├── mkdocs.yml
+    │   └── docs/
+    └── plugins/                   #     vendor-specific plugin sources
+        ├── opencode/              #       was .opencode/
+        └── codex-agents/          #       was .agents/
+```
+
+Sub-namespace directories under `.geno/` ARE committed to git (unlike `.geno/.workspace/`). The audit treats `.geno/<sub-namespace>/` as repo source for every check that traverses `.geno/`.
+
+A repo's `.gitignore` should ignore `.geno/.workspace/` specifically, not the entire `.geno/` directory — ignoring the whole `.geno/` would untrack the namespaced source files.
 
 ## Audit checks
 
 **Required:**
-- `.geno/` is not tracked by git (checked via `git ls-files`)
+
+- `.geno/.workspace/` is not tracked by git (checked via `git ls-files .geno/.workspace/`)
 - `CLAUDE.local.md` is not tracked by git
+- If a `.geno/` directory exists in the repo and contains anything other than `.workspace/`, those sub-namespace dirs (`geno-tools/`, `geno-specs/`, `geno-docs/`, `plugins/`) ARE tracked
 
 **Recommended:**
-- Global gitignore (`~/.config/git/ignore`) includes `.geno/` and `CLAUDE.local.md`. These entries belong in the global gitignore, not in any project's `.gitignore` — adding them to a project's `.gitignore` would leak geno ecosystem artifacts into committed files. The audit should check the global gitignore and suggest adding entries there if missing. Never modify a project's `.gitignore` for geno-specific patterns.
+
+- Project `.gitignore` ignores `.geno/.workspace/` (specific path), not the whole `.geno/`. Ignoring the whole directory would orphan the namespaced source files.
+- Global gitignore (`~/.config/git/ignore`) includes `CLAUDE.local.md`. The global gitignore should NOT have a blanket `.geno/` rule — that would untrack the namespaced source files in every geno-* repo.

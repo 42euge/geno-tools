@@ -1,11 +1,11 @@
 ---
-title: geno-skills-status
+title: geno-manager-status
 description: Show the installation status of the geno ecosystem
 ---
 
-# geno-skills-status
+# geno-manager-status
 
-`/geno-skills-status`
+`/geno-manager-status`
 
 > Show the installation status of the geno ecosystem
 
@@ -225,7 +225,7 @@ When this skill finishes, emit a trace:
 
 ```bash
 geno-trace emit \
-  --skill geno-skills-status \
+  --skill geno-manager-status \
   --status <success|failure|abandoned> \
   --tool-calls <approximate count> \
   --errors <count of tool/command errors>

@@ -15,18 +15,16 @@ Skills are organized into 6 functional sub-skillsets under `skills/`. The full n
 | geno-lifecycle | lifecycle | — (sub-umbrella) |
 | geno-lifecycle-repo-create | lifecycle | /geno-lifecycle-repo-create |
 | geno-lifecycle-skill-create | lifecycle | /geno-lifecycle-skill-create |
-| geno-lifecycle-install | lifecycle | /geno-lifecycle-install |
-| geno-lifecycle-status | lifecycle | /geno-lifecycle-status |
+| geno-lifecycle-onboarding-public | lifecycle | /geno-lifecycle-onboarding-public |
+| geno-lifecycle-onboarding-enterprise | lifecycle | /geno-lifecycle-onboarding-enterprise |
+| geno-manager | manager | — (sub-umbrella) |
+| geno-manager-install | manager | /geno-manager-install |
+| geno-manager-status | manager | /geno-manager-status |
 | geno-compliance | compliance | — (sub-umbrella) |
 | geno-compliance-audit | compliance | /geno-compliance-audit |
-| geno-compliance-onboarding | compliance | /geno-compliance-onboarding |
 | geno-self | self | — (sub-umbrella) |
 | geno-self-update | self | /geno-self-update |
 | geno-self-improve | self | /geno-self-improve |
-| geno-self-session-spawn | self | /geno-self-session-spawn |
-| geno-self-docs-open | self | /geno-self-docs-open |
-| geno-workspaces | workspaces | — (sub-umbrella) |
-| geno-workspaces-data-init | workspaces | /geno-workspaces-data-init |
 | geno-assets | assets | — (sub-umbrella) |
 | geno-assets-icons | assets | /geno-assets-icons |
 | geno-config | config | — (sub-umbrella) |
@@ -52,29 +50,27 @@ geno-tools/
 │   │   ├── SKILL.md
 │   │   └── lib/                   #     paths.sh, common.sh, config.sh,
 │   │                              #     registry.sh, discovery.sh, load.sh
-│   ├── lifecycle/                 #   sub-skillset: skill & skillset CRUD
+│   ├── lifecycle/                 #   sub-skillset: skill & skillset authoring
 │   │   ├── SKILL.md
 │   │   └── skills/
 │   │       ├── repo-create/       #     bootstrap a new geno-* repo (+ rules/)
 │   │       ├── skill-create/
-│   │       ├── install/           #     resources/{install,remove,ls,deps}.sh
-│   │       └── status/            #     resources/status.sh
-│   ├── compliance/                #   sub-skillset: audit + onboarding gate
+│   │       ├── onboarding-public/      #     public registry onboarding workflow
+│   │       └── onboarding-enterprise/  #     resources/{discover,scan}.sh
+│   ├── manager/                   #   sub-skillset: package management of installed skillsets
 │   │   ├── SKILL.md
 │   │   └── skills/
-│   │       ├── audit/             #     compliance auditor (+ rules/)
-│   │       └── onboarding/        #     resources/{discover,scan}.sh
+│   │       ├── install/           #     resources/{install,remove,ls,deps}.sh
+│   │       └── status/            #     resources/status.sh
+│   ├── compliance/                #   sub-skillset: audit gate
+│   │   ├── SKILL.md
+│   │   └── skills/
+│   │       └── audit/             #     compliance auditor (+ rules/)
 │   ├── self/                      #   sub-skillset: geno-tools self-mgmt
 │   │   ├── SKILL.md
 │   │   └── skills/
 │   │       ├── update/            #     resources/update.sh
-│   │       ├── improve/           #     resources/trace-{emit,list,health,queue}.sh
-│   │       ├── session-spawn/
-│   │       └── docs-open/         #     resources/docs-build.sh
-│   ├── workspaces/                #   sub-skillset: data workspace scaffolding
-│   │   ├── SKILL.md
-│   │   └── skills/
-│   │       └── data-init/
+│   │       └── improve/           #     resources/trace-{emit,list,health,queue}.sh
 │   ├── assets/                    #   sub-skillset: generated branding
 │   │   ├── SKILL.md
 │   │   └── skills/
@@ -117,15 +113,14 @@ Shared bash helpers (paths, config, registry, discovery providers) live at
 
 | Capability | Resource script |
 |------------|-----------------|
-| list installed / available | `skills/lifecycle/skills/install/resources/ls.sh` |
-| install | `skills/lifecycle/skills/install/resources/install.sh` |
-| remove | `skills/lifecycle/skills/install/resources/remove.sh` |
-| dependency tree | `skills/lifecycle/skills/install/resources/deps.sh` |
+| list installed / available | `skills/manager/skills/install/resources/ls.sh` |
+| install | `skills/manager/skills/install/resources/install.sh` |
+| remove | `skills/manager/skills/install/resources/remove.sh` |
+| dependency tree | `skills/manager/skills/install/resources/deps.sh` |
 | update | `skills/self/skills/update/resources/update.sh` |
-| status / doctor | `skills/lifecycle/skills/status/resources/status.sh` |
-| discover candidates | `skills/compliance/skills/onboarding/resources/discover.sh` |
-| scan into queue | `skills/compliance/skills/onboarding/resources/scan.sh` |
-| build mkdocs pages | `skills/self/skills/docs-open/resources/docs-build.sh` |
+| status / doctor | `skills/manager/skills/status/resources/status.sh` |
+| discover candidates | `skills/lifecycle/skills/onboarding-enterprise/resources/discover.sh` |
+| scan into queue | `skills/lifecycle/skills/onboarding-enterprise/resources/scan.sh` |
 | trace emit / list / health / queue | `skills/self/skills/improve/resources/trace-*.sh` |
 
 Traces are append-only JSONL at `~/.geno/traces/YYYY/YYYY-MM.jsonl`. Health
@@ -204,7 +199,7 @@ The canonical version lives in `.geno/geno-tools/genotools.yaml` (`version` fiel
 
 This repo uses the nested skill tree layout — see `.geno/geno-docs/docs/skillsets/upstream-conventions.md` § Nested skill trees for the rules.
 
-1. Pick a sub-skillset for the new skill (`lifecycle`, `compliance`, `self`, `workspaces`, `assets`, `config`) or create a new one. Create a directory under `skills/{sub-skillset}/skills/{leaf}/` named with a bare noun/verb (no `geno-` prefix).
+1. Pick a sub-skillset for the new skill (`lifecycle`, `compliance`, `self`, `assets`, `config`) or create a new one. Create a directory under `skills/{sub-skillset}/skills/{leaf}/` named with a bare noun/verb (no `geno-` prefix).
 2. Write a `SKILL.md` inside the leaf directory. Frontmatter `name:` is the **fully qualified** name (e.g. `name: geno-self-foo`) — this is the registered skill name regardless of directory shape.
 3. Update the parent sub-skillset's umbrella `SKILL.md` (`skills/{sub-skillset}/SKILL.md`) to list the new leaf.
 4. Add a row to the skills table in this file.

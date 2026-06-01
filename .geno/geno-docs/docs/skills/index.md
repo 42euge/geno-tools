@@ -5,7 +5,7 @@ description: Browse all skills in the geno ecosystem
 
 # Skill Catalog
 
-**21 skillsets** · **70 skills** across the geno ecosystem.
+**21 skillsets** · **69 skills** across the geno ecosystem.
 
 Browse by category, search for a skill, or drill into any skillset for full documentation.
 
@@ -64,13 +64,13 @@ Project journal, task management, wiki, and site generation
 
 </div>
 
-<div class="feature-card" data-skills="geno-alias geno-audit geno-data-workspaces-init geno-icons geno-onboarding geno-skills-create geno-skills-install geno-skills-status geno-tools-open-docs geno-tools-sessions-spawn geno-tools-update" markdown>
+<div class="feature-card" data-skills="geno-alias geno-audit geno-data-workspaces-init geno-icons geno-onboarding geno-skills-create geno-manager-install geno-manager-status geno-tools-sessions-spawn geno-tools-update" markdown>
 
 ### [geno-tools](geno-tools/index.md)
 
 Meta-CLI — install, update, and manage skillsets across all agents
 
-<span class="skill-count">11 skills</span>
+<span class="skill-count">10 skills</span>
 
 </div>
 
@@ -346,8 +346,8 @@ Tax filing — document parsing, checklists, CPA packet prep
 | [`geno-research-wiki`](geno-research/geno-research-wiki.md) | [geno-research](geno-research/index.md) | Build and maintain a wiki of linked markdown notes using the LLM Wiki pattern |
 | [`geno-run-kaggle-bench`](geno-kaggle/geno-run-kaggle-bench.md) | [geno-kaggle](geno-kaggle/index.md) | "Run Kaggle Benchmark" |
 | [`geno-skills-create`](geno-tools/geno-skills-create.md) | [geno-tools](geno-tools/index.md) | Scaffold a new skill in a geno ecosystem repo |
-| [`geno-skills-install`](geno-tools/geno-skills-install.md) | [geno-tools](geno-tools/index.md) | Install skills from a local geno ecosystem repo checkout globally via npx skills add |
-| [`geno-skills-status`](geno-tools/geno-skills-status.md) | [geno-tools](geno-tools/index.md) | Show the installation status of the geno ecosystem |
+| [`geno-manager-install`](geno-tools/geno-manager-install.md) | [geno-tools](geno-tools/index.md) | Install skills from a local geno ecosystem repo checkout globally via npx skills add |
+| [`geno-manager-status`](geno-tools/geno-manager-status.md) | [geno-tools](geno-tools/index.md) | Show the installation status of the geno ecosystem |
 | [`geno-specs-create`](geno-specs/geno-specs-create.md) | [geno-specs](geno-specs/index.md) | Create a new structured execution spec |
 | [`geno-specs-list`](geno-specs/geno-specs-list.md) | [geno-specs](geno-specs/index.md) | List specs with optional status and tag filters |
 | [`geno-specs-run`](geno-specs/geno-specs-run.md) | [geno-specs](geno-specs/index.md) | Pick up a spec, render its agent prompt, and execute it |
@@ -359,7 +359,6 @@ Tax filing — document parsing, checklists, CPA packet prep
 | [`geno-tax-status`](geno-taxes/geno-tax-status.md) | [geno-taxes](geno-taxes/index.md) | "Tax Filing Status" |
 | [`geno-tax-summary`](geno-taxes/geno-tax-summary.md) | [geno-taxes](geno-taxes/index.md) | "Tax Year Summary for CPA" |
 | [`geno-term-sessions-restart`](geno-term/geno-term-sessions-restart.md) | [geno-term](geno-term/index.md) | Restart coding agent sessions in a project tree after a crash by opening them as iTerm2 tabs and panes grouped by wor... |
-| [`geno-tools-open-docs`](geno-tools/geno-tools-open-docs.md) | [geno-tools](geno-tools/index.md) | Open the current repo's GitHub Pages documentation site in the default browser |
 | [`geno-tools-sessions-spawn`](geno-tools/geno-tools-sessions-spawn.md) | [geno-tools](geno-tools/index.md) | Spawn a named Claude Code session in a new Terminal window with remote-control enabled and an initial briefing |
 | [`geno-tools-update`](geno-tools/geno-tools-update.md) | [geno-tools](geno-tools/index.md) | Update installed geno ecosystem skillsets to the latest main branch |
 | [`geno-upload-kaggle`](geno-kaggle/geno-upload-kaggle.md) | [geno-kaggle](geno-kaggle/index.md) | "Upload Notebook to Kaggle" |

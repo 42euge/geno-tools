@@ -89,8 +89,8 @@ To run the resource scripts directly:
 
 ```bash
 ROOT="$CLAUDE_PLUGIN_ROOT"   # or wherever the plugin lives
-"$ROOT/skills/lifecycle/skills/install/resources/ls.sh" --available
-"$ROOT/skills/lifecycle/skills/install/resources/install.sh" geno-<name>
+"$ROOT/skills/manager/skills/install/resources/ls.sh" --available
+"$ROOT/skills/manager/skills/install/resources/install.sh" geno-<name>
 ```
 
 ## Usage
@@ -100,13 +100,13 @@ Skillsets are referenced by their full repo name (e.g. `geno-<name>` in the publ
 ```bash
 ROOT="$CLAUDE_PLUGIN_ROOT"
 
-"$ROOT/skills/lifecycle/skills/install/resources/ls.sh" --available
-"$ROOT/skills/lifecycle/skills/install/resources/install.sh" geno-<name>
-"$ROOT/skills/lifecycle/skills/install/resources/install.sh" <git-url>
-"$ROOT/skills/lifecycle/skills/install/resources/ls.sh"
-"$ROOT/skills/lifecycle/skills/status/resources/status.sh"
+"$ROOT/skills/manager/skills/install/resources/ls.sh" --available
+"$ROOT/skills/manager/skills/install/resources/install.sh" geno-<name>
+"$ROOT/skills/manager/skills/install/resources/install.sh" <git-url>
+"$ROOT/skills/manager/skills/install/resources/ls.sh"
+"$ROOT/skills/manager/skills/status/resources/status.sh"
 "$ROOT/skills/self/skills/update/resources/update.sh" [geno-<name>]
-"$ROOT/skills/lifecycle/skills/install/resources/remove.sh" geno-<name> [--keep-data]
+"$ROOT/skills/manager/skills/install/resources/remove.sh" geno-<name> [--keep-data]
 ```
 
 ## Layout

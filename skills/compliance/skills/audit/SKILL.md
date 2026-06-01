@@ -14,7 +14,7 @@ metadata:
 
 # geno-compliance-audit
 
-Validates that a `geno-{name}` repo meets the conventions required for installation and management by the geno-tools installer. Runs three tiers of checks: **required** (FAIL), **recommended** (WARN), **optional** (INFO). A repo passing all required checks is installable via `skills/lifecycle/skills/install/resources/install.sh`.
+Validates that a `geno-{name}` repo meets the conventions required for installation and management by the geno-tools installer. Runs three tiers of checks: **required** (FAIL), **recommended** (WARN), **optional** (INFO). A repo passing all required checks is installable via `skills/manager/skills/install/resources/install.sh`.
 
 ## Layout variants
 
@@ -44,7 +44,7 @@ When you need to verify a specific rule, read the matching `rules/*.md` file. Wh
 ## Procedure
 
 1. **Resolve the target.** `$ARGUMENTS` accepts:
-   - A skillset short name (e.g. `dev`, `media`) — resolve via the registry (`skills/geno-tools/lib/registry.sh` or `skills/lifecycle/skills/install/resources/ls.sh --available`)
+   - A skillset short name (e.g. `dev`, `media`) — resolve via the registry (`skills/geno-tools/lib/registry.sh` or `skills/manager/skills/install/resources/ls.sh --available`)
    - A GitHub URL — use directly
    - A local path or empty — work in-place
 
@@ -70,12 +70,14 @@ When you need to verify a specific rule, read the matching `rules/*.md` file. Wh
    ```
 
 6. **Fix all auto-fixable items.** After running checks, address every FAIL, WARN, INFO that can be:
-   - Create missing files (`CLAUDE.md`, `GEMINI.md`, `AGENTS.md`, `README.md`, `LICENSE`, `docs/`, `mkdocs.yml`) using the templates in `rules/skillset-shape.md`
+   - Create missing files (`AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `README.md`, `LICENSE`, `skills.sh.json`, docs site) using the templates in `rules/skillset-shape.md`
    - Add missing fields to `genotools.yaml` or SKILL.md frontmatter
-   - Generate `CLAUDE.md` / agent instruction files from `SKILL.md`, `genotools.yaml`, and code structure
-   - Scaffold `docs/` (`index.md`, `getting-started.md`) and `mkdocs.yml` from the template
+   - Sync `CLAUDE.md` to `AGENTS.md` if drift detected (CI-enforced rule): `cp AGENTS.md CLAUDE.md`
+   - Generate or update `skills.sh.json` from the SKILL.md frontmatter inventory
+   - Scaffold the docs site (under `.geno/geno-docs/` for namespaced layout, root for legacy) — `mkdocs.yml`, `docs/index.md`, `docs/getting-started.md`
    - Generate `README.md` from the manifest description
    - Do **not** modify the project's `.gitignore` for `.geno/` or `CLAUDE.local.md` — those belong in the global gitignore only
+   - Do **not** convert a legacy-layout repo to namespaced layout (or vice versa) without explicit user instruction — that's a structural migration, not an audit fix
 
 7. **Open a PR with the fixes.**
    - Branch: `chore/geno-audit-compliance`

@@ -1,13 +1,32 @@
 # Skillset Shape
 
-Everything a `geno-{name}` repo must have to be installable and operable across the ecosystem: manifest, versioning, umbrella skill, naming, agent instructions, docs, hygiene, agent-agnostic language, install compliance, command-prefix aliasing, and the single-source-of-truth boundary.
+Everything a `geno-{name}` repo must have to be installable and operable across the ecosystem: manifests (`genotools.yaml` + `skills.sh.json`), versioning, umbrella skill, naming, agent instructions, docs, hygiene, agent-agnostic language, install compliance, command-prefix aliasing, and the single-source-of-truth boundary.
+
+## Layout variants
+
+Every check below applies to both layouts. Where a path differs, the check accepts either:
+
+| Asset | Legacy (root) | Namespaced (`.geno/`) |
+|-------|---------------|------------------------|
+| install manifest | `genotools.yaml` | `.geno/geno-tools/genotools.yaml` |
+| canonical skills manifest | `skills.sh.json` (recommended) | `skills.sh.json` (required, at root) |
+| vision/tenets | `VISION.md`, `TENETS.md` | `.geno/geno-specs/VISION.md`, `.geno/geno-specs/TENETS.md` |
+| docs site | `docs/`, `mkdocs.yml` | `.geno/geno-docs/docs/`, `.geno/geno-docs/mkdocs.yml` |
+| installer scripts | `scripts/bootstrap.sh`, `hooks/hooks.json`, `config/defaults.yaml` | `.geno/geno-tools/{scripts,hooks,config}/...` |
+| OpenCode plugin | `.opencode/` | `.geno/plugins/opencode/` |
+| Codex marketplace listing | `.agents/` | `.geno/plugins/codex-agents/` |
+| repo agent instructions | `GENO.md` (source) + `CLAUDE.md`/`GEMINI.md`/`AGENTS.md` (pointers) | `AGENTS.md` (source) + `CLAUDE.md` (literal copy) + `GEMINI.md` (standalone) |
+
+A repo must be in one layout consistently — mixing (e.g. root `mkdocs.yml` and `.geno/geno-docs/docs/`) is itself a finding.
 
 ## Manifest — `genotools.yaml`
 
-`genotools.yaml` is the manifest file every geno-* skillset must have at its root. It's what `skills/lifecycle/skills/install/resources/install.sh` reads to know how to set up the skillset: what it's called, what version it is, whether it needs a Python venv, what scripts to symlink into `~/.geno/{project-name}/`, and what config files to copy on first install. Without a valid manifest, the installer doesn't know what it's installing and the install will fail.
+`genotools.yaml` is the install manifest every geno-* skillset must ship. It's what `skills/manager/skills/install/resources/install.sh` reads to know how to set up the skillset: what it's called, what version it is, whether it needs a Python venv, what scripts to symlink into `~/.geno/{project-name}/`, and what config files to copy on first install. Without a valid manifest, the installer doesn't know what it's installing and the install will fail.
+
+It lives at the repo root in the legacy layout, or under `.geno/geno-tools/` in the namespaced layout. Exactly one location should be used.
 
 **Required:**
-- File exists at repo root
+- File exists at the layout-appropriate location (`genotools.yaml` at root **or** `.geno/geno-tools/genotools.yaml`, not both)
 - Has a `name` field (the skillset name — `geno-` prefix is stripped if present)
 - Has a `version` field (semver string, e.g. `0.1.0`)
 - Has a non-empty `description` field
@@ -20,6 +39,25 @@ Everything a `geno-{name}` repo must have to be installable and operable across 
 - If `runtime` section exists, each entry should have `src` and `dst`
 - If `config` section exists, each entry should have `src` and `dst`
 - If `pyproject.toml` also exists, its `project.name` should match the manifest name
+
+## Canonical skills manifest — `skills.sh.json`
+
+`skills.sh.json` at the repo root is the canonical machine-readable inventory of every skill in the repo. It mirrors the schema used by `vendor/vercel-labs/agent-skills` so external consumers can enumerate skills without parsing every SKILL.md frontmatter. It is the source of truth for downstream tooling (catalog generators, dependency resolvers, plugin manifests).
+
+**Required (namespaced layout) / Recommended (legacy layout):**
+- File exists at repo root
+- Top-level shape includes `name` (skillset name) and `skills` (array)
+- Every entry in `skills` has `name`, `description`, and `path` (relative to repo root)
+- For every leaf SKILL.md under `skills/`, the manifest contains a matching entry (frontmatter `name:` matches manifest `name`, frontmatter `description:` matches manifest `description`, on-disk path matches manifest `path`)
+
+**Recommended:**
+- Manifest is regenerated whenever a skill is added, removed, or renamed
+- Versions in the manifest match the skillset's `genotools.yaml` `version` and the per-skill `metadata.version` in SKILL.md frontmatter
+
+**Drift check:**
+- Every `SKILL.md` in the repo has a corresponding entry in `skills.sh.json`
+- Every entry in `skills.sh.json` resolves to an existing `SKILL.md` on disk
+- No two entries share the same `name`
 
 ## Versioning
 
@@ -88,15 +126,34 @@ Coding agents read repo-level instruction files to understand architecture, entr
 | Claude Code | `CLAUDE.md` | Read automatically on session start |
 | Gemini CLI | `GEMINI.md` | Pointed to by `gemini-extension.json` via `contextFileName` |
 | OpenAI Codex | `AGENTS.md` | Read automatically on session start |
-| OpenCode | `.opencode/INSTALL.md` | Plugin-based — context loaded via `.opencode/plugins/` |
+| OpenCode | `.opencode/INSTALL.md` (legacy) or `.geno/plugins/opencode/INSTALL.md` (namespaced) | Plugin-based — context loaded via the OpenCode plugin entry |
 
-### Single source of truth — `GENO.md`
+### Single source of truth — two valid models
 
-Rather than maintaining duplicate content across `CLAUDE.md`, `GEMINI.md`, `AGENTS.md`, and OpenCode configs, every geno-* repo should have a single `GENO.md` file at the repo root containing all agent instructions. The per-agent files become thin pointers that import it.
+The geno ecosystem accepts two source-of-truth models for agent instructions. Pick one per repo; do not mix.
 
-`GENO.md` is the canonical instruction file — the single document any agent reads to understand the repo cold. It should contain everything an agent needs to start working without asking questions or exploring the codebase first.
+**Model A — `GENO.md` source + thin pointers (legacy):**
 
-**Required sections in GENO.md:**
+`GENO.md` at the repo root is the canonical instruction file. `CLAUDE.md`, `GEMINI.md`, and `AGENTS.md` are thin pointers that import it.
+
+- `CLAUDE.md`: `@./GENO.md`
+- `GEMINI.md`: `@./GENO.md`
+- `AGENTS.md`: `@import GENO.md`
+
+**Model B — `AGENTS.md` source + literal `CLAUDE.md` copy (namespaced / vendor-style):**
+
+`AGENTS.md` at the repo root is the canonical instruction file. `CLAUDE.md` is a **literal byte-for-byte copy** of `AGENTS.md`, kept in sync by CI (typically `.github/workflows/check-claude-md.yml`). After editing `AGENTS.md`, the maintainer runs `cp AGENTS.md CLAUDE.md`. `GEMINI.md` is a standalone context file referenced by `gemini-extension.json`.
+
+- `AGENTS.md` — full content (source)
+- `CLAUDE.md` — literal copy of `AGENTS.md`
+- `GEMINI.md` — standalone, may differ in tone/length, referenced by `gemini-extension.json` `contextFileName`
+- `GENO.md` does **not** exist
+
+The CI sync workflow at `.github/workflows/check-claude-md.yml` runs `diff -q AGENTS.md CLAUDE.md` (or equivalent) on every push and fails if they diverge.
+
+### Required content in the source-of-truth file
+
+Whether the source is `GENO.md` (Model A) or `AGENTS.md` (Model B), it must contain:
 
 1. **Title and summary** — one-line description of what this skillset does, framed agent-neutrally.
 2. **Skills table** — every skill in the repo with its name, sub-skillset group, and slash command.
@@ -112,42 +169,44 @@ Rather than maintaining duplicate content across `CLAUDE.md`, `GEMINI.md`, `AGEN
 5. **Architecture / how it works** — for skillsets with runtime code, explain entry points, key modules, data flow.
 6. **Dependencies and runtime** — venvs, external tools, system dependencies.
 
-**What NOT to put in GENO.md:**
-- Install instructions for end users (those go in `README.md` and `docs/getting-started.md`)
+**What NOT to put in the source file:**
+- Install instructions for end users (those go in `README.md` and the docs `getting-started.md`)
 - Agent-specific syntax (this file is read by all agents)
 - Transient state like current tasks (those go in `.geno/` or conversation context)
 
-### Per-agent pointer files
+### Audit rules
 
-The per-agent files are thin pointers. No content lives in them — they exist only because each agent looks for a different filename.
+**Required (Model A or Model B must hold):**
+- Either `GENO.md` exists and is non-empty (Model A) **or** `AGENTS.md` exists and is non-empty (Model B). Not neither.
+- If Model B is detected (no `GENO.md`, `AGENTS.md` is non-trivial), `CLAUDE.md` exists and is byte-for-byte identical to `AGENTS.md`.
 
-- **`CLAUDE.md`**: `@./GENO.md`
-- **`GEMINI.md`**: `@./GENO.md`
-- **`AGENTS.md`**: `@import GENO.md`
-- **`gemini-extension.json`** (if present): `"contextFileName": "GEMINI.md"`
-
-**Required:**
-- `GENO.md` exists at repo root and is non-empty
-
-**Recommended:**
-- `CLAUDE.md` exists and contains only `@./GENO.md` (no other content)
-- `GEMINI.md` exists and contains only `@./GENO.md`
-- `AGENTS.md` exists and contains only `@import GENO.md`
-- If `gemini-extension.json` exists, its `contextFileName` points to `GEMINI.md`
+**Recommended (Model A):**
+- `CLAUDE.md` contains only `@./GENO.md` (no other content)
+- `GEMINI.md` contains only `@./GENO.md`
+- `AGENTS.md` contains only `@import GENO.md`
 - No agent instruction content is duplicated across files — all substance lives in `GENO.md`
-- `GENO.md` Conventions section mentions command prefix aliasing — at minimum, states that source files use canonical `geno-` prefixed names, not aliased prefixes
-- `GENO.md` Conventions section includes skill creation guidance — at minimum, a checklist for adding a new skill
-- `GENO.md` skills table uses canonical `/geno-{name}-*` slash command names, not aliased forms like `/gt-*`
-- `GENO.md` Conventions section includes versioning guidance — at minimum, identifies which files contain the version and states that the version should be bumped when skills are added, removed, or behavior changes
 
-## Documentation — `docs/`
+**Recommended (Model B):**
+- `.github/workflows/check-claude-md.yml` exists and runs a diff between `AGENTS.md` and `CLAUDE.md` on push
+- `GEMINI.md` exists as a standalone context file
+- If `gemini-extension.json` exists, its `contextFileName` points to `GEMINI.md`
+
+**Recommended (both models, applies to whichever file is the source):**
+- Conventions section mentions command prefix aliasing — at minimum, states that source files use canonical `geno-` prefixed names, not aliased prefixes
+- Conventions section includes skill creation guidance — at minimum, a checklist for adding a new skill
+- Skills table uses canonical `/geno-{name}-*` slash command names, not aliased forms like `/gt-*`
+- Conventions section includes versioning guidance — at minimum, identifies which files contain the version and states that the version should be bumped when skills are added, removed, or behavior changes
+
+## Documentation — `docs/` or `.geno/geno-docs/docs/`
 
 Every geno-* repo should ship a MkDocs Material documentation site. This is how users and contributors learn what the skillset does, how to use it, and how it's built. The convention follows geno-tools' own docs structure, minus the animated landing page.
+
+In the legacy layout the docs live at the repo root (`docs/` + `mkdocs.yml`). In the namespaced layout they live under `.geno/geno-docs/` (`.geno/geno-docs/docs/` + `.geno/geno-docs/mkdocs.yml`).
 
 ### Required structure
 
 ```
-docs/
+docs/                              # at root or under .geno/geno-docs/
 ├── index.md                       # docs home — title, summary, nav links
 ├── getting-started.md             # install, prerequisites, first use
 └── assets/
@@ -169,19 +228,62 @@ docs/
 
 ### `mkdocs.yml`
 
-Each repo needs a `mkdocs.yml` at the repo root following geno-tools' theme configuration (Material, Inter/JetBrains Mono fonts, light/dark toggle, navigation features) — but skipping `custom_dir: docs/overrides`, `extra_javascript` for `face.js`, and the `docs-home.md` hero page.
+Each repo needs a `mkdocs.yml` (at repo root for legacy, under `.geno/geno-docs/` for namespaced) following geno-tools' theme configuration (Material, Inter/JetBrains Mono fonts, light/dark toggle, navigation features) — but skipping `custom_dir: docs/overrides`, `extra_javascript` for `face.js`, and the `docs-home.md` hero page.
 
 **Recommended:**
-- `docs/` directory exists
+- A `docs/` directory exists at the layout-appropriate location
 - `docs/index.md` exists
 - `docs/getting-started.md` exists
-- `mkdocs.yml` exists at repo root
+- `mkdocs.yml` exists at the layout-appropriate location
 - `mkdocs.yml` uses `material` theme
 
 **Optional:**
 - `docs/assets/icon.png` exists
 - `docs/cli-reference.md` exists (if the skillset exposes CLI commands)
 - `mkdocs.yml` has `site_url` and `repo_url` configured
+
+**Layout-consistency:**
+- A repo must not have both root `mkdocs.yml` and `.geno/geno-docs/mkdocs.yml` (or both root `docs/` and `.geno/geno-docs/docs/`) — pick one layout
+
+## Vision and tenets — `VISION.md` / `TENETS.md`
+
+The strategic-direction docs (`VISION.md` for the long-term goal, `TENETS.md` for architectural principles) live at the repo root in the legacy layout, or under `.geno/geno-specs/` in the namespaced layout. Drafts and feature specs live alongside them in `.geno/geno-specs/.specs/`.
+
+**Recommended:**
+- `VISION.md` exists at the layout-appropriate location (root or `.geno/geno-specs/VISION.md`) and is non-empty
+- `TENETS.md` exists at the layout-appropriate location (root or `.geno/geno-specs/TENETS.md`) and is non-empty
+- The source-of-truth instruction file (`GENO.md` or `AGENTS.md`) imports both via `@./VISION.md` / `@./TENETS.md` (legacy) or `@./.geno/geno-specs/VISION.md` / `@./.geno/geno-specs/TENETS.md` (namespaced)
+
+**Layout-consistency:**
+- A repo must not have both root `VISION.md` and `.geno/geno-specs/VISION.md` (same for TENETS.md) — pick one layout
+
+## Plugin manifests and installer assets
+
+CLI-specific plugin manifests live at the repo root (so the various agents can find them):
+
+- `.claude-plugin/plugin.json` — Claude Code
+- `.codex-plugin/plugin.json` — Codex CLI
+- `.cursor-plugin/plugin.json` — Cursor
+- `gemini-extension.json` — Gemini CLI
+
+Installer-side assets that bootstrap the plugin live at the repo root in the legacy layout, or under `.geno/geno-tools/` in the namespaced layout:
+
+| Asset | Legacy | Namespaced |
+|-------|--------|------------|
+| Bootstrap script | `scripts/bootstrap.sh` | `.geno/geno-tools/scripts/bootstrap.sh` |
+| Hooks manifest | `hooks/hooks.json` | `.geno/geno-tools/hooks/hooks.json` |
+| Default config | `config/defaults.yaml` | `.geno/geno-tools/config/defaults.yaml` |
+| OpenCode plugin | `.opencode/` | `.geno/plugins/opencode/` |
+| Codex marketplace listing | `.agents/` | `.geno/plugins/codex-agents/` |
+
+The plugin manifests at the root must point at whichever location the assets actually live in. For namespaced layouts: `.claude-plugin/plugin.json` references `${CLAUDE_PLUGIN_ROOT}/.geno/geno-tools/scripts/bootstrap.sh`, the hooks manifest path resolves to `.geno/geno-tools/hooks/hooks.json`, etc.
+
+**Required:**
+- The bootstrap script, hooks manifest, and defaults config exist at the layout-appropriate location
+- Hooks manifest paths resolve correctly (no broken `${CLAUDE_PLUGIN_ROOT}/...` references)
+
+**Recommended:**
+- Plugin manifests reference layout-appropriate paths (legacy ↔ namespaced consistency)
 
 ## Repo Hygiene
 
@@ -218,9 +320,9 @@ The geno ecosystem is CLI-agnostic — skillsets work with Claude Code, Gemini C
 
 ## Installation Compliance
 
-Geno-* skillsets must be installed through the geno-tools install resource script, not by calling `npx skills add` directly. The installer at `skills/lifecycle/skills/install/resources/install.sh` does more than just register skills — it clones the repo, creates venvs, materializes bin symlinks, and sets up the `~/.geno/geno-{name}/` directory structure. Bypassing it leaves the skillset partially installed.
+Geno-* skillsets must be installed through the geno-tools install resource script, not by calling `npx skills add` directly. The installer at `skills/manager/skills/install/resources/install.sh` does more than just register skills — it clones the repo, creates venvs, materializes bin symlinks, and sets up the `~/.geno/geno-{name}/` directory structure. Bypassing it leaves the skillset partially installed.
 
-Docs should always reference the canonical install script path: `"$CLAUDE_PLUGIN_ROOT/skills/lifecycle/skills/install/resources/install.sh" geno-{name}`. Command aliases are user-configured per installation, so they must never appear in repo documentation.
+Docs should always reference the canonical install script path: `"$CLAUDE_PLUGIN_ROOT/skills/manager/skills/install/resources/install.sh" geno-{name}`. Command aliases are user-configured per installation, so they must never appear in repo documentation.
 
 **Recommended:**
 - No file in the repo contains `npx skills add` as a user-facing install instruction. Check `README.md`, `docs/**/*.md`, `GENO.md`, `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, and `SKILL.md` for this pattern.
