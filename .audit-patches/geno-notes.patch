@@ -1,0 +1,89 @@
+From 35c6d69e5bd141f483ef78b7f1fb17d5058c1165 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Tue, 2 Jun 2026 00:14:24 +0000
+Subject: [PATCH] chore(geno-audit): bring repo into ecosystem compliance
+
+- Add SKILL.md for all 18 CLI subcommands grouped into tasks, inbox, items,
+  notes, knowledge, site, and workspaces sub-skillsets
+- Fix version mismatch: align __init__.py __version__ to 0.1.0 (genotools.yaml)
+- Remove Claude-specific hardcoded paths from install.sh; rewrite to use
+  npx skills add for agent-agnostic skill registration
+- Update umbrella SKILL.md, root SKILL.md, GENO.md skills table and repo
+  structure, and package.json skills map to list all sub-skills
+---
+ GENO.md                                      | 68 ++++++++++++++++++--
+ SKILL.md                                     | 20 ++++++
+ geno_notes/__init__.py                       |  4 +-
+ install.sh                                   | 51 +++++++--------
+ package.json                                 | 24 ++++++-
+ skills/geno-notes-inbox-add/SKILL.md         | 46 +++++++++++++
+ skills/geno-notes-inbox-capture/SKILL.md     | 46 +++++++++++++
+ skills/geno-notes-inbox-triage/SKILL.md      | 47 ++++++++++++++
+ skills/geno-notes-items-list/SKILL.md        | 58 +++++++++++++++++
+ skills/geno-notes-items-search/SKILL.md      | 55 ++++++++++++++++
+ skills/geno-notes-items-show/SKILL.md        | 54 ++++++++++++++++
+ skills/geno-notes-knowledge-compile/SKILL.md | 57 ++++++++++++++++
+ skills/geno-notes-knowledge-reindex/SKILL.md | 57 ++++++++++++++++
+ skills/geno-notes-notes-note/SKILL.md        | 56 ++++++++++++++++
+ skills/geno-notes-notes-promote/SKILL.md     | 55 ++++++++++++++++
+ skills/geno-notes-site-generate/SKILL.md     | 58 +++++++++++++++++
+ skills/geno-notes-site-lint/SKILL.md         | 56 ++++++++++++++++
+ skills/geno-notes-tasks-abandon/SKILL.md     | 46 +++++++++++++
+ skills/geno-notes-tasks-done/SKILL.md        | 46 +++++++++++++
+ skills/geno-notes-tasks-start/SKILL.md       | 47 ++++++++++++++
+ skills/geno-notes-workspaces-init/SKILL.md   | 60 +++++++++++++++++
+ skills/geno-notes-workspaces-path/SKILL.md   | 53 +++++++++++++++
+ skills/geno-notes-workspaces-scope/SKILL.md  | 52 +++++++++++++++
+ skills/geno-notes/SKILL.md                   | 25 ++++++-
+ 24 files changed, 1100 insertions(+), 41 deletions(-)
+ create mode 100644 skills/geno-notes-inbox-add/SKILL.md
+ create mode 100644 skills/geno-notes-inbox-capture/SKILL.md
+ create mode 100644 skills/geno-notes-inbox-triage/SKILL.md
+ create mode 100644 skills/geno-notes-items-list/SKILL.md
+ create mode 100644 skills/geno-notes-items-search/SKILL.md
+ create mode 100644 skills/geno-notes-items-show/SKILL.md
+ create mode 100644 skills/geno-notes-knowledge-compile/SKILL.md
+ create mode 100644 skills/geno-notes-knowledge-reindex/SKILL.md
+ create mode 100644 skills/geno-notes-notes-note/SKILL.md
+ create mode 100644 skills/geno-notes-notes-promote/SKILL.md
+ create mode 100644 skills/geno-notes-site-generate/SKILL.md
+ create mode 100644 skills/geno-notes-site-lint/SKILL.md
+ create mode 100644 skills/geno-notes-tasks-abandon/SKILL.md
+ create mode 100644 skills/geno-notes-tasks-done/SKILL.md
+ create mode 100644 skills/geno-notes-tasks-start/SKILL.md
+ create mode 100644 skills/geno-notes-workspaces-init/SKILL.md
+ create mode 100644 skills/geno-notes-workspaces-path/SKILL.md
+ create mode 100644 skills/geno-notes-workspaces-scope/SKILL.md
+
+diff --git a/GENO.md b/GENO.md
+index ac91d45..41155fe 100644
+--- a/GENO.md
++++ b/GENO.md
+@@ -7,11 +7,29 @@ Project journal for AI coding agents: tasks, timestamped journal entries, plans.
+ | Skill | Sub-skillset | Slash command |
+ |-------|-------------|---------------|
+ | geno-notes | — | — (umbrella) |
++| geno-notes-tasks-start | tasks | /geno-notes-tasks-start |
++| geno-notes-tasks-done | tasks | /geno-notes-tasks-done |
++| geno-notes-tasks-abandon | tasks | /geno-notes-tasks-abandon |
++| geno-notes-inbox-add | inbox | /geno-notes-inbox-add |
++| geno-notes-inbox-capture | inbox | /geno-notes-inbox-capture |
++| geno-notes-inbox-triage | inbox | /geno-notes-inbox-triage |
++| geno-notes-items-list | items | /geno-notes-items-list |
++| geno-notes-items-show | items | /geno-notes-items-show |
++| geno-notes-items-search | items | /geno-notes-items-search |
++| geno-notes-notes-note | notes | /geno-notes-notes-note |
++| geno-notes-notes-promote | notes | /geno-notes-notes-promote |
++| geno-notes-knowledge-compile | knowledge | /geno-notes-knowledge-compile |
++| geno-notes-knowledge-reindex | knowledge | /geno-notes-knowledge-reindex |
++| geno-notes-site-generate | site | /geno-notes-site-generate |
++| geno-notes-site-lint | site | /geno-notes-site-lint |
++| geno-notes-vault-generate | vault | /geno-notes-vault-generate |
++| geno-notes-workspaces-init | workspaces | /geno-notes-workspaces-init |
++| geno-notes-workspaces-path | workspaces | /geno-notes-workspaces-path |
++| geno-notes-workspaces-scope | workspaces | /geno-notes-workspaces-scope |
+ | geno-notes-init | init | /geno-notes-init |
+ | geno-notes-wiki-compile | wiki | /geno-notes-wiki-compile |
+ | geno-notes-wiki-lint | wiki | /geno-notes-wiki-lint |
+ | geno-notes-sites-generate | sites | /geno-notes-sites-generate |
+-| geno-notes-vault-generate | vault | /geno-notes-vault-generate |
