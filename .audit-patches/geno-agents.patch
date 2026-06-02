@@ -1,0 +1,135 @@
+From 427558fc3dde76a9ffa3e720ef11f8ee7e79afa0 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Tue, 2 Jun 2026 00:12:13 +0000
+Subject: [PATCH] chore(geno-audit): bring repo into ecosystem compliance
+
+- genotools.yaml: fix name field from 'agents' to 'geno-agents' (S2)
+- geno_agents/__init__.py: add __version__ = "0.1.0" (S3)
+- GENO.md: replace locally-redefined Adding-a-new-skill checklist and verbatim Versioning rules with canonical pointers to geno-tools GENO.md (S13); trim /gt- alias example from Prefix aliasing blurb
+- SKILL.md + skills/geno-agents/SKILL.md: replace /gt-supercharge with /geno-agents-supercharge (S12)
+- skills/geno-agents-supercharge/SKILL.md: replace /gt-supercharge, /gt-kaggle-benchmarks-task-review, /gt-kaggle-benchmarks-task-generate with canonical /geno-* names (S12)
+- skills/geno-agents-tasks-start/SKILL.md: replace /gt-tasks-start with /geno-agents-tasks-start (S12)
+---
+ GENO.md                                 | 15 ++++++---------
+ SKILL.md                                |  2 +-
+ geno_agents/__init__.py                 |  1 +
+ genotools.yaml                          |  2 +-
+ skills/geno-agents-supercharge/SKILL.md |  6 +++---
+ skills/geno-agents-tasks-start/SKILL.md |  2 +-
+ skills/geno-agents/SKILL.md             |  2 +-
+ 7 files changed, 14 insertions(+), 16 deletions(-)
+
+diff --git a/GENO.md b/GENO.md
+index 44b332c..17b0843 100644
+--- a/GENO.md
++++ b/GENO.md
+@@ -59,15 +59,12 @@ Projects declare agent identity via a `.geno-agents` YAML file at the repo root.
+ 
+ ### Prefix aliasing
+ 
+-Source code and documentation use the canonical `geno-` prefix (e.g., `geno-agents`, `/geno-agents-supercharge`). Short `/gt-` aliases (e.g., `/gt-supercharge`, `/gt-agents`) are configured per-install by `geno-tools` and are not defined in this repo. When adding new skills or commands, always use the canonical `geno-agents` prefix; the installer handles alias generation.
++Source code and documentation use the canonical `geno-` prefix (e.g., `geno-agents`, `/geno-agents-supercharge`). Short `/gt-` aliases are configured per-install by `geno-tools` and are never defined in this repo. When adding new skills or commands, always use the canonical `geno-agents` prefix; the installer handles alias generation.
+ 
+-### Adding a new skill
++### Versioning
+ 
+-To add a new skill to the geno-agents skillset:
++Follow the ecosystem-wide versioning convention documented in `geno-tools` GENO.md. The canonical version lives in `genotools.yaml`; keep `pyproject.toml`, `package.json`, and `geno_agents/__init__.py` in sync with it.
+ 
+-1. Create a directory under `skills/<skill-name>/` with a `SKILL.md` file containing YAML front-matter (`name`, `description`, `allowed-tools`, `license`, `metadata`) and usage instructions.
+-2. Register the skill in the `Skills` table in this file (`GENO.md`).
+-3. Add the skill to the `Available skills` table in the umbrella `SKILL.md`.
+-4. If the skill needs new CLI subcommands, add them in `geno_agents/cli.py`.
+-5. If the skill needs new MCP tools, add them in `geno_agents/mcp_server.py` and list them in the `allowed-tools` front-matter field.
+-6. Update `genotools.yaml` with the new skill entry so `geno-tools install` picks it up.
++### Adding new skills
++
++Follow the ecosystem-wide "Adding a new skill" checklist in `geno-tools` GENO.md.
+diff --git a/SKILL.md b/SKILL.md
+index 77ec2d2..ac7fa7e 100644
+--- a/SKILL.md
++++ b/SKILL.md
+@@ -4,7 +4,7 @@ description: >-
+   Agent coordination — register as an agent, see who's online, update status.
+   Also includes autonomous agent loops (supercharge).
+   Use when user says /geno-agents, wants to register this session, check who's online,
+-  update what they're working on, or /gt-supercharge.
++  update what they're working on, or /geno-agents-supercharge.
+ allowed-tools: "Bash(geno-agents *) mcp__geno-agents__list_agents mcp__geno-agents__who mcp__geno-agents__whois mcp__geno-agents__update_agent mcp__geno-agents__register_agent"
+ argument-hint: "[who|whois|ls|register|update|status] [args...]"
+ license: MIT
+diff --git a/geno_agents/__init__.py b/geno_agents/__init__.py
+index e69de29..3dc1f76 100644
+--- a/geno_agents/__init__.py
++++ b/geno_agents/__init__.py
+@@ -0,0 +1 @@
++__version__ = "0.1.0"
+diff --git a/genotools.yaml b/genotools.yaml
+index af44b62..b142fbb 100644
+--- a/genotools.yaml
++++ b/genotools.yaml
+@@ -1,4 +1,4 @@
+-name: agents
++name: geno-agents
+ version: "0.1.0"
+ description: "Agent coordination layer — registration, discovery, and presence for multi-agent systems"
+ 
+diff --git a/skills/geno-agents-supercharge/SKILL.md b/skills/geno-agents-supercharge/SKILL.md
+index b8962cd..f285263 100644
+--- a/skills/geno-agents-supercharge/SKILL.md
++++ b/skills/geno-agents-supercharge/SKILL.md
+@@ -3,7 +3,7 @@ name: geno-agents-supercharge
+ description: >-
+   Run an extended autonomous work session across benchmark tasks with
+   structured cycles of implementation, reflection, and research.
+-  Use when the user says /gt-supercharge, /geno-agents-supercharge, or asks
++  Use when the user says /geno-agents-supercharge, or asks
+   for a long-running autonomous run across tasks.
+ disable-model-invocation: true
+ argument-hint: "[duration] [scope]  e.g. 'go!', '4h change_blindness', '12h all'"
+@@ -81,7 +81,7 @@ Three specialized agent roles cycle through work:
+ - Writes a brief handoff note to `checkpoints/impl_<cycle>.md`
+ 
+ ### Evaluator (runs every 2-3 cycles)
+-- Pulls latest results from Kaggle using `/gt-kaggle-benchmarks-task-review`
++- Pulls latest results from Kaggle using `/geno-kaggle-benchmarks-task-review`
+ - If no new results, checks if a run is in progress or needs to be triggered
+ - Compares results against previous runs
+ - Writes evaluation to the task's `review/` folder
+@@ -191,7 +191,7 @@ After all cycles or early stop:
+ ## What NOT to Do
+ 
+ - Don't spend multiple cycles on the same issue without trying a different approach
+-- Don't create new tasks without using `/gt-kaggle-benchmarks-task-generate`
++- Don't create new tasks without using `/geno-kaggle-benchmarks-task-generate`
+ - Don't modify notebooks without updating the timestamp
+ - Don't push broken code — verify changes make sense before committing
+ - Don't ignore CLAUDE.md rules (self-contained notebooks, llm as list, etc.)
+diff --git a/skills/geno-agents-tasks-start/SKILL.md b/skills/geno-agents-tasks-start/SKILL.md
+index c614003..f0ced30 100644
+--- a/skills/geno-agents-tasks-start/SKILL.md
++++ b/skills/geno-agents-tasks-start/SKILL.md
+@@ -4,7 +4,7 @@ description: >-
+   Pick up a task from the current workspace's geno-notes project scope,
+   plan if needed, and start executing. Workspace-only — global-scope tasks
+   are out of scope for v0.1.
+-  Installed by geno-tools as the /gt-tasks-start slash command.
++  Installed by geno-tools as the /geno-agents-tasks-start slash command.
+ license: MIT
+ metadata:
+   author: 42euge
+diff --git a/skills/geno-agents/SKILL.md b/skills/geno-agents/SKILL.md
+index 7a3ceaa..4964bb7 100644
+--- a/skills/geno-agents/SKILL.md
++++ b/skills/geno-agents/SKILL.md
+@@ -4,7 +4,7 @@ description: >-
+   Agent coordination — register as an agent, see who's online, update status.
+   Also includes autonomous agent loops (supercharge).
+   Use when user says /geno-agents, wants to register this session, check who's online,
+-  update what they're working on, or /gt-supercharge.
++  update what they're working on, or /geno-agents-supercharge.
+ allowed-tools: "Bash(geno-agents *) mcp__geno-agents__list_agents mcp__geno-agents__who mcp__geno-agents__whois mcp__geno-agents__update_agent mcp__geno-agents__register_agent"
+ argument-hint: "[who|whois|ls|register|update|status] [args...]"
+ license: MIT
+-- 
+2.43.0

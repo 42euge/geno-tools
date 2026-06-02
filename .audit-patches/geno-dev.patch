@@ -1,0 +1,135 @@
+From 9e641d385f476f52ded9feb68bf13b0a1a07942b Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Tue, 2 Jun 2026 00:17:21 +0000
+Subject: [PATCH] chore(geno-audit): bring geno-dev into ecosystem compliance
+
+---
+ GENO.md                                  | 15 +++++++++++----
+ SKILL.md                                 |  4 ++--
+ skills/geno-dev-branches-audit/SKILL.md  |  2 +-
+ skills/geno-dev-prs-check/SKILL.md       |  2 +-
+ skills/geno-dev-sessions-remote/SKILL.md |  6 +++---
+ skills/geno-dev/SKILL.md                 |  5 +++--
+ 6 files changed, 21 insertions(+), 13 deletions(-)
+
+diff --git a/GENO.md b/GENO.md
+index 28d5e79..a21e29d 100644
+--- a/GENO.md
++++ b/GENO.md
+@@ -12,6 +12,7 @@ Developer and infrastructure skills for AI coding agents: task execution from la
+ | geno-dev-worktrees-manage | worktrees | /geno-dev-worktrees-manage |
+ | geno-dev-workspaces-init | workspaces | /geno-dev-workspaces-init |
+ | geno-dev-sessions-fork | sessions | /geno-dev-sessions-fork |
++| geno-dev-sessions-remote | sessions | /geno-dev-sessions-remote |
+ | geno-dev-prs-check | prs | /geno-dev-prs-check |
+ | geno-dev-branches-audit | branches | /geno-dev-branches-audit |
+ | geno-dev-scheduling-snooze | scheduling | /geno-dev-scheduling-snooze |
+@@ -32,6 +33,7 @@ geno-dev/
+ │   ├── geno-dev/        #   umbrella
+ │   ├── geno-dev-commits-rewrite/
+ │   ├── geno-dev-sessions-fork/
++│   ├── geno-dev-sessions-remote/
+ │   ├── geno-dev-tasks-start/
+ │   ├── geno-dev-workspaces-init/
+ │   ├── geno-dev-worktrees-manage/
+@@ -72,8 +74,13 @@ Pure markdown skillset — no Python package, no venv, no scripts. Each skill is
+ 
+ ## Conventions
+ 
+-- Skill directories live under `skills/` and must contain a `SKILL.md` with valid frontmatter.
+ - The `.geno/` directory and `CLAUDE.local.md` are never committed — they hold machine-local state.
+-- This skill never modifies a project's `.gitignore` or tracked config files.
+-- **Prefix aliasing**: Slash commands use the canonical `geno-` prefix in source (e.g., `/geno-dev-tasks-start`). Short `/gt-` aliases are configured per-install by geno-tools and are not part of the skill source.
+-- **Adding a new skill**: Create a directory under `skills/` named after the skill, add a `SKILL.md` with valid frontmatter (name, description, argument-hint, license, metadata), then register the skill in the skills table and repo structure tree in this file.
++- This skillset never modifies a project's `.gitignore` or tracked config files.
++
++### Command prefix aliasing
++
++Slash commands in this repo always use the canonical `geno-` prefix (e.g., `/geno-dev-tasks-start`). The prefix users actually type at runtime (`/gt-`, `/geno-`, or bare `/`) is a user preference configured in `~/.geno/config.yaml`. Never hardcode an aliased prefix like `gt-` in SKILL.md descriptions, GENO.md, or any committed file.
++
++### Versioning
++
++The canonical version lives in `genotools.yaml` (`version` field). The same value must appear in `package.json` (`version`) and root `SKILL.md` (`metadata.version`). Bump the version whenever skills are added, removed, or behavior changes. Keep all three files in sync.
+diff --git a/SKILL.md b/SKILL.md
+index 86e6752..ee0a29e 100644
+--- a/SKILL.md
++++ b/SKILL.md
+@@ -8,8 +8,8 @@ description: >-
+   scheduled snoozing, and skill retrospectives.
+   Use when user says /geno-dev-tasks-start, /geno-dev-commits-rewrite,
+   /geno-dev-worktrees-manage, /geno-dev-workspaces-init, /geno-dev-sessions-fork,
+-  /geno-dev-feature-ship, /geno-dev-issue-work, /geno-dev-loops-drift,
+-  /geno-dev-loops-turbocharge, /geno-dev-loops-cruise,
++  /geno-dev-sessions-remote, /geno-dev-feature-ship, /geno-dev-issue-work,
++  /geno-dev-loops-drift, /geno-dev-loops-turbocharge, /geno-dev-loops-cruise,
+   /geno-dev-loops-autopilot, /geno-dev-loops-boost,
+   /geno-dev-loops-ignition, /geno-dev-prs-check, /geno-dev-branches-audit,
+   /geno-dev-scheduling-snooze, or /geno-dev-skills-retro.
+diff --git a/skills/geno-dev-branches-audit/SKILL.md b/skills/geno-dev-branches-audit/SKILL.md
+index 357b165..a5f078c 100644
+--- a/skills/geno-dev-branches-audit/SKILL.md
++++ b/skills/geno-dev-branches-audit/SKILL.md
+@@ -153,7 +153,7 @@ Example output:
+ | chore/cleanup | 1 | 60d | — | — | STALE |
+ | feat/new-auth | 5 | 2d | ~/.geno/worktrees/geno-dev/feat/new-auth | — | NEEDS PR |
+ | docs/improve-site | 8 | 1d | — | [#52](url) | PR OPEN |
+-| feat/gt-snooze | 12 | 3d | ~/.geno/worktrees/geno-dev/feat/gt-snooze | [#55](url) | PR DRAFT |
++| feat/geno-dev-scheduling-snooze | 12 | 3d | ~/.geno/worktrees/geno-dev/feat/geno-dev-scheduling-snooze | [#55](url) | PR DRAFT |
+ | stale-experiment | 0 | 90d | — | — | NO CHANGES |
+ ```
+ 
+diff --git a/skills/geno-dev-prs-check/SKILL.md b/skills/geno-dev-prs-check/SKILL.md
+index 978fda0..c3e16d8 100644
+--- a/skills/geno-dev-prs-check/SKILL.md
++++ b/skills/geno-dev-prs-check/SKILL.md
+@@ -2,7 +2,7 @@
+ name: geno-dev-prs-check
+ description: >-
+   Check open PRs for repos in the current session and show which ones
+-  may need to be closed. Use when user says /geno-dev-prs-check or /gt-pr.
++  may need to be closed. Use when user says /geno-dev-prs-check.
+ argument-hint: "[repo|--all]"
+ license: MIT
+ metadata:
+diff --git a/skills/geno-dev-sessions-remote/SKILL.md b/skills/geno-dev-sessions-remote/SKILL.md
+index b1943c3..a95e9d4 100644
+--- a/skills/geno-dev-sessions-remote/SKILL.md
++++ b/skills/geno-dev-sessions-remote/SKILL.md
+@@ -1,8 +1,8 @@
+ ---
+ name: geno-dev-sessions-remote
+ description: >-
+-  Start a Claude Code session with remote access in a workspace directory.
+-  Opens a new Terminal window with claude --remote-control.
++  Start a remote-access agent session in a workspace directory.
++  Opens a new Terminal window running the agent's remote-control feature.
+   Use when user says /geno-dev-sessions-remote.
+ argument-hint: "[workspace-path] [--name <session-name>]"
+ license: MIT
+@@ -13,7 +13,7 @@ metadata:
+ 
+ # Start Remote Session
+ 
+-Launch a Claude Code session with remote access enabled in a target workspace. Opens a new Terminal window running `claude --remote-control`, which provides a URL for connecting from any browser or device.
++Launch a remote-access agent session in a target workspace. Opens a new Terminal window running `claude --remote-control`, which provides a URL for connecting from any browser or device.
+ 
+ ## Usage
+ 
+diff --git a/skills/geno-dev/SKILL.md b/skills/geno-dev/SKILL.md
+index 5536013..29a571f 100644
+--- a/skills/geno-dev/SKILL.md
++++ b/skills/geno-dev/SKILL.md
+@@ -7,8 +7,9 @@ description: >-
+   PR checking and branch auditing, scheduled snoozing, and skill retrospectives.
+   Use when user says /geno-dev-tasks-start, /geno-dev-commits-rewrite,
+   /geno-dev-worktrees-manage, /geno-dev-workspaces-init, /geno-dev-sessions-fork,
+-  /geno-dev-feature-ship, /geno-dev-issue-work, /geno-dev-prs-check,
+-  /geno-dev-branches-audit, /geno-dev-scheduling-snooze, or /geno-dev-skills-retro.
++  /geno-dev-sessions-remote, /geno-dev-feature-ship, /geno-dev-issue-work,
++  /geno-dev-prs-check, /geno-dev-branches-audit, /geno-dev-scheduling-snooze,
++  or /geno-dev-skills-retro.
+ license: MIT
+ metadata:
+   author: 42euge
+-- 
+2.43.0
