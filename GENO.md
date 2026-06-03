@@ -55,7 +55,9 @@ geno-tools/
 │   ├── geno-skills-create/SKILL.md #  skill scaffolder
 │   ├── geno-skills-install/SKILL.md #  local skill installer
 │   ├── geno-skills-status/SKILL.md #  ecosystem status reporter
+│   ├── geno-tools-create-skillset-repo/SKILL.md # skillset repo scaffolder
 │   ├── geno-tools-improve/SKILL.md #  self-improvement cycle
+│   ├── geno-tools-sessions-spawn/SKILL.md # spawn named agent sessions
 │   ├── geno-tools-update/SKILL.md #   ecosystem updater
 │   └── geno-tools-open-docs/SKILL.md      # docs site opener
 ├── config/defaults.yaml           # reference config with aliases schema
