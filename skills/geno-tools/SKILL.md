@@ -45,7 +45,7 @@ Install by full repo name (e.g. `geno-tools install geno-<name>`):
 | geno-skills-status | Show version, commit, and freshness of installed skillsets |
 | geno-tools-improve | Run the self-improvement cycle — health report, retro triage, session mining |
 | geno-tools-open-docs | Open the geno-tools documentation site |
-| geno-tools-sessions-spawn | Spawn a named agent session in a new Terminal window with remote-control enabled |
+| geno-tools-sessions-spawn | Spawn a named agent session in a new Terminal window |
 | geno-tools-update | Pull the latest version of installed skillsets and re-register with all agents |
 
 ## Commands
