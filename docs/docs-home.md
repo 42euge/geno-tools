@@ -83,11 +83,11 @@ Compose skills across agents, combine external innovation with private knowledge
     /geno-tools promote geno-<name> exp-1    # merge back to main
     ```
 
-=== "Gemini CLI"
+=== "Antigravity CLI"
 
     ```bash
-    gemini extensions install https://github.com/42euge/geno-tools
-    bash ~/.gemini/extensions/geno-tools/scripts/bootstrap.sh
+    agy plugin install https://github.com/42euge/geno-tools
+    bash ~/.gemini/antigravity-cli/plugins/geno-tools/scripts/bootstrap.sh
 
     /geno-tools ls --available               # see the registry
     /geno-tools install geno-<name>          # install a skillset
@@ -110,7 +110,7 @@ Compose skills across agents, combine external innovation with private knowledge
 :   Uninstall replays install in reverse. No orphaned files, ever.
 
 :material-puzzle-outline: **Agent-agnostic**
-:   Target adapters for Claude Code, geno-cli, Codex, and Gemini CLI.
+:   Target adapters for Claude Code, geno-cli, Codex, and Antigravity CLI.
 
 :material-sync: **Lifecycle-driven**
 :   Every skill follows discover, absorb, evaluate, govern, evolve. The tooling enforces it.

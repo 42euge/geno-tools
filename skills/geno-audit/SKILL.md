@@ -171,13 +171,13 @@ Coding agents read repo-level instruction files to understand architecture, entr
 | Agent | Instruction file | Notes |
 |-------|-----------------|-------|
 | Claude Code | `CLAUDE.md` | Read automatically on session start |
-| Gemini CLI | `GEMINI.md` | Pointed to by `gemini-extension.json` via `contextFileName` |
 | OpenAI Codex | `AGENTS.md` | Read automatically on session start |
+| Antigravity CLI | `AGENTS.md` | Read as project-level agent instructions |
 | OpenCode | `.opencode/INSTALL.md` | Plugin-based — context loaded via `.opencode/plugins/` |
 
 ### Single source of truth — `GENO.md`
 
-Rather than maintaining duplicate content across `CLAUDE.md`, `GEMINI.md`, `AGENTS.md`, and OpenCode configs, every geno-* repo should have a single `GENO.md` file at the repo root containing all agent instructions. The per-agent files become thin pointers that import it:
+Rather than maintaining duplicate content across `CLAUDE.md`, `AGENTS.md`, and OpenCode configs, every geno-* repo should have a single `GENO.md` file at the repo root containing all agent instructions. The per-agent files become thin pointers that import it:
 
 ### What goes in `GENO.md`
 
@@ -251,16 +251,6 @@ The per-agent files are thin pointers. No content lives in them — they exist o
 @import GENO.md
 ```
 
-**`gemini-extension.json`** (if present):
-```json
-{
-  "name": "geno-{name}",
-  "description": "...",
-  "version": "0.1.0",
-  "contextFileName": "GEMINI.md"
-}
-```
-
 This way, updating `GENO.md` updates every agent at once. No content lives in the per-agent files — they are pure pointers.
 
 ### Audit checks
@@ -270,9 +260,8 @@ This way, updating `GENO.md` updates every agent at once. No content lives in th
 
 **Recommended:**
 - `CLAUDE.md` exists and contains only `@./GENO.md` (no other content)
-- `GEMINI.md` exists and contains only `@./GENO.md`
 - `AGENTS.md` exists and contains only `@import GENO.md`
-- If `gemini-extension.json` exists, its `contextFileName` points to `GEMINI.md`
+- If `plugin.json` exists, it identifies the Antigravity plugin and keeps skills in the shared `skills/` directory
 - No agent instruction content is duplicated across files — all substance lives in `GENO.md`
 - `GENO.md` contains a Conventions section (a heading matching `Conventions`, case-insensitive)
 - `GENO.md` Conventions section mentions command prefix aliasing — at minimum, states that source files use canonical `geno-` prefixed names for slash commands, not aliased prefixes
@@ -402,7 +391,7 @@ General repo quality checks. None block installation, but they prevent common is
 
 ## Agent-Agnostic Language
 
-The geno ecosystem is CLI-agnostic — skillsets work with Claude Code, Gemini CLI, Codex, OpenCode, and any future coding agent. Documentation and user-facing text must reflect this. Referring to "Claude Code" as if it's the only supported agent misleads users and creates the impression that the skillset is locked to one platform.
+The geno ecosystem is CLI-agnostic — skillsets work with Claude Code, Antigravity CLI, Codex, OpenCode, and any future coding agent. Documentation and user-facing text must reflect this. Referring to "Claude Code" as if it's the only supported agent misleads users and creates the impression that the skillset is locked to one platform.
 
 Use generic terms like "coding agent", "agent session", or "coding CLI" instead of naming a specific agent. When listing prerequisites, mention the supported agents rather than singling one out. When describing how to invoke a skill, show the generic form.
 
@@ -414,14 +403,14 @@ Use generic terms like "coding agent", "agent session", or "coding CLI" instead 
 
 **Prefer:**
 - "Developer skills for AI coding agents"
-- "Prerequisites: a supported coding CLI (Claude Code, Gemini CLI, Codex, or OpenCode)"
+- "Prerequisites: a supported coding CLI (Claude Code, Antigravity CLI, Codex, or OpenCode)"
 - "From within an agent session"
 - "Slash commands" (no agent prefix)
 
 **Do NOT replace** references to agent-specific features, paths, or APIs that are genuinely specific to one agent. For example:
 - `.claude/worktrees/` — this is a real Claude Code directory path, not branding
 - "Codex sandbox" — this is a Codex-specific runtime concept
-- "Gemini CLI extension" — this refers to the actual Gemini extension format
+- "Antigravity CLI plugin" — this refers to the actual Antigravity plugin format
 - Agent-specific plugin manifests (`.claude-plugin/`, `.codex-plugin/`, etc.)
 
 The rule is about how the *skillset itself* is described, not about suppressing legitimate references to agent-specific behavior within skill instructions.
@@ -429,7 +418,7 @@ The rule is about how the *skillset itself* is described, not about suppressing 
 ### Audit checks
 
 **Recommended:**
-- Scan `README.md`, `docs/**/*.md`, `SKILL.md`, `AGENTS.md`, `GEMINI.md`, and `getting-started.md` for language that frames the skillset as exclusive to one agent
+- Scan `README.md`, `docs/**/*.md`, `SKILL.md`, `AGENTS.md`, and `getting-started.md` for language that frames the skillset as exclusive to one agent
 - Descriptions and headings should use agent-neutral phrasing
 - Prerequisites should list supported CLIs generically, not single out one
 - Do not modify references to agent-specific features, paths, directories, or APIs — only replace branding/framing language

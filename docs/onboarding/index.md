@@ -76,7 +76,7 @@ A skillset is considered onboarded when:
 
 - The audit checklist has been completed and signed off.
 - The repo is reachable from the install path the audience uses (public registry / direct URL / internal mirror).
-- The agent integrations have been verified end-to-end on at least one supported CLI (Claude Code, Codex, Cursor, Gemini CLI, OpenCode).
+- The agent integrations have been verified end-to-end on at least one supported CLI (Claude Code, Codex, Cursor, Antigravity CLI, OpenCode).
 - A clear point of contact is listed in `SKILL.md` metadata.
 
 Anything short of that is "experimental" — fine for `geno-tools dev` and direct-URL installs, not yet fit for the curated registry or an enterprise's approved list.
