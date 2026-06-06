@@ -21,10 +21,10 @@ geno-tools is installed as a native plugin on each supported coding CLI:
 - **Claude Code** — `/plugin marketplace add 42euge/geno-tools` then `/plugin install geno-tools@geno-tools`
 - **Codex CLI** — clone + symlink to `~/.agents/skills/geno-tools`
 - **Cursor** — install via plugin manager
-- **Gemini CLI** — `gemini extensions install https://github.com/42euge/geno-tools`
+- **Antigravity CLI** — `agy plugin install https://github.com/42euge/geno-tools`
 - **OpenCode** — add `"geno-tools@git+https://github.com/42euge/geno-tools.git"` to `opencode.json` plugins
 
-Each plugin manifest points at the shared `skills/` directory and the bundled Python package. On Claude Code (SessionStart hook) and OpenCode (plugin loader), the bundled `scripts/bootstrap.sh` self-installs the `geno-tools` shell command onto PATH via `pipx` (with a `pip install --user` fallback) the first time the agent loads the plugin — no separate pipx step. On Gemini CLI / Codex / Cursor, whose plugin formats don't expose a startup hook for arbitrary commands, the install instructions show a one-time `bash <plugin-root>/scripts/bootstrap.sh` invocation. The ecosystem skillsets geno-tools manages are registered with all agents via `npx skills add --agent '*'`.
+Each plugin manifest points at the shared `skills/` directory and the bundled Python package. On Claude Code (SessionStart hook) and OpenCode (plugin loader), the bundled `scripts/bootstrap.sh` self-installs the `geno-tools` shell command onto PATH via `pipx` (with a `pip install --user` fallback) the first time the agent loads the plugin — no separate pipx step. On Antigravity CLI / Codex / Cursor, whose plugin formats don't expose a startup hook for arbitrary commands, the install instructions show a one-time `bash <plugin-root>/scripts/bootstrap.sh` invocation. The ecosystem skillsets geno-tools manages are registered with all agents via `npx skills add --agent '*'`.
 
 ## Source resolution
 
@@ -70,11 +70,10 @@ geno-tools/
 ├── .claude-plugin/plugin.json   # Claude Code plugin manifest
 ├── .codex-plugin/plugin.json    # Codex CLI plugin manifest
 ├── .cursor-plugin/plugin.json   # Cursor plugin manifest
+├── plugin.json                  # Antigravity CLI plugin manifest
 ├── .opencode/                   # OpenCode plugin
 │   ├── plugins/geno-tools.js    #   ES module (registers skills path)
 │   └── INSTALL.md
-├── gemini-extension.json        # Gemini CLI extension descriptor
-├── GEMINI.md                    # Gemini CLI bootstrap context
 ├── package.json                 # npm metadata (OpenCode entry point)
 ├── skills/geno-tools/SKILL.md   # umbrella skill (platform-agnostic)
 ├── commands/                    # slash commands (platform-agnostic)

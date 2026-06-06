@@ -78,8 +78,8 @@ For enterprise, capture the result as a signed artifact (PR description, interna
 
 ### 7. Multi-agent integration
 
-- [ ] `npx skills add` registers the skill cleanly across all supported agents (Claude Code, Codex, Cursor, Gemini CLI, OpenCode).
-- [ ] Manifests at `.claude-plugin/`, `.codex-plugin/`, `.cursor-plugin/`, `.opencode/`, and `gemini-extension.json` (if shipped) point at the shared `skills/` directory and don't diverge per platform.
+- [ ] `npx skills add` registers the skill cleanly across all supported agents (Claude Code, Codex, Cursor, Antigravity CLI, OpenCode).
+- [ ] Manifests at `.claude-plugin/`, `.codex-plugin/`, `.cursor-plugin/`, `.opencode/`, and `plugin.json` (if shipped) point at the shared `skills/` directory and don't diverge per platform.
 - [ ] Skill activates and produces sane output on at least one supported agent in a fresh install.
 
 ### 8. Documentation
