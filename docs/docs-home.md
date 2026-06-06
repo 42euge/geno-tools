@@ -2,8 +2,8 @@
 
 # geno-<span>tools</span>
 
-The agent-agnostic meta package manager for AI coding agents.
-Discover, absorb, evaluate, govern, evolve — as a native plugin in any coding agent.
+The agent-agnostic skill catalog for AI coding agents.
+Discover, absorb, govern, evolve — as a native plugin in any coding agent.
 
 <div class="hero-buttons">
 <a href="getting-started/" class="btn-primary">Get Started</a>
@@ -19,7 +19,7 @@ Discover, absorb, evaluate, govern, evolve — as a native plugin in any coding 
 
 ### Discover
 
-Find skills from open-source registries, private GitHub/GitLab orgs, or any git remote.
+Find skills from open-source repos, private mirrors, and compliant local skillset checkouts.
 
 [Get started :material-arrow-right:](getting-started.md)
 </div>
@@ -29,7 +29,7 @@ Find skills from open-source registries, private GitHub/GitLab orgs, or any git 
 
 ### Absorb
 
-Normalize external skill systems (Superpowers, Vercel Skills, Ralphy Loop) into a unified framework.
+Index external skill systems (Superpowers, Vercel Skills, Ralphy Loop) into a unified catalog format.
 
 [Architecture :material-arrow-right:](architecture/index.md)
 </div>
@@ -39,7 +39,7 @@ Normalize external skill systems (Superpowers, Vercel Skills, Ralphy Loop) into 
 
 ### Evaluate
 
-Fork a skill, experiment in isolation, promote back to main. Git worktrees power the meta-harness.
+Compose and curate reusable skillsets for your team while maintaining onboarding standards.
 
 [Variants :material-arrow-right:](architecture/variants.md)
 </div>
@@ -59,7 +59,7 @@ Built-in auditing scans for compliance — prompt injection, dependency hygiene,
 
 ### Evolve
 
-Compose skills across agents, combine external innovation with private knowledge.
+Share and align skill workflows across teams and private namespaces.
 
 [Ecosystem :material-arrow-right:](ecosystem.md)
 </div>
@@ -76,24 +76,18 @@ Compose skills across agents, combine external innovation with private knowledge
     /plugin marketplace add 42euge/geno-tools
     /plugin install geno-tools@geno-tools
 
-    /geno-tools ls --available               # see the registry
-    /geno-tools install geno-<name>          # install a skillset
-    /geno-tools fork geno-<name> exp-1       # branch a variant
-    /geno-tools use geno-<name>@exp-1        # activate it
-    /geno-tools promote geno-<name> exp-1    # merge back to main
+    /geno-tools-open-docs
+    /geno-skills-status
+    /geno-skills-install <path>
     ```
 
 === "Antigravity CLI"
 
     ```bash
     agy plugin install https://github.com/42euge/geno-tools
-    bash ~/.gemini/antigravity-cli/plugins/geno-tools/scripts/bootstrap.sh
-
-    /geno-tools ls --available               # see the registry
-    /geno-tools install geno-<name>          # install a skillset
-    /geno-tools fork geno-<name> exp-1       # branch a variant
-    /geno-tools use geno-<name>@exp-1        # activate it
-    /geno-tools promote geno-<name> exp-1    # merge back to main
+    /geno-tools-open-docs
+    /geno-skills-status
+    /geno-skills-install <path>
     ```
 
 </div>

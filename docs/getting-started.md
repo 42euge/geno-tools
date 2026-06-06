@@ -1,68 +1,46 @@
 # Getting Started
 
-Prerequisites: Git, Node.js for `npx skills`, and Python 3.11+.
+## Install this skillset in your agent
 
-## Install
-
-Install geno-tools in the coding agent you use. Claude Code and OpenCode run the bootstrap automatically; Antigravity CLI, Codex, and Cursor need the bootstrap once.
+`geno-tools` is a skills-only repo. Choose your agent and install the plugin package directly.
 
 === "Claude Code"
-    ```text
-    /plugin marketplace add 42euge/geno-tools
-    /plugin install geno-tools@geno-tools
-    ```
+
+```text
+/plugin marketplace add 42euge/geno-tools
+/plugin install geno-tools@geno-tools
+```
 
 === "Antigravity CLI"
-    ```bash
-    agy plugin install https://github.com/42euge/geno-tools
-    bash ~/.gemini/antigravity-cli/plugins/geno-tools/scripts/bootstrap.sh
-    ```
 
-=== "Codex CLI"
-    ```text
-    /plugin marketplace add 42euge/geno-tools
-    /plugins
-    ```
-
-    ```bash
-    bash ~/.codex/plugins/cache/geno-tools/geno-tools/*/scripts/bootstrap.sh
-    ```
-
-Verify from inside your agent:
-
-```text
-/geno-tools ls --available
+```bash
+agy plugin install https://github.com/42euge/geno-tools
 ```
 
-## Install a skillset
-
-List available skillsets, then install one:
+=== "Codex"
 
 ```text
-/geno-tools ls --available
-/geno-tools install geno-<name>
+/plugin marketplace add 42euge/geno-tools
+/plugins
 ```
 
-This clones the repo, prepares any declared venvs, and registers the skill commands in your agent.
+=== "OpenCode"
 
-Check installed skillsets:
-
-```text
-/geno-tools ls
+```json
+{
+  "plugins": ["geno-tools@git+https://github.com/42euge/geno-tools.git"]
+}
 ```
 
-## Develop locally
+=== "Cursor"
 
-Link a local checkout instead of cloning:
+Install via Cursor's plugin manager (it reads `.cursor-plugin/plugin.json`) or add this repo to your plugin directory.
 
-```text
-/geno-tools dev geno-<name> ~/src/geno-<name>
-```
+## Use it
 
-Edits take effect immediately.
+- Open the installed skillset docs from the agent surface (`/geno-tools-open-docs`), or
+- browse the web docs at <https://42euge.github.io/geno-tools/>
 
-## What's next?
+## About changes
 
-- [CLI Reference](cli-reference.md) — full command documentation
-- [Creating a Skillset](skillsets/creating.md) — build your own
-- [Variants & Worktrees](architecture/variants.md) — experiment with `fork` and `use`
+This repo does not provide or require a Python CLI (`geno-tools` shell command). It only provides `skills/` and plugin metadata that agents can load.

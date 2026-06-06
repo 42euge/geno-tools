@@ -1,26 +1,22 @@
 ---
 name: geno-tools
 description: >-
-  Meta-CLI for installing and managing geno-* skillsets.
-  Use when user asks about installing, removing, listing, or updating
-  geno ecosystem skillsets.
-allowed-tools: "Bash(geno-tools *) Bash(python3 -m genotools *)"
+  Skills catalog for the geno ecosystem.
+  Use when users ask about this repo, skill catalogs, or onboarding
+  a new skillset into the broader geno installation flow.
+allowed-tools: "Bash(geno-tools *)"
 metadata:
   author: 42euge
   version: "0.1.0"
 ---
 
-# geno-tools — Skillset Manager
+# geno-tools — Skill Catalog
 
-Orchestrator for the geno-* ecosystem. Manages installation, removal, and updates of skillset repos.
-
-```!
-which geno-tools >/dev/null 2>&1 || echo "geno-tools CLI not on PATH. The plugin's SessionStart hook (Claude Code) and OpenCode plugin loader run scripts/bootstrap.sh automatically. On Antigravity CLI / Codex / Cursor, run 'bash \$PLUGIN_ROOT/scripts/bootstrap.sh' once (\$PLUGIN_ROOT is e.g. ~/.gemini/antigravity-cli/plugins/geno-tools)."
-```
+This repo is a skills-only catalog and plugin package. It exposes skill commands that help discover and manage geno ecosystem skills.
 
 ## Available Skillsets
 
-Install by full repo name (e.g. `geno-tools install geno-<name>`):
+These are referenced from the skill catalog:
 
 | Repo | Description |
 |------|-------------|
@@ -47,18 +43,6 @@ Install by full repo name (e.g. `geno-tools install geno-<name>`):
 | geno-tools-open-docs | Open the geno-tools documentation site |
 | geno-tools-update | Pull the latest version of installed skillsets and re-register with all agents |
 
-## Commands
+## Note
 
-- `geno-tools ls` — list installed skillsets and their active variant
-- `geno-tools ls --available` — show all registered skillsets in the registry
-- `geno-tools install <repo|url|path>` — install a skillset (clone, venv, register with all agents)
-- `geno-tools remove <repo> [--keep-data]` — uninstall a skillset from all agents
-- `geno-tools update [repo]` — pull latest for one or all skillsets
-- `geno-tools doctor` — verify symlinks, worktrees, venvs
-
-## Source Resolution
-
-The `<repo>` argument resolves in order:
-1. Registered repo name (e.g. `geno-<name>`) -> git URL. Bare slug (e.g. `<name>`) is also accepted for backwards compatibility.
-2. Local directory path
-3. Git URL (https:// or git@)
+This repo does not include the local `geno-tools` Python CLI runtime. If users need full install/update/remove workflows, they should use the external CLI package provided by the ecosystem's install path.

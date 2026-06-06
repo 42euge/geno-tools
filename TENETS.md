@@ -2,7 +2,7 @@
 
 Architectural principles that guide all development decisions in geno-tools. When tenets conflict, earlier entries take precedence.
 
-1. **Agent-agnostic** — geno-tools is a package manager that targets all coding agents through platform-specific adapters. It is not a CLI for one agent. Every feature must work across Claude Code, Codex, Antigravity CLI, Cursor, and OpenCode.
+1. **Agent-agnostic** — geno-tools is a shared, skills-first catalog for coding agents through platform-specific adapters. It is not a CLI for one agent. Every feature must work across Claude Code, Codex, Antigravity CLI, Cursor, and OpenCode.
 
 2. **Skill-system absorption** — external skill formats (Vercel Labs Skills, Superpowers, Ralphy Loop) are first-class import sources, not just inspiration. The plugin structure normalizes them into the `SKILL.md` + `genotools.yaml` contract so skills from any origin are managed the same way.
 

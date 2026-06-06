@@ -31,7 +31,7 @@ Browse the full [Skill Catalog](skills/index.md) or explore individual skillsets
 | [geno-specs](skills/geno-specs/index.md) | :material-code-braces: Developer | 5 | Execution specifications — create, validate, run, and review |
 | [geno-taxes](skills/geno-taxes/index.md) | :material-home-outline: Life | 5 | Tax filing — document parsing, checklists, CPA packet prep |
 | [geno-term](skills/geno-term/index.md) | :material-cog-outline: Runtime | 1 | Terminal automation and session recovery |
-| [geno-tools](skills/geno-tools/index.md) | :material-cube-outline: Core | 11 | Meta-CLI — install, update, and manage skillsets across all agents |
+| [geno-tools](skills/geno-tools/index.md) | :material-cube-outline: Core | 11 | Skills catalog for sharing and maintaining geno-* skillsets |
 | [geno-voice](skills/geno-voice/index.md) | :material-palette-outline: Creative | 0 | Voice pipeline |
 | [geno-ws](skills/geno-ws/index.md) | :material-cog-outline: Runtime | 1 | Workspace management |
 
@@ -40,7 +40,7 @@ Browse the full [Skill Catalog](skills/index.md) or explore individual skillsets
 ```
         ┌──────────────────────────────────────┐
         │          geno-tools                   │
-        │    (meta package manager)             │
+        │      (skills catalog)                  │
         └──────────────┬───────────────────────-┘
                        │
   discover ──→ absorb ──→ evaluate ──→ govern ──→ evolve

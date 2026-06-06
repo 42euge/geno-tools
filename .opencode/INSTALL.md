@@ -1,6 +1,6 @@
-# Installing geno-tools for OpenCode
+# Install `geno-tools` in OpenCode
 
-## 1. Add the plugin
+## Add the plugin
 
 In your `opencode.json`:
 
@@ -12,6 +12,4 @@ In your `opencode.json`:
 }
 ```
 
-## 2. Restart OpenCode
-
-The plugin registers geno-tools skills automatically on startup and spawns `scripts/bootstrap.sh`, which materializes `~/.geno/config.yaml` and pipx-installs the `geno-tools` shell command onto PATH if it isn't already there. Both steps are idempotent.
+Restart OpenCode after adding the plugin entry. The plugin registers skill directories on startup.

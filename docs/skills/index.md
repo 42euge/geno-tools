@@ -68,7 +68,7 @@ Project journal, task management, wiki, and site generation
 
 ### [geno-tools](geno-tools/index.md)
 
-Meta-CLI — install, update, and manage skillsets across all agents
+Skills catalog for sharing, discovering, and maintaining geno-* skillsets
 
 <span class="skill-count">11 skills</span>
 

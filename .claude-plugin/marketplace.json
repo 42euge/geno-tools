@@ -1,6 +1,6 @@
 {
   "name": "geno-tools",
-  "description": "Installer and meta-CLI for the geno-* skillset ecosystem",
+  "description": "Skills catalog plugin for the geno-* skillset ecosystem",
   "owner": {
     "name": "42euge",
     "url": "https://github.com/42euge"
@@ -9,15 +9,15 @@
     {
       "name": "geno-tools",
       "source": "./",
-      "description": "Meta-CLI for installing and managing geno-* skillsets — the geno ecosystem orchestrator",
+      "description": "Skills catalog for installing and managing geno-* skillsets — the geno ecosystem orchestrator",
       "version": "0.1.0",
       "license": "MIT",
       "homepage": "https://42euge.github.io/geno-tools",
       "repository": "https://github.com/42euge/geno-tools",
       "keywords": [
         "skillsets",
-        "installer",
-        "meta-cli",
+        "skills",
+        "agent-skills",
         "geno-ecosystem"
       ]
     }

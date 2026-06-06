@@ -1,6 +1,6 @@
-# geno-tools — Agent-Agnostic Meta Package Manager for AI Coding Agents
+# geno-tools — Skills-Only Geno Skillset Catalog
 
-`geno-tools` is an agent-agnostic meta package manager for AI coding agents. It discovers skills from open-source and private ecosystems, absorbs external skill systems (Vercel Labs Skills, Superpowers, Ralphy Loop plugins) into a unified framework, and manages their lifecycle across all supported agents (Claude Code, Antigravity CLI, Codex, OpenCode, Cursor). A meta-harness layer evaluates and refines skill variations over time, while built-in auditing ensures capabilities evolve safely.
+`geno-tools` is now a skills-only repo in the geno ecosystem. It ships no Python runtime CLI and no installation bootstrap scripts.
 
 @./VISION.md
 @./TENETS.md
@@ -30,187 +30,64 @@
 geno-tools/
 ├── GENO.md                        # agent instructions (this file)
 ├── SKILL.md -> skills/geno-tools/SKILL.md  # umbrella skill manifest
-├── genotools.yaml                 # geno-tools manifest
+├── genotools.yaml                 # skillset manifest
 ├── CLAUDE.md                      # Claude Code pointer -> GENO.md
 ├── GEMINI.md                      # legacy pointer -> GENO.md
-├── AGENTS.md                      # Codex pointer -> GENO.md
+├── AGENTS.md                      # Codex and Antigravity pointer -> GENO.md
 ├── gemini-extension.json          # legacy extension descriptor
-├── package.json                   # npm metadata (OpenCode plugin entry)
-├── pyproject.toml                 # Python package metadata
-├── genotools/                     # Python CLI package
-│   ├── cli.py                     #   argparse, subcommand routing
-│   ├── commands.py                #   install/remove/update/ls/deps
-│   ├── config.py                  #   user config from ~/.geno/config.yaml
-│   ├── discovery.py               #   enterprise repo discovery
-│   ├── paths.py                   #   on-disk layout utilities
-│   ├── registry.py                #   curated registry of known skillsets
-│   └── trace.py                   #   skill trace system (emit/list/health)
+├── package.json                   # plugin metadata (non-executable)
 ├── skills/                        # skill definitions
-│   ├── geno-tools/SKILL.md        #   umbrella skill
-│   ├── geno-alias/SKILL.md        #   custom skill aliasing
-│   ├── geno-audit/SKILL.md        #   ecosystem compliance auditor
-│   ├── geno-icons/SKILL.md        #   pixel art icon generator
-│   ├── geno-onboarding/SKILL.md   #   skillset onboarding wizard
+│   ├── geno-tools/SKILL.md        # umbrella skill
+│   ├── geno-alias/SKILL.md        # custom skill aliasing
+│   ├── geno-audit/SKILL.md        # ecosystem compliance auditor
+│   ├── geno-icons/SKILL.md        # pixel art icon generator
+│   ├── geno-onboarding/SKILL.md   # skillset onboarding wizard
 │   ├── geno-data-workspaces-init/SKILL.md  # data workspace scaffolder
 │   ├── geno-skills-create/SKILL.md #  skill scaffolder
 │   ├── geno-skills-install/SKILL.md #  local skill installer
 │   ├── geno-skills-status/SKILL.md #  ecosystem status reporter
 │   ├── geno-tools-improve/SKILL.md #  self-improvement cycle
 │   ├── geno-tools-update/SKILL.md #   ecosystem updater
-│   └── geno-tools-open-docs/SKILL.md      # docs site opener
-├── config/defaults.yaml           # reference config with aliases schema
-├── scripts/bootstrap.sh           # self-installs geno-tools onto PATH
-├── hooks/                         # Claude Code SessionStart hook
+│   ├── geno-tools-open-docs/SKILL.md      # docs site opener
+│   ├── geno-tools-sessions-spawn/SKILL.md  # session launcher
+│   └── geno-tools-create-skillset-repo/SKILL.md # skillset scaffolder
 ├── docs/                          # MkDocs Material documentation site
 ├── .claude-plugin/plugin.json     # Claude Code plugin manifest
 ├── .codex-plugin/plugin.json      # Codex CLI plugin manifest
 ├── .cursor-plugin/plugin.json     # Cursor plugin manifest
-├── plugin.json                    # Antigravity CLI plugin manifest
+├── plugin.json                    # Antigravity plugin manifest
 ├── .opencode/                     # OpenCode plugin
-└── tests/                         # pytest suite
-```
-
-## Entry point
-
-```toml
-[project.scripts]
-geno-tools = "genotools.cli:main"
-geno-trace = "genotools.trace:main"
-```
-
-`genotools/cli.py` parses subcommands and lazy-imports `genotools.commands` to keep `--version`/`--help` fast.
-
-`genotools/trace.py` provides the `geno-trace` CLI for emitting and querying skill traces. Traces are append-only JSONL at `~/.geno/traces/YYYY/YYYY-MM.jsonl`. Health cards are aggregated per-skill at `~/.geno/health/<skill>.json`.
-
-## Subcommands
-
-| Command | Status |
-|---------|--------|
-| `geno-tools ls [--available]` | implemented |
-| `geno-tools install <name\|url\|path> [--here]` | implemented |
-| `geno-tools remove <name> [--keep-data]` | implemented |
-| `geno-tools update [name]` | implemented |
-| `geno-tools deps <name>` | implemented |
-| `geno-tools dev <name> <path>` | stub |
-| `geno-tools fork <name> <variant> [--isolated-venv]` | stub |
-| `geno-tools use <name>@<variant> [--here]` | stub |
-| `geno-tools promote <name> <variant>` | stub |
-| `geno-tools doctor` | stub |
-| `geno-tools discover [--dry-run]` | implemented |
-| `geno-tools scan [--namespace] [--dry-run]` | implemented |
-| `geno-tools docs [--docs-dir] [--dry-run]` | implemented |
-
-## Dependency management
-
-Skillsets declare dependencies via `requires:` in `genotools.yaml`:
-
-```yaml
-name: geno-career
-requires:
-  - geno-notes
-  - geno-specs
-```
-
-During `geno-tools install`, dependencies are resolved from the registry and installed recursively before the target skillset. Already-installed deps are skipped. Circular dependencies are detected and reported.
-
-## Source resolution
-
-`<name|url|path>` resolves in this order:
-
-1. **Registered repo name** — git URL from `genotools/registry.py`. Bare slugs (the part after `geno-`) are also accepted.
-2. **Existing local directory** — installed from disk.
-3. **Git URL** (`http(s)://`, `git@`, or `*.git`) — cloned.
-4. **Discovery sources** (`genotools/discovery.py`) — repos found in `~/.geno/config.yaml` `discovery.sources` that match the configured prefix and have a top-level `SKILL.md`.
-
-## Install flow
-
-```
-geno-tools install media
-    ├── _resolve_source("media")         # registry -> git URL
-    ├── _clone_and_worktree()            # bare clone + main worktree
-    ├── _create_venv_if_needed()         # venv + pip install deps + editable install
-    ├── _materialize_bin_symlinks()       # ~/.local/bin/ symlinks to venv binaries
-    ├── active -> main symlink
-    └── _install_skills_via_npx()        # npx skills add (all agents, global)
-```
-
-## Per-skillset layout
-
-```
-~/.geno-tools/
-├── .state-hash                    # bumped on state changes
-├── geno-bootstrap/                # meta-plugin geno-tools owns
-└── geno-{name}/
-    ├── .git/                      # bare repo
-    ├── main/                      # primary worktree
-    ├── .worktrees/<variant>/      # additional worktrees (via fork)
-    ├── venvs/<venv-name>/         # isolated Python env(s)
-    └── active -> main             # symlink; `geno-tools use` repoints this
+└── LICENSE                        # MIT license
 ```
 
 ## Conventions
 
 ### Command prefix aliasing
 
-Slash commands in this repo always use the canonical `geno-` prefix (e.g., `/geno-tools-update`, `/geno-audit`). The prefix users actually type at runtime (`/gt-`, `/geno-`, or bare `/`) is a user preference configured in `~/.geno/config.yaml`:
-
-```yaml
-aliases:
-  command_prefix: "gt"   # gt-install, gt-media-audiobook-create, etc.
-```
-
-The prefix is applied at install time by `geno-tools install` when materializing skills via `npx skills add`. Never hardcode an aliased prefix like `gt-` in SKILL.md descriptions, GENO.md, or any committed file. See `config/defaults.yaml` for the full schema.
+Slash commands in this repo use the canonical `geno-` prefix (e.g. `/geno-tools-update`, `/geno-audit`). Prefix preferences are handled by the host runtime.
 
 ### Versioning
 
-The canonical version lives in `genotools.yaml` (`version` field). The same value must appear in `pyproject.toml` (`project.version`), `package.json` (`version`), and `genotools/__init__.py` (`__version__`). Bump the version whenever skills are added, removed, or behavior changes. Keep all four files in sync.
+The canonical version is in `genotools.yaml`. Bump it when you add/remove skills, change skill behavior, or update agent-facing docs.
 
 ### Adding a new skill
 
-To add a new skill to this repo:
+To add a skill:
 
-1. Create a directory under `skills/` named with the full skill name (e.g., `skills/geno-tools-foo/`).
-2. Write a `SKILL.md` inside it with YAML frontmatter containing at minimum `name` and `description`.
-3. Update the umbrella skill description in `skills/geno-tools/SKILL.md` to list the new skill.
-4. Add the skill to the skills table in this file (`GENO.md`).
-5. If the skill needs docs, add a page under `docs/`.
-6. Bump the version in all four files: `genotools.yaml`, `pyproject.toml`, `package.json`, `genotools/__init__.py`.
+1. Add `skills/<name>/SKILL.md` with `name` and `description` frontmatter.
+2. If the skill has subcommands, create one directory per sub-skill.
+3. Add it to the skills table in this file and the umbrella SKILL.md.
+4. Add/refresh docs under `docs/skills/` for the new skill if needed.
+5. Update this repo's version in `genotools.yaml`.
 
-### What a skillset repo needs to provide
+### Plugin structure
 
-Minimum viable `geno-{name}` skillset:
+This repo has plugin descriptors so it can be loaded by supported agents without installing any Python tooling:
 
-```
-geno-{name}/
-├── SKILL.md                # umbrella skill manifest (symlink to skills/{name}/SKILL.md)
-├── GENO.md                 # agent instructions
-├── genotools.yaml          # install manifest (name, version, description)
-├── skills/
-│   └── {name}/SKILL.md     # umbrella skill definition
-└── pyproject.toml           # optional — triggers venv creation if present
-```
+- `.claude-plugin/plugin.json`
+- `.codex-plugin/plugin.json`
+- `.cursor-plugin/plugin.json`
+- `plugin.json` (Antigravity)
+- `.opencode/plugins/geno-tools.js`
 
-### Skill observability contract
-
-Skills may declare an optional `observability` section in SKILL.md frontmatter:
-
-```yaml
-observability:
-  success_signal: "description of what success looks like"
-  failure_signals:
-    - "condition that indicates failure"
-  knowledge_reads:
-    - "what knowledge this skill consumes"
-  knowledge_writes:
-    - "what knowledge this skill produces"
-```
-
-Skills that declare observability should also include a `## Completion` section at the end of their workflow that emits a trace via `geno-trace emit`. This feeds the self-improvement loop (health cards, retro, mining).
-
-## Plugin structure
-
-geno-tools ships platform-specific plugin manifests following the `obra/superpowers` conventions so it can be installed as a native plugin on each supported CLI. Skills are platform-agnostic; each CLI-specific manifest points at the shared `skills/` directory.
-
-Skill registration uses `npx skills add <active-worktree> --agent '*' --global --skill '*' --yes`. Uninstall enumerates skills (root SKILL.md + `skills/*/SKILL.md`) and calls `npx skills remove`.
-
-This absorption layer is what makes geno-tools a meta-harness rather than just a CLI — external skill systems (Superpowers conventions, Vercel Labs Skills backend) are normalized into the same `SKILL.md` + `genotools.yaml` contract.
+All manifests point at `./skills`.

@@ -2,7 +2,7 @@
   "name": "geno-tools",
   "displayName": "geno-tools",
   "version": "0.1.0",
-  "description": "Meta-CLI for installing and managing geno-* skillsets",
+  "description": "Skills-only geno-tools skillset catalog",
   "author": {
     "name": "42euge"
   },
@@ -11,10 +11,9 @@
   "license": "MIT",
   "keywords": [
     "skillsets",
-    "installer",
-    "meta-cli",
+    "skills",
+    "agent-skills",
     "geno-ecosystem"
   ],
-  "skills": "./skills/",
-  "commands": "./commands/"
+  "skills": "./skills/"
 }
