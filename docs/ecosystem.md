@@ -55,7 +55,7 @@ discovery.py   normalize  worktrees   audit.md    merge → main
         └──────────────┼──────────────┘
                        │
                  Coding CLIs
-     (Claude Code, Codex, Gemini CLI, Cursor, OpenCode)
+     (Claude Code, Codex, Antigravity CLI, Cursor, OpenCode)
                        │
             geno-agents (coordination)
             geno-msg    (messaging)

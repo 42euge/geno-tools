@@ -1,90 +1,65 @@
 # Getting Started
 
-## Prerequisites
+Prerequisites: Git, Node.js for `npx skills`, and Python 3.11+.
 
-- Git
-- Node.js (for `npx skills`)
-- Python 3.11+
+## Install
 
-## Install geno-tools
+Install geno-tools in the coding agent you use. Claude Code and OpenCode run the bootstrap automatically; Antigravity CLI, Codex, and Cursor need the bootstrap once.
 
-geno-tools is installed as a native plugin in your coding agent. Pick the manifest that matches the CLI you use. On Claude Code and OpenCode the plugin's startup hook auto-installs the `geno-tools` shell command onto PATH (via `pipx`, falling back to `pip install --user`); on Gemini CLI / Codex / Cursor you run the same bootstrap script once by hand.
+=== "Claude Code"
+    ```text
+    /plugin marketplace add 42euge/geno-tools
+    /plugin install geno-tools@geno-tools
+    ```
 
-### Claude Code
+=== "Antigravity CLI"
+    ```bash
+    agy plugin install https://github.com/42euge/geno-tools
+    bash ~/.gemini/antigravity-cli/plugins/geno-tools/scripts/bootstrap.sh
+    ```
 
-Inside a Claude Code session:
+=== "Codex CLI"
+    ```text
+    /plugin marketplace add 42euge/geno-tools
+    /plugins
+    ```
 
-```
-/plugin marketplace add 42euge/geno-tools
-/plugin install geno-tools@geno-tools
-```
+    ```bash
+    bash ~/.codex/plugins/cache/geno-tools/geno-tools/*/scripts/bootstrap.sh
+    ```
 
-The first command registers this repo as a marketplace (reads `.claude-plugin/marketplace.json`); the second installs the plugin defined in `.claude-plugin/plugin.json`. The SessionStart hook then runs `scripts/bootstrap.sh`, which materializes `~/.geno/config.yaml` and pipx-installs the `geno-tools` CLI if it isn't already on PATH. Verify with `/plugin list`.
+Verify from inside your agent:
 
-This gives you `/geno-tools install`, `/geno-tools remove`, `/geno-tools ls`, and `/geno-tools update` slash commands inside your coding agent. The command prefix is [user-configurable](skillsets/creating.md#command-prefix-aliasing).
-
-### Gemini CLI
-
-```bash
-gemini extensions install https://github.com/42euge/geno-tools
-bash ~/.gemini/extensions/geno-tools/scripts/bootstrap.sh
-```
-
-The bootstrap step is one-time — Gemini extensions don't expose a startup hook for arbitrary commands, so it has to run by hand.
-
-### Codex CLI / Cursor / OpenCode
-
-See the [README](https://github.com/42euge/geno-tools#install) for the per-agent install snippet. OpenCode runs `scripts/bootstrap.sh` automatically on plugin load; Codex and Cursor need a one-time `bash <plugin-root>/scripts/bootstrap.sh`.
-
-Verify the install by listing the registry from inside your agent:
-
-```
+```text
 /geno-tools ls --available
 ```
 
-## Install your first skillset
+## Install a skillset
 
-List what's available in the registry:
+List available skillsets, then install one:
 
-```
+```text
 /geno-tools ls --available
-```
-
-```
-  geno-agents              https://github.com/42euge/geno-agents.git
-  geno-media               https://github.com/42euge/geno-media.git
-  geno-research            https://github.com/42euge/geno-research.git
-  geno-kaggle              https://github.com/42euge/geno-kaggle.git
-  geno-dev                 https://github.com/42euge/geno-dev.git
-```
-
-Install one:
-
-```
 /geno-tools install geno-<name>
 ```
 
-This clones the repo, sets up any declared venvs, and wires the skill into your coding agent (slash commands appear immediately).
+This clones the repo, prepares any declared venvs, and registers the skill commands in your agent.
 
-## Check what's installed
+Check installed skillsets:
 
-```
+```text
 /geno-tools ls
 ```
 
-```
-  geno-<name>              active: main
-```
+## Develop locally
 
-## Develop a skillset locally
+Link a local checkout instead of cloning:
 
-If you're hacking on a skillset, use `dev` to symlink your local checkout instead of cloning:
-
-```
+```text
 /geno-tools dev geno-<name> ~/src/geno-<name>
 ```
 
-Edits to your local checkout take effect immediately — no reinstall needed.
+Edits take effect immediately.
 
 ## What's next?
 

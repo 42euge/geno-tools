@@ -29,7 +29,7 @@
 
   // Overview blurb
   var blurb = document.createElement("div");
-  blurb.textContent = "Install, fork, experiment, and promote skillsets for Claude Code, geno-cli, Codex, Gemini CLI, and more — all from one CLI.";
+  blurb.textContent = "Install, fork, experiment, and promote skillsets for Claude Code, geno-cli, Codex, Antigravity CLI, and more — all from one CLI.";
   blurb.style.cssText = "margin-top:1.2rem;font-size:clamp(0.75rem,1.5vw,0.95rem);color:#5c5470;max-width:420px;text-align:center;line-height:1.5;font-family:Inter,-apple-system,system-ui,sans-serif;opacity:0;animation:splash-fade 1.5s ease 1.3s forwards;z-index:1";
   overlay.appendChild(blurb);
 

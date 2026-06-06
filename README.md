@@ -2,7 +2,7 @@
 
 [![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://42euge.github.io/geno-tools/)
 
-Agent-agnostic meta package manager for AI coding agents. Discovers, absorbs, evaluates, and governs skills across Claude Code, Codex, Gemini CLI, Cursor, and OpenCode.
+Agent-agnostic meta package manager for AI coding agents. Discovers, absorbs, evaluates, and governs skills across Claude Code, Codex, Antigravity CLI, Cursor, and OpenCode.
 
 **Website:** <https://42euge.github.io/geno-tools>
 
@@ -21,7 +21,7 @@ Agent-agnostic meta package manager for AI coding agents. Discovers, absorbs, ev
 
 geno-tools ships as a native plugin/extension on each supported coding CLI. Pick the snippet for the CLI you use — every path bootstraps `~/.geno/` from `config/defaults.yaml` and self-installs the `geno-tools` shell command onto PATH (via `pipx`, falling back to `pip install --user`) the first time the agent loads the plugin.
 
-The bootstrap lives at `scripts/bootstrap.sh`. CLIs that expose a startup hook for arbitrary commands (Claude Code, OpenCode) run it automatically. The others (Gemini CLI, Codex, Cursor) need a one-time `bash <plugin-root>/scripts/bootstrap.sh` invocation, shown inline below.
+The bootstrap lives at `scripts/bootstrap.sh`. CLIs that expose a startup hook for arbitrary commands (Claude Code, OpenCode) run it automatically. The others (Antigravity CLI, Codex, Cursor) need a one-time `bash <plugin-root>/scripts/bootstrap.sh` invocation, shown inline below.
 
 ### Claude Code
 
@@ -45,14 +45,14 @@ bash ~/.codex/plugins/cache/geno-tools/geno-tools/*/scripts/bootstrap.sh
 
 The marketplace catalog at `.agents/plugins/marketplace.json` exposes the plugin; pick `geno-tools` from the `/plugins` browser and toggle it on. (Plugins are cached at `~/.codex/plugins/cache/geno-tools/geno-tools/<version>/`.) Codex doesn't expose a portable startup hook for arbitrary commands, so run `bootstrap.sh` once — it's idempotent on later invocations.
 
-### Gemini CLI
+### Antigravity CLI
 
 ```bash
-gemini extensions install https://github.com/42euge/geno-tools
-bash ~/.gemini/extensions/geno-tools/scripts/bootstrap.sh
+agy plugin install https://github.com/42euge/geno-tools
+bash ~/.gemini/antigravity-cli/plugins/geno-tools/scripts/bootstrap.sh
 ```
 
-Gemini clones the repo into `~/.gemini/extensions/geno-tools/`, reads `gemini-extension.json`, and registers the bundled `skills/` and `hooks/hooks.json`. Restart the CLI to pick it up. Update later with `gemini extensions update geno-tools`. Gemini extensions don't run arbitrary startup commands, so the one-time `bootstrap.sh` invocation is what puts `geno-tools` on PATH.
+Antigravity stages the plugin under `~/.gemini/antigravity-cli/plugins/geno-tools/` and loads the bundled `skills/` directory. Run `bootstrap.sh` once to put `geno-tools` on PATH.
 
 ### Cursor
 
@@ -191,7 +191,7 @@ How it works in practice:
 1. **Pick your namespace**. Use your company slug as the prefix (`acme-`, `globex-`, etc.). All internal skillsets share that prefix the way public ones share `geno-`.
 2. **Host privately**. Put the repos in your own GitHub Enterprise / GitLab / Bitbucket / private mirror. geno-tools resolves any git URL — there is no central registry it has to call out to.
 3. **Run geno-tools internally**. Pin the upstream OSS release, fork it, or vendor it. The CLI is plain Python, has no telemetry, and the install flow only talks to the git remote you point it at.
-4. **Mix public and private freely**. A developer can run `geno-tools install geno-<name>` (public) alongside `geno-tools install git@github.acme.com:platform/acme-<name>.git` (private) on the same machine. They share `~/.geno-tools/`, the same venv strategy, and the same slash-command surface in Claude Code / Codex / Cursor / Gemini CLI / OpenCode.
+4. **Mix public and private freely**. A developer can run `geno-tools install geno-<name>` (public) alongside `geno-tools install git@github.acme.com:platform/acme-<name>.git` (private) on the same machine. They share `~/.geno-tools/`, the same venv strategy, and the same slash-command surface in Claude Code / Codex / Cursor / Antigravity CLI / OpenCode.
 
 The result: sensitive prompts, datasets, and domain knowledge stay inside the company boundary, while the runtime, the file format, and the multi-agent integrations are the same fast-moving open-source code everyone else uses. You inherit upstream improvements without giving up control of your skill content.
 

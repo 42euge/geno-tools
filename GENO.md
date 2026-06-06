@@ -1,6 +1,6 @@
 # geno-tools — Agent-Agnostic Meta Package Manager for AI Coding Agents
 
-`geno-tools` is an agent-agnostic meta package manager for AI coding agents. It discovers skills from open-source and private ecosystems, absorbs external skill systems (Vercel Labs Skills, Superpowers, Ralphy Loop plugins) into a unified framework, and manages their lifecycle across all supported agents (Claude Code, Gemini CLI, Codex, OpenCode, Cursor). A meta-harness layer evaluates and refines skill variations over time, while built-in auditing ensures capabilities evolve safely.
+`geno-tools` is an agent-agnostic meta package manager for AI coding agents. It discovers skills from open-source and private ecosystems, absorbs external skill systems (Vercel Labs Skills, Superpowers, Ralphy Loop plugins) into a unified framework, and manages their lifecycle across all supported agents (Claude Code, Antigravity CLI, Codex, OpenCode, Cursor). A meta-harness layer evaluates and refines skill variations over time, while built-in auditing ensures capabilities evolve safely.
 
 @./VISION.md
 @./TENETS.md
@@ -32,9 +32,9 @@ geno-tools/
 ├── SKILL.md -> skills/geno-tools/SKILL.md  # umbrella skill manifest
 ├── genotools.yaml                 # geno-tools manifest
 ├── CLAUDE.md                      # Claude Code pointer -> GENO.md
-├── GEMINI.md                      # Gemini CLI pointer -> GENO.md
+├── GEMINI.md                      # legacy pointer -> GENO.md
 ├── AGENTS.md                      # Codex pointer -> GENO.md
-├── gemini-extension.json          # Gemini CLI extension descriptor
+├── gemini-extension.json          # legacy extension descriptor
 ├── package.json                   # npm metadata (OpenCode plugin entry)
 ├── pyproject.toml                 # Python package metadata
 ├── genotools/                     # Python CLI package
@@ -65,6 +65,7 @@ geno-tools/
 ├── .claude-plugin/plugin.json     # Claude Code plugin manifest
 ├── .codex-plugin/plugin.json      # Codex CLI plugin manifest
 ├── .cursor-plugin/plugin.json     # Cursor plugin manifest
+├── plugin.json                    # Antigravity CLI plugin manifest
 ├── .opencode/                     # OpenCode plugin
 └── tests/                         # pytest suite
 ```
