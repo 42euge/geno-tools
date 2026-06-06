@@ -202,7 +202,7 @@ The canonical name is the skill's `name` field in frontmatter — use that every
 
 ## Agent-agnostic language
 
-The geno ecosystem is CLI-agnostic — skillsets work with Claude Code, Gemini CLI, Codex, OpenCode, and any future coding agent. Use generic terms like "coding agent" or "agent session" instead of naming a specific agent. When listing prerequisites, mention the supported agents generically.
+The geno ecosystem is CLI-agnostic — skillsets work with Claude Code, Antigravity CLI, Codex, OpenCode, and any future coding agent. Use generic terms like "coding agent" or "agent session" instead of naming a specific agent. When listing prerequisites, mention the supported agents generically.
 
 ## Testing locally
 
