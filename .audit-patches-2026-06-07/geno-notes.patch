@@ -1,0 +1,42 @@
+From d28572d965db38adabb9da47c4d17e940c73af61 Mon Sep 17 00:00:00 2001
+From: 42euge <42euge@gmail.com>
+Date: Sun, 7 Jun 2026 12:09:28 +0000
+Subject: [PATCH] chore(geno-audit): bring repo into ecosystem compliance
+
+- Add geno-notes-init and geno-notes-vault-generate to root SKILL.md available skills table
+- Add geno-notes-vault-generate to skills/geno-notes/SKILL.md sub-skills table
+- Add versioning guidance to GENO.md Conventions
+---
+ GENO.md                    | 1 +
+ SKILL.md                   | 2 ++
+ skills/geno-notes/SKILL.md | 1 +
+ 3 files changed, 4 insertions(+)
+
+diff --git a/GENO.md b/GENO.md
+index ac91d45..b91a15e 100644
+--- a/GENO.md
++++ b/GENO.md
+@@ -56,6 +56,7 @@ geno-notes/
+ - **Prefix aliasing**: slash commands use the canonical `geno-` prefix in source (e.g., `/geno-notes`).
+ - **Adding a new skill**: create a directory under `skills/`...
++- **Versioning**: The canonical version is in `genotools.yaml`. The same value must appear in `pyproject.toml` (`project.version`) and `package.json` (`version`). Bump the version whenever skills are added, removed, or behavior changes.
+diff --git a/SKILL.md b/SKILL.md
+index 9e140c8..c394eb7 100644
+--- a/SKILL.md
++++ b/SKILL.md
+@@ -23,6 +23,8 @@ chunked journal files, and two coexisting storage scopes.
+ | geno-notes | /geno-notes | Manage tasks, journal entries, plans across global and project scopes |
++| geno-notes-init | /geno-notes-init | Initialize a notes scope or report its current state |
+ | geno-notes-wiki-compile | /geno-notes-wiki-compile | Compile primary sources into wiki pages |
+ | geno-notes-wiki-lint | /geno-notes-wiki-lint | Health-check the wiki against primary sources |
+ | geno-notes-sites-generate | /geno-notes-sites-generate | Generate a MkDocs Material website from notes |
++| geno-notes-vault-generate | /geno-notes-vault-generate | Generate an Obsidian vault from notes |
+diff --git a/skills/geno-notes/SKILL.md b/skills/geno-notes/SKILL.md
+index b9d7940..1daf138 100644
+--- a/skills/geno-notes/SKILL.md
++++ b/skills/geno-notes/SKILL.md
+@@ -43,6 +43,7 @@ Any command takes `--global` or `--project` to override.
+ | geno-notes-sites-generate | /geno-notes-sites-generate | Generate a MkDocs Material website from notes |
++| geno-notes-vault-generate | /geno-notes-vault-generate | Generate an Obsidian vault from notes |
+-- 
+2.43.0

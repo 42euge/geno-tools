@@ -1,0 +1,32 @@
+From 8d50bec1caba86b0b40e21346ff3f1e8e5344cf3 Mon Sep 17 00:00:00 2001
+From: 42euge <42euge@gmail.com>
+Date: Sun, 7 Jun 2026 12:09:10 +0000
+Subject: [PATCH] chore(geno-audit): bring repo into ecosystem compliance
+
+- Fix aliased /gt-pr command ref in skills/geno-dev-prs-check/SKILL.md description
+- Register geno-dev-sessions-remote in GENO.md skills table
+- Add versioning guidance to GENO.md Conventions
+---
+ GENO.md                            | 2 ++
+ skills/geno-dev-prs-check/SKILL.md | 2 +-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/GENO.md b/GENO.md
+index 28d5e79..3fb8923 100644
+--- a/GENO.md
++++ b/GENO.md
+@@ -12,6 +12,7 @@ Developer and infrastructure skills for AI coding agents:
+ | geno-dev-sessions-fork | sessions | /geno-dev-sessions-fork |
++| geno-dev-sessions-remote | sessions | /geno-dev-sessions-remote |
+ | geno-dev-prs-check | prs | /geno-dev-prs-check |
+@@ -77,3 +78,4 @@ Pure markdown skillset — no Python package, no venv, no scripts.
+ - **Adding a new skill**: Create a directory under `skills/`...
++- **Versioning**: The canonical version is in `genotools.yaml` and `package.json`. Bump the version whenever skills are added, removed, or behavior changes.
+diff --git a/skills/geno-dev-prs-check/SKILL.md b/skills/geno-dev-prs-check/SKILL.md
+--- a/skills/geno-dev-prs-check/SKILL.md
++++ b/skills/geno-dev-prs-check/SKILL.md
+@@ -2,7 +2,7 @@
+-  may need to be closed. Use when user says /geno-dev-prs-check or /gt-pr.
++  may need to be closed. Use when user says /geno-dev-prs-check.
+-- 
+2.43.0

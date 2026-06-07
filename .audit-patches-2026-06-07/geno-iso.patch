@@ -1,0 +1,69 @@
+From 28e2a078c344d9cc8b130246562028021f0c52ed Mon Sep 17 00:00:00 2001
+From: 42euge <42euge@gmail.com>
+Date: Sun, 7 Jun 2026 12:08:44 +0000
+Subject: [PATCH] chore(geno-audit): bring repo into ecosystem compliance
+
+- Remove Agent instruction files section from GENO.md (Single Source of Truth: ecosystem pointer convention is defined in geno-tools, not here)
+- Replace CLAUDE.md, AGENTS.md, GEMINI.md full copies with thin pointers
+- Add Versioning subsection to GENO.md Conventions
+---
+ AGENTS.md | 106 +-----------------------------------------------------
+ CLAUDE.md | 106 +-----------------------------------------------------
+ GEMINI.md | 106 +-----------------------------------------------------
+ GENO.md   |  15 +++-----
+ 4 files changed, 7 insertions(+), 326 deletions(-)
+
+diff --git a/AGENTS.md b/AGENTS.md
+index 1ff2f96..f8e4dbc 100644
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -1,105 +1 @@
+-# geno-iso -- isolated Docker containers for coding agents
+-
+-`geno-iso` is a Python CLI and skillset for running coding agents (Claude Code, Codex, Gemini CLI) inside Docker containers with OAuth credentials injected from the macOS Keychain.
+-[...truncated for brevity — full patch in repo...]
++@import GENO.md
+diff --git a/CLAUDE.md b/CLAUDE.md
+--- a/CLAUDE.md
++++ b/CLAUDE.md
+@@ -1,105 +1 @@
+-[...full copy of GENO.md removed...]
++@./GENO.md
+diff --git a/GEMINI.md b/GEMINI.md
+--- a/GEMINI.md
++++ b/GEMINI.md
+@@ -1,105 +1 @@
+-[...full copy of GENO.md removed...]
++@./GENO.md
+diff --git a/GENO.md b/GENO.md
+index 1ff2f96..89dc78e 100644
+--- a/GENO.md
++++ b/GENO.md
+@@ -52,16 +52,6 @@ geno-iso/
+ 
+ Skills in this repo use the canonical `geno-` prefix in source (e.g., `geno-iso-containers-run`). When installed via `geno-tools`, the installer may configure shorter `/gt-` aliases (e.g., `/gt-iso-containers-run`) depending on the user's settings. Always author skill names and docs with the canonical `geno-` prefix; alias mapping is handled at install time and never committed to this repo.
+ 
+-### Agent instruction files
+-
+-`AGENTS.md`, `CLAUDE.md`, and `GEMINI.md` are **full copies** of `GENO.md` — not pointers (`@./GENO.md`). After every edit to `GENO.md`, run:
+-
+-```bash
+-cp GENO.md AGENTS.md && cp GENO.md CLAUDE.md && cp GENO.md GEMINI.md
+-```
+-
+-Rationale: pointer files are fragile across agent runtimes and editor integrations. Full copies ensure every agent sees the same instructions regardless of runtime.
+-
+ ### Adding a new skill
+ 
+@@ -60,7 +60,10 @@ Rationale: pointer files are fragile across agent runtimes and editor integratio
+ 4. Register the skill in `skills.sh.json` under the appropriate grouping.
+ 5. Add a row to the Skills table in this file.
+ 6. If the skill belongs to a sub-skillset, note it in the table's Sub-skillset column.
+-7. Copy GENO.md → AGENTS.md, CLAUDE.md, GEMINI.md.
++
++### Versioning
++
++The canonical version is in `genotools.yaml`. The same value must appear in `pyproject.toml` (`project.version`) and `package.json` (`version`). Bump the version whenever skills are added, removed, or behavior changes. Keep all three files in sync.
+ 
+ -- 
+2.43.0

@@ -1,0 +1,58 @@
+From be5b676e7e1bff7c690047232da6c42b23284fab Mon Sep 17 00:00:00 2001
+From: 42euge <42euge@gmail.com>
+Date: Sun, 7 Jun 2026 12:09:14 +0000
+Subject: [PATCH] chore(geno-audit): bring repo into ecosystem compliance
+
+- Fix aliased /gt-supercharge command refs in SKILL.md description fields (root, skills/geno-agents/, skills/geno-agents-supercharge/)
+- Fix aliased /gt-tasks-start ref in skills/geno-agents-tasks-start/SKILL.md body
+- Add Versioning subsection to GENO.md Conventions
+---
+ GENO.md                                 | 4 ++++
+ SKILL.md                                | 2 +-
+ skills/geno-agents-supercharge/SKILL.md | 2 +-
+ skills/geno-agents-tasks-start/SKILL.md | 2 +-
+ skills/geno-agents/SKILL.md             | 2 +-
+ 5 files changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/GENO.md b/GENO.md
+index 44b332c..6da1c48 100644
+--- a/GENO.md
++++ b/GENO.md
+@@ -71,3 +71,7 @@ To add a new skill to the geno-agents skillset:
+ 5. If the skill needs new MCP tools, add them in `geno_agents/mcp_server.py` and list them in the `allowed-tools` front-matter field.
+ 6. Update `genotools.yaml` with the new skill entry so `geno-tools install` picks it up.
++
++### Versioning
++
++The canonical version is in `genotools.yaml`. The same value must appear in `pyproject.toml` (`project.version`) and `package.json` (`version`). Bump the version whenever skills are added, removed, or behavior changes. Keep all three files in sync.
+diff --git a/SKILL.md b/SKILL.md
+index 77ec2d2..ac7fa7e 100644
+--- a/SKILL.md
++++ b/SKILL.md
+@@ -4,7 +4,7 @@ description: >-
+   Agent coordination — register as an agent, see who's online, update status.
+   Also includes autonomous agent loops (supercharge).
+   Use when user says /geno-agents, wants to register this session, check who's online,
+-  update what they're working on, or /gt-supercharge.
++  update what they're working on, or /geno-agents-supercharge.
+ allowed-tools: "Bash(geno-agents *) ..."
+diff --git a/skills/geno-agents-supercharge/SKILL.md b/skills/geno-agents-supercharge/SKILL.md
+--- a/skills/geno-agents-supercharge/SKILL.md
++++ b/skills/geno-agents-supercharge/SKILL.md
+@@ -3,7 +3,7 @@ description: >-
+-  Use when the user says /gt-supercharge, /geno-agents-supercharge, or asks
++  Use when the user says /geno-agents-supercharge, or asks
+diff --git a/skills/geno-agents-tasks-start/SKILL.md b/skills/geno-agents-tasks-start/SKILL.md
+--- a/skills/geno-agents-tasks-start/SKILL.md
++++ b/skills/geno-agents-tasks-start/SKILL.md
+@@ -4,7 +4,7 @@ description: >-
+-  Installed by geno-tools as the /gt-tasks-start slash command.
++  Installed by geno-tools as the /geno-agents-tasks-start slash command.
+diff --git a/skills/geno-agents/SKILL.md b/skills/geno-agents/SKILL.md
+--- a/skills/geno-agents/SKILL.md
++++ b/skills/geno-agents/SKILL.md
+@@ -4,7 +4,7 @@ description: >-
+-  update what they're working on, or /gt-supercharge.
++  update what they're working on, or /geno-agents-supercharge.
+-- 
+2.43.0

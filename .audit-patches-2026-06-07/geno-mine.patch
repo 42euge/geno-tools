@@ -1,0 +1,98 @@
+From f44457bd2b4482de274babfed26f3d34ba6e2ec4 Mon Sep 17 00:00:00 2001
+From: 42euge <42euge@gmail.com>
+Date: Sun, 7 Jun 2026 12:09:13 +0000
+Subject: [PATCH] chore(geno-audit): bring repo into ecosystem compliance
+
+- Add missing AGENTS.md pointer file
+- Add missing GEMINI.md pointer file
+- Add missing LICENSE (MIT)
+- Add allowed-tools to SKILL.md frontmatter
+- Add Conventions section to GENO.md (prefix aliasing, skill creation, versioning)
+- Add Sub-skillset column to GENO.md skills table
+---
+ AGENTS.md                 |  1 +
+ GEMINI.md                 |  1 +
+ GENO.md                   | 29 +++++++++++++++++++++++------
+ LICENSE                   | 21 +++++++++++++++++++++
+ skills/geno-mine/SKILL.md |  1 +
+ 5 files changed, 47 insertions(+), 6 deletions(-)
+ create mode 100644 AGENTS.md
+ create mode 100644 GEMINI.md
+ create mode 100644 LICENSE
+
+diff --git a/AGENTS.md b/AGENTS.md
+new file mode 100644
+index 0000000..f8e4dbc
+--- /dev/null
++++ b/AGENTS.md
+@@ -0,0 +1 @@
++@import GENO.md
+diff --git a/GEMINI.md b/GEMINI.md
+new file mode 100644
+index 0000000..a9a08bc
+--- /dev/null
++++ b/GEMINI.md
+@@ -0,0 +1 @@
++@./GENO.md
+diff --git a/GENO.md b/GENO.md
+index 1dc24af..9d81778 100644
+--- a/GENO.md
++++ b/GENO.md
+@@ -4,12 +4,12 @@
+ 
+ ## Skills
+ 
+-| Skill | Slash command | Purpose |
+-|-------|---------------|--------|
+-| geno-mine | — | Umbrella |
+-| geno-mine-extract | /geno-mine-extract | Run the full mining pipeline |
+-| geno-mine-stats | /geno-mine-stats | Show dataset statistics |
+-| geno-mine-export | /geno-mine-export | Export datasets |
++| Skill | Sub-skillset | Slash command | Purpose |
++|-------|-------------|---------------|--------|
++| geno-mine | — | — | Umbrella |
++| geno-mine-extract | extract | /geno-mine-extract | Run the full mining pipeline |
++| geno-mine-stats | stats | /geno-mine-stats | Show dataset statistics |
++| geno-mine-export | export | /geno-mine-export | Export datasets |
+ 
++## Conventions
++
++### Command prefix aliasing
++
++Skills in this repo use the canonical `geno-` prefix in source (e.g., `/geno-mine-extract`). Short aliases (e.g., `/gt-mine-extract`) are configured per-installation by `geno-tools` and are never committed to this repo.
++
++### Adding a new skill
++
++1. Create a directory under `skills/` named after the skill (e.g., `skills/geno-mine-<sub>-<verb>/`).
++2. Add a `SKILL.md` with YAML frontmatter: `name`, `description`, `allowed-tools`, `license`, `metadata`.
++3. Add the skill to the Skills table in this file.
++4. Add the skill to the sub-skills table in `skills/geno-mine/SKILL.md`.
++
++### Versioning
++
++The canonical version is in `genotools.yaml`. The same value must appear in `pyproject.toml` (`project.version`). Bump the version whenever skills are added, removed, or behavior changes. Keep both files in sync.
++
+diff --git a/LICENSE b/LICENSE
+new file mode 100644
+index 0000000..49357de
+--- /dev/null
++++ b/LICENSE
+@@ -0,0 +1,21 @@
++MIT License
++
++Copyright (c) 2024 42euge
++
++[...standard MIT text...]
++
+diff --git a/skills/geno-mine/SKILL.md b/skills/geno-mine/SKILL.md
+index c0ffbae..044f016 100644
+--- a/skills/geno-mine/SKILL.md
++++ b/skills/geno-mine/SKILL.md
+@@ -3,6 +3,7 @@ name: geno-mine
+ description: >-
+   Session mining and finetuning dataset generation — extract training examples
+   from Claude Code session transcripts. Use when user says /geno-mine.
++allowed-tools: "Bash(geno-mine *)"
+ license: MIT
+ -- 
+2.43.0
