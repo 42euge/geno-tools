@@ -1,0 +1,35 @@
+From 71607fa9eac2d286a3535a09e97ca736e2f81d7a Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Tue, 9 Jun 2026 00:10:06 +0000
+Subject: [PATCH] chore(geno-audit): bring repo into ecosystem compliance
+
+- Align geno_notes/__init__.py __version__ from 0.2.0 to 0.1.0 (match genotools.yaml)
+- Add Versioning guidance to GENO.md Conventions
+---
+ GENO.md                | 1 +
+ geno_notes/__init__.py | 4 ++--
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/GENO.md b/GENO.md
+index ac91d45..cd9d311 100644
+--- a/GENO.md
++++ b/GENO.md
+@@ -112,3 +112,4 @@ The scope directory **is** the wiki. Everything inside it is a page or page type
+     ├── events.jsonl                      # append-only audit log
+     └── locks/
+ ```
++- **Versioning**: The canonical version is in `genotools.yaml`. The same value must appear in `pyproject.toml` (`project.version`) and `package.json` (`version`). Bump the version whenever skills are added, removed, or behavior changes. Keep all four files in sync.
+diff --git a/geno_notes/__init__.py b/geno_notes/__init__.py
+index af36085..ccb76da 100644
+--- a/geno_notes/__init__.py
++++ b/geno_notes/__init__.py
+@@ -1,4 +1,4 @@
+ """geno-notes — project wiki with two-scope storage."""
+ 
+-__version__ = "0.2.0"
+-SCHEMA_VERSION = "0.2.0"
++__version__ = "0.1.0"
++SCHEMA_VERSION = "0.1.0"
+-- 
+2.43.0
+
