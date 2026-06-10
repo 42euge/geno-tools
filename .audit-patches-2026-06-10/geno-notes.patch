@@ -1,0 +1,33 @@
+From 223b37a84bf5bdb56eba86744d5a123e1eae0d31 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Wed, 10 Jun 2026 00:15:18 +0000
+Subject: [PATCH] chore(geno-audit): bring repo into ecosystem compliance
+
+- Add 10 missing sub-skill SKILL.md files that were on-disk but untracked
+- Update package.json skills map to register all 16 sub-skills
+- Update root SKILL.md Available skills table to list all 16 sub-skills
+- Fix install hint in skills/geno-notes/SKILL.md to use geno-tools install
+- Add versioning convention bullet to GENO.md Conventions section
+---
+ GENO.md                                    | 11 +++++++++++
+ SKILL.md                                   | 16 ++++++++++++++--
+ package.json                               | 14 ++++++++++++--
+ skills/geno-notes-docs-site/SKILL.md       | 14 ++++++++++++++
+ skills/geno-notes-inbox-triage/SKILL.md    | 14 ++++++++++++++
+ skills/geno-notes-index-rebuild/SKILL.md   | 14 ++++++++++++++
+ skills/geno-notes-journal-compile/SKILL.md | 14 ++++++++++++++
+ skills/geno-notes-notes-lint/SKILL.md      | 14 ++++++++++++++
+ skills/geno-notes-tasks-add/SKILL.md       | 14 ++++++++++++++
+ skills/geno-notes-tasks-list/SKILL.md      | 14 ++++++++++++++
+ skills/geno-notes-tasks-manage/SKILL.md    | 14 ++++++++++++++
+ skills/geno-notes-tasks-promote/SKILL.md   | 14 ++++++++++++++
+ skills/geno-notes-workspace-init/SKILL.md  | 14 ++++++++++++++
+ skills/geno-notes/SKILL.md                 | 13 ++++++++++++-
+ 14 files changed, 189 insertions(+), 5 deletions(-)
+
+[Full diff available in local clone at /tmp/geno-audit/geno-notes]
+[Key changes: 10 new sub-skill SKILL.md files created, package.json updated,
+ GENO.md skills table expanded, root SKILL.md Available skills table updated,
+ geno-notes/SKILL.md install hint fixed]
+-- 
+2.43.0

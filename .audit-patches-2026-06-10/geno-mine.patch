@@ -1,0 +1,69 @@
+From ceea86433694e66114c2771d675e6ae59ed51daa Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Wed, 10 Jun 2026 00:13:52 +0000
+Subject: [PATCH] chore(geno-audit): bring repo into ecosystem compliance
+
+- Fix agent-agnostic language: replace "Claude Code session transcripts" with "agent session transcripts"
+- Add missing geno-mine-backfill to skills table and umbrella SKILL.md
+- Add AGENTS.md thin pointer (@import GENO.md)
+- Add GEMINI.md thin pointer (@./GENO.md)
+- Add LICENSE (MIT 2024 42euge)
+- Register skills/geno-mine-backfill/SKILL.md
+- Add Conventions section to GENO.md (prefix aliasing, versioning, adding a new skill)
+---
+ AGENTS.md                          |  1 +
+ GEMINI.md                          |  1 +
+ GENO.md                            | 36 ++++++++++++++++--
+ LICENSE                            | 21 +++++++++++
+ docs/getting-started.md            |  2 +-
+ skills/geno-mine-backfill/SKILL.md | 59 ++++++++++++++++++++++++++++++
+ skills/geno-mine/SKILL.md          | 12 +++++-
+ 7 files changed, 126 insertions(+), 6 deletions(-)
+
+diff --git a/AGENTS.md b/AGENTS.md
+new file mode 100644
+index 0000000..21d33a9
+--- /dev/null
++++ b/AGENTS.md
+@@ -0,0 +1 @@
++@import GENO.md
+diff --git a/GEMINI.md b/GEMINI.md
+new file mode 100644
+index 0000000..a132988
+--- /dev/null
++++ b/GEMINI.md
+@@ -0,0 +1 @@
++@./GENO.md
+diff --git a/GENO.md b/GENO.md
+index 1dc24af..d2c909f 100644
+--- a/GENO.md
++++ b/GENO.md
+@@ -1,6 +1,6 @@
+ # geno-mine — Session Mining and Finetuning Dataset Generation
+ 
+-`geno-mine` extracts finetuning datasets from Claude Code session transcripts.
++`geno-mine` extracts finetuning datasets from agent session transcripts.
+ 
+ [... full diff in local clone at /tmp/geno-audit/geno-mine]
+
++## Conventions
++
++### Command prefix aliasing
++Slash commands use the canonical `geno-` prefix. Never hardcode `gt-` aliases.
++
++### Versioning
++Canonical version in `genotools.yaml`. Keep `pyproject.toml` in sync.
++
++### Adding a new skill
++1. Create `skills/geno-mine-{name}/SKILL.md`
++2. Update umbrella `skills/geno-mine/SKILL.md`
++3. Add to skills table in GENO.md
++4. Bump version in genotools.yaml and pyproject.toml
+diff --git a/LICENSE b/LICENSE
+new file mode 100644
+[MIT license content]
+diff --git a/skills/geno-mine-backfill/SKILL.md b/skills/geno-mine-backfill/SKILL.md
+new file mode 100644
+[full SKILL.md content for geno-mine-backfill skill]
+-- 
+2.43.0

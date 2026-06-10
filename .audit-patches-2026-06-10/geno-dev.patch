@@ -1,0 +1,67 @@
+From e5d446a0b0f0a667574ebeb12171464425419a0e Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Wed, 10 Jun 2026 00:15:46 +0000
+Subject: [PATCH] chore(geno-audit): bring repo into ecosystem compliance
+
+- Add .geno/ and CLAUDE.local.md to .gitignore
+- Remove /gt- alias from prs-check SKILL.md description
+- Remove stale gt-snooze branch name example from branches-audit
+- Fix getting-started.md: Gemini CLI -> Antigravity CLI
+- Add missing sessions-remote skill to umbrella SKILL.md, skills/geno-dev/SKILL.md, and README
+- Remove /geno-dev-loops-* commands from root SKILL.md and README (owned by geno-loops)
+- Add versioning guidance to GENO.md Conventions section
+- Expand prefix-aliasing note in GENO.md with explicit no-gt- rule
+---
+ .gitignore                              |  2 ++
+ GENO.md                                 |  5 ++++-
+ README.md                               | 23 ++++-------------------
+ SKILL.md                                | 18 +++++-------------
+ docs/getting-started.md                 |  2 +-
+ skills/geno-dev-branches-audit/SKILL.md |  2 +-
+ skills/geno-dev-prs-check/SKILL.md      |  2 +-
+ skills/geno-dev/SKILL.md                |  6 ++++--
+ 8 files changed, 22 insertions(+), 38 deletions(-)
+
+diff --git a/.gitignore b/.gitignore
+index c1fb757..69f9128 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -9,3 +9,5 @@ build/
+ .env
+ .idea/
+ .vscode/
++.geno/
++CLAUDE.local.md
+diff --git a/GENO.md b/GENO.md
+index 28d5e79..4949265 100644
+--- a/GENO.md
++++ b/GENO.md
+@@ -75,5 +77,6 @@ Pure markdown skillset...
+ -- **Prefix aliasing**: Slash commands use the canonical `geno-` prefix. Never hardcode `gt-` aliases.
+ +- **Versioning**: version in genotools.yaml, package.json, and root SKILL.md metadata.version must stay in sync.
+diff --git a/docs/getting-started.md b/docs/getting-started.md
+index 0ead7b1..95514bb 100644
+--- a/docs/getting-started.md
++++ b/docs/getting-started.md
+@@ -2,7 +2,7 @@
+ 
+ ## Prerequisites
+ 
+-- A supported coding CLI (Claude Code, Gemini CLI, Codex, or OpenCode)
++- A supported coding CLI (Claude Code, Antigravity CLI, Codex, or OpenCode)
+diff --git a/skills/geno-dev-prs-check/SKILL.md b/skills/geno-dev-prs-check/SKILL.md
+index 978fda0..c3e16d8 100644
+--- a/skills/geno-dev-prs-check/SKILL.md
++++ b/skills/geno-dev-prs-check/SKILL.md
+@@ -3,7 +3,7 @@ description: >-
+   Check open PRs for repos in the current session and show which ones
+-  may need to be closed. Use when user says /geno-dev-prs-check or /gt-pr.
++  may need to be closed. Use when user says /geno-dev-prs-check.
+diff --git a/skills/geno-dev-branches-audit/SKILL.md b/skills/geno-dev-branches-audit/SKILL.md
+--- a/skills/geno-dev-branches-audit/SKILL.md
++++ b/skills/geno-dev-branches-audit/SKILL.md
+@@ -153 +153 @@
+-| feat/gt-snooze | 12 | 3d | ~/.geno/worktrees/geno-dev/feat/gt-snooze | [#55](url) | PR DRAFT |
++| feat/geno-dev-snooze | 12 | 3d | ~/.geno/worktrees/geno-dev/feat/geno-dev-snooze | [#55](url) | PR DRAFT |
+-- 
+2.43.0
