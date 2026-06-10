@@ -15,7 +15,7 @@ Personal budget and expense categorization
 
     # geno-budget
     
-    Expense categorization and budgeting skills for AI coding agents. Imports transaction data from bank and credit card accounts, classifies each transaction as business (Airbnb rental) or personal, and exports categorized totals for tax prep.
+    Expense categorization and budgeting skills for Claude Code. Imports transaction data from bank and credit card accounts, classifies each transaction as business (Airbnb rental) or personal, and exports categorized totals for tax prep.
     
     **Local-only skillset.** Financial data is sensitive; this repo is not published.
     

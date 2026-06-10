@@ -15,7 +15,7 @@ HOA portal automation
 
     # geno-hoa
     
-    HOA portal automation skills for AI coding agents. Navigates HOA management portals (MyGreenCondo, AppFolio, BuildingLink, etc.) via browser automation to download documents, check account status, and extract financial data for tax prep or remodel projects.
+    HOA portal automation skills for Claude Code. Navigates HOA management portals (MyGreenCondo, AppFolio, BuildingLink, etc.) via browser automation to download documents, check account status, and extract financial data for tax prep or remodel projects.
     
     **Local-only skillset.** HOA account data is sensitive; this repo is not published.
     
