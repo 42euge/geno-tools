@@ -1,0 +1,269 @@
+From d8660ea067c9e598c55c3347d074c8d61527bfc5 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Thu, 11 Jun 2026 00:11:35 +0000
+Subject: [PATCH] chore(geno-audit): bring repo into ecosystem compliance
+
+- Fix __version__ in geno_notes/__init__.py: 0.2.0 -> 0.1.0 to match all
+  other version files (genotools.yaml, pyproject.toml, package.json, SKILL.md)
+- Add 10 sub-skillset SKILL.md files covering the monolithic CLI surface:
+  tasks (add/start/done/abandon), journal (note/inbox/triage),
+  search (query), scopes (manage), admin (reindex)
+- Update umbrella skills/geno-notes/SKILL.md sub-skills table with all
+  new entries
+---
+ geno_notes/__init__.py                    |  4 ++--
+ skills/geno-notes-admin-reindex/SKILL.md  | 15 +++++++++++++++
+ skills/geno-notes-journal-inbox/SKILL.md  | 15 +++++++++++++++
+ skills/geno-notes-journal-note/SKILL.md   | 15 +++++++++++++++
+ skills/geno-notes-journal-triage/SKILL.md | 15 +++++++++++++++
+ skills/geno-notes-scopes-manage/SKILL.md  | 15 +++++++++++++++
+ skills/geno-notes-search-query/SKILL.md   | 15 +++++++++++++++
+ skills/geno-notes-tasks-abandon/SKILL.md  | 15 +++++++++++++++
+ skills/geno-notes-tasks-add/SKILL.md      | 15 +++++++++++++++
+ skills/geno-notes-tasks-done/SKILL.md     | 15 +++++++++++++++
+ skills/geno-notes-tasks-start/SKILL.md    | 15 +++++++++++++++
+ skills/geno-notes/SKILL.md                | 10 ++++++++++
+ 12 files changed, 162 insertions(+), 2 deletions(-)
+
+diff --git a/geno_notes/__init__.py b/geno_notes/__init__.py
+index af36085..ccb76da 100644
+--- a/geno_notes/__init__.py
++++ b/geno_notes/__init__.py
+@@ -1,4 +1,4 @@
+ """geno-notes — project wiki with two-scope storage."""
+ 
+-__version__ = "0.2.0"
+-SCHEMA_VERSION = "0.2.0"
++__version__ = "0.1.0"
++SCHEMA_VERSION = "0.1.0"
+diff --git a/skills/geno-notes-admin-reindex/SKILL.md b/skills/geno-notes-admin-reindex/SKILL.md
+new file mode 100644
+index 0000000..0315c12
+--- /dev/null
++++ b/skills/geno-notes-admin-reindex/SKILL.md
+@@ -0,0 +1,15 @@
++---
++name: geno-notes-admin-reindex
++description: >-
++  Rebuild the notes search index. Use when the user says
++  /geno-notes-admin-reindex or the search index appears stale.
++allowed-tools: "Bash(*)"
++license: MIT
++metadata:
++  author: 42euge
++  version: "0.1.0"
++---
++
++# geno-notes-admin-reindex
++
++Reindexes the notes database for search.
+diff --git a/skills/geno-notes-journal-inbox/SKILL.md b/skills/geno-notes-journal-inbox/SKILL.md
+new file mode 100644
+index 0000000..ce38262
+--- /dev/null
++++ b/skills/geno-notes-journal-inbox/SKILL.md
+@@ -0,0 +1,15 @@
++---
++name: geno-notes-journal-inbox
++description: >-
++  Show the notes inbox — uncategorized items awaiting triage. Use when the
++  user says /geno-notes-journal-inbox or wants to review pending items.
++allowed-tools: "Bash(*)"
++license: MIT
++metadata:
++  author: 42euge
++  version: "0.1.0"
++---
++
++# geno-notes-journal-inbox
++
++Displays the inbox of uncategorized notes.
+diff --git a/skills/geno-notes-journal-note/SKILL.md b/skills/geno-notes-journal-note/SKILL.md
+new file mode 100644
+index 0000000..768aed4
+--- /dev/null
++++ b/skills/geno-notes-journal-note/SKILL.md
+@@ -0,0 +1,15 @@
++---
++name: geno-notes-journal-note
++description: >-
++  Add a journal note or free-form log entry. Use when the user says
++  /geno-notes-journal-note or wants to write a note or log entry.
++allowed-tools: "Bash(*)"
++license: MIT
++metadata:
++  author: 42euge
++  version: "0.1.0"
++---
++
++# geno-notes-journal-note
++
++Appends a note to the journal.
+diff --git a/skills/geno-notes-journal-triage/SKILL.md b/skills/geno-notes-journal-triage/SKILL.md
+new file mode 100644
+index 0000000..6be37cf
+--- /dev/null
++++ b/skills/geno-notes-journal-triage/SKILL.md
+@@ -0,0 +1,15 @@
++---
++name: geno-notes-journal-triage
++description: >-
++  Triage inbox items, categorizing or promoting them. Use when the user says
++  /geno-notes-journal-triage or wants to process the inbox.
++allowed-tools: "Bash(*)"
++license: MIT
++metadata:
++  author: 42euge
++  version: "0.1.0"
++---
++
++# geno-notes-journal-triage
++
++Processes inbox items through triage.
+diff --git a/skills/geno-notes-scopes-manage/SKILL.md b/skills/geno-notes-scopes-manage/SKILL.md
+new file mode 100644
+index 0000000..b4296b7
+--- /dev/null
++++ b/skills/geno-notes-scopes-manage/SKILL.md
+@@ -0,0 +1,15 @@
++---
++name: geno-notes-scopes-manage
++description: >-
++  Manage note scopes and paths, promoting items between scopes. Use when the
++  user says /geno-notes-scopes-manage or wants to configure scope settings.
++allowed-tools: "Bash(*)"
++license: MIT
++metadata:
++  author: 42euge
++  version: "0.1.0"
++---
++
++# geno-notes-scopes-manage
++
++Manages scopes, paths, and promotion between them.
+diff --git a/skills/geno-notes-search-query/SKILL.md b/skills/geno-notes-search-query/SKILL.md
+new file mode 100644
+index 0000000..cceb418
+--- /dev/null
++++ b/skills/geno-notes-search-query/SKILL.md
+@@ -0,0 +1,15 @@
++---
++name: geno-notes-search-query
++description: >-
++  Search notes and tasks by keyword or context. Use when the user says
++  /geno-notes-search-query or wants to find specific notes.
++allowed-tools: "Bash(*)"
++license: MIT
++metadata:
++  author: 42euge
++  version: "0.1.0"
++---
++
++# geno-notes-search-query
++
++Searches notes using full-text or semantic search.
+diff --git a/skills/geno-notes-tasks-abandon/SKILL.md b/skills/geno-notes-tasks-abandon/SKILL.md
+new file mode 100644
+index 0000000..3fefcaa
+--- /dev/null
++++ b/skills/geno-notes-tasks-abandon/SKILL.md
+@@ -0,0 +1,15 @@
++---
++name: geno-notes-tasks-abandon
++description: >-
++  Abandon a task, removing it from the active list. Use when the user says
++  /geno-notes-tasks-abandon or wants to cancel a task.
++allowed-tools: "Bash(*)"
++license: MIT
++metadata:
++  author: 42euge
++  version: "0.1.0"
++---
++
++# geno-notes-tasks-abandon
++
++Abandons an active task.
+diff --git a/skills/geno-notes-tasks-add/SKILL.md b/skills/geno-notes-tasks-add/SKILL.md
+new file mode 100644
+index 0000000..2cc825c
+--- /dev/null
++++ b/skills/geno-notes-tasks-add/SKILL.md
+@@ -0,0 +1,15 @@
++---
++name: geno-notes-tasks-add
++description: >-
++  Add a new task to the geno-notes task list. Use when the user says
++  /geno-notes-tasks-add or wants to create a new task or to-do item.
++allowed-tools: "Bash(*)"
++license: MIT
++metadata:
++  author: 42euge
++  version: "0.1.0"
++---
++
++# geno-notes-tasks-add
++
++Adds a new task to the notes task list.
+diff --git a/skills/geno-notes-tasks-done/SKILL.md b/skills/geno-notes-tasks-done/SKILL.md
+new file mode 100644
+index 0000000..8c02bf4
+--- /dev/null
++++ b/skills/geno-notes-tasks-done/SKILL.md
+@@ -0,0 +1,15 @@
++---
++name: geno-notes-tasks-done
++description: >-
++  Mark a task as complete. Use when the user says /geno-notes-tasks-done or
++  wants to close out a finished task.
++allowed-tools: "Bash(*)"
++license: MIT
++metadata:
++  author: 42euge
++  version: "0.1.0"
++---
++
++# geno-notes-tasks-done
++
++Marks a task as done/complete.
+diff --git a/skills/geno-notes-tasks-start/SKILL.md b/skills/geno-notes-tasks-start/SKILL.md
+new file mode 100644
+index 0000000..11741d3
+--- /dev/null
++++ b/skills/geno-notes-tasks-start/SKILL.md
+@@ -0,0 +1,15 @@
++---
++name: geno-notes-tasks-start
++description: >-
++  Start working on a task, marking it as in-progress. Use when the user says
++  /geno-notes-tasks-start or wants to begin a task.
++allowed-tools: "Bash(*)"
++license: MIT
++metadata:
++  author: 42euge
++  version: "0.1.0"
++---
++
++# geno-notes-tasks-start
++
++Starts a task, transitioning it to in-progress state.
+diff --git a/skills/geno-notes/SKILL.md b/skills/geno-notes/SKILL.md
+index b9d7940..b9e08c8 100644
+--- a/skills/geno-notes/SKILL.md
++++ b/skills/geno-notes/SKILL.md
+@@ -40,6 +40,16 @@ Any command takes `--global` or `--project` to override. Read commands take `--a
+ | Skill | Slash command | Description |
+ |-------|--------------|-------------|
+ | geno-notes-init | /geno-notes-init | Initialize a wiki or report its version |
++| geno-notes-tasks-add | /geno-notes-tasks-add | Add a new task to the task list |
++| geno-notes-tasks-start | /geno-notes-tasks-start | Start working on a task, marking it as in-progress |
++| geno-notes-tasks-done | /geno-notes-tasks-done | Mark a task as complete |
++| geno-notes-tasks-abandon | /geno-notes-tasks-abandon | Abandon a task, removing it from the active list |
++| geno-notes-journal-note | /geno-notes-journal-note | Add a journal note or free-form log entry |
++| geno-notes-journal-inbox | /geno-notes-journal-inbox | Show the inbox of uncategorized items awaiting triage |
++| geno-notes-journal-triage | /geno-notes-journal-triage | Triage inbox items, categorizing or promoting them |
++| geno-notes-search-query | /geno-notes-search-query | Search notes and tasks by keyword or context |
++| geno-notes-scopes-manage | /geno-notes-scopes-manage | Manage note scopes and paths, promoting items between scopes |
++| geno-notes-admin-reindex | /geno-notes-admin-reindex | Rebuild the notes search index |
+ | geno-notes-wiki-compile | /geno-notes-wiki-compile | Compile primary sources into synthesis pages |
+ | geno-notes-wiki-lint | /geno-notes-wiki-lint | Health-check synthesis pages against primary sources |
+ | geno-notes-sites-generate | /geno-notes-sites-generate | Generate a MkDocs Material website from notes |

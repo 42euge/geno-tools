@@ -1,0 +1,84 @@
+From acd4fdf6763c9277bd484da8276bcff009a73be1 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Thu, 11 Jun 2026 00:11:18 +0000
+Subject: [PATCH] chore(geno-audit): bring repo into ecosystem compliance
+
+- Remove aliased /gt-pr from geno-dev-prs-check description (prefix aliasing tenet)
+- Remove 6 non-existent loop skills from root SKILL.md description and commands table
+- Add geno-dev-sessions-remote row to GENO.md skills table
+- Add Versioning subsection to GENO.md Conventions section
+---
+ GENO.md                            |  5 +++++
+ SKILL.md                           | 15 +++------------
+ skills/geno-dev-prs-check/SKILL.md |  2 +-
+ 3 files changed, 9 insertions(+), 13 deletions(-)
+
+diff --git a/GENO.md b/GENO.md
+index 28d5e79..733a78f 100644
+--- a/GENO.md
++++ b/GENO.md
+@@ -12,6 +12,7 @@ Developer and infrastructure skills for AI coding agents: task execution from la
+ | geno-dev-worktrees-manage | worktrees | /geno-dev-worktrees-manage |
+ | geno-dev-workspaces-init | workspaces | /geno-dev-workspaces-init |
+ | geno-dev-sessions-fork | sessions | /geno-dev-sessions-fork |
++| geno-dev-sessions-remote | sessions | /geno-dev-sessions-remote |
+ | geno-dev-prs-check | prs | /geno-dev-prs-check |
+ | geno-dev-branches-audit | branches | /geno-dev-branches-audit |
+ | geno-dev-scheduling-snooze | scheduling | /geno-dev-scheduling-snooze |
+@@ -77,3 +78,7 @@ Pure markdown skillset — no Python package, no venv, no scripts. Each skill is
+ - This skill never modifies a project's `.gitignore` or tracked config files.
+ - **Prefix aliasing**: Slash commands use the canonical `geno-` prefix in source (e.g., `/geno-dev-tasks-start`). Short `/gt-` aliases are configured per-install by geno-tools and are not part of the skill source.
+ - **Adding a new skill**: Create a directory under `skills/` named after the skill, add a `SKILL.md` with valid frontmatter (name, description, argument-hint, license, metadata), then register the skill in the skills table and repo structure tree in this file.
++
++### Versioning
++
++Version is canonical in `genotools.yaml`. The same value must appear in `SKILL.md` metadata.version and `package.json`. Bump when adding or removing skills or changing behavior.
+diff --git a/SKILL.md b/SKILL.md
+index 86e6752..9cf3de1 100644
+--- a/SKILL.md
++++ b/SKILL.md
+@@ -4,15 +4,12 @@ description: >-
+   Developer and infrastructure utilities — task execution from lab notes,
+   git commit history rewriting, worktree management, workspace creation,
+   session forking, end-to-end feature shipping, issue-driven development,
+-  agentic loops, background monitoring, PR checking and branch auditing,
++  background monitoring, PR checking and branch auditing,
+   scheduled snoozing, and skill retrospectives.
+   Use when user says /geno-dev-tasks-start, /geno-dev-commits-rewrite,
+   /geno-dev-worktrees-manage, /geno-dev-workspaces-init, /geno-dev-sessions-fork,
+-  /geno-dev-feature-ship, /geno-dev-issue-work, /geno-dev-loops-drift,
+-  /geno-dev-loops-turbocharge, /geno-dev-loops-cruise,
+-  /geno-dev-loops-autopilot, /geno-dev-loops-boost,
+-  /geno-dev-loops-ignition, /geno-dev-prs-check, /geno-dev-branches-audit,
+-  /geno-dev-scheduling-snooze, or /geno-dev-skills-retro.
++  /geno-dev-feature-ship, /geno-dev-issue-work, /geno-dev-prs-check,
++  /geno-dev-branches-audit, /geno-dev-scheduling-snooze, or /geno-dev-skills-retro.
+ license: MIT
+ metadata:
+   author: 42euge
+@@ -34,12 +31,6 @@ Dev and infrastructure skills for AI coding agents. Task execution, git history
+ | `/geno-dev-sessions-fork [session]` | Fork an agent session — extract context to continue in a new session |
+ | `/geno-dev-feature-ship [description\|issue URL]` | End-to-end: scope, issue, branch, implement, and PR |
+ | `/geno-dev-issue-work [number\|query\|URL]` | Pick a GitHub issue or JIRA ticket and work on it (normal or loop mode) |
+-| `/geno-dev-loops-drift [question]` | Question-driven exploration loop — maintains a prioritized question queue |
+-| `/geno-dev-loops-turbocharge [task] [--spec <file>]` | Spec-driven convergence loop — iterate until all acceptance criteria pass |
+-| `/geno-dev-loops-cruise [task] [--plan <file>]` | Plan-driven sequential loop — execute a plan one step at a time |
+-| `/geno-dev-loops-autopilot [task] [--watch <tests\|ci\|lint\|git\|all>]` | Background monitoring loop — watch CI, tests, lint, and git state |
+-| `/geno-dev-loops-boost [task]` | Pomodoro focus loop — time-boxed work blocks with reflection |
+-| `/geno-dev-loops-ignition [goal] [--blueprint <file>]` | Cold-start bootstrap loop — turn a high-level goal into a blueprint and verified first slice |
+ | `/geno-dev-prs-check [repo\|--all]` | Check open PRs and flag ones that may need closing |
+ | `/geno-dev-branches-audit [repo\|--all]` | Audit all branches — find ones needing PRs, ready to merge, or stale |
+ | `/geno-dev-scheduling-snooze <time> [prompt]` | Snooze session until a specified time, then execute a prompt |
+diff --git a/skills/geno-dev-prs-check/SKILL.md b/skills/geno-dev-prs-check/SKILL.md
+index 978fda0..c3e16d8 100644
+--- a/skills/geno-dev-prs-check/SKILL.md
++++ b/skills/geno-dev-prs-check/SKILL.md
+@@ -2,7 +2,7 @@
+ name: geno-dev-prs-check
+ description: >-
+   Check open PRs for repos in the current session and show which ones
+-  may need to be closed. Use when user says /geno-dev-prs-check or /gt-pr.
++  may need to be closed. Use when user says /geno-dev-prs-check.
+ argument-hint: "[repo|--all]"
+ license: MIT
+ metadata:
