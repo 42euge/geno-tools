@@ -121,7 +121,7 @@ A **skillset** is a self-contained git repo named `{prefix}-{slug}` that geno-to
 Inside each skillset:
 
 - `SKILL.md` at the root — the umbrella manifest the agent loads first
-- `skills/<subskill>/SKILL.md` — **subskillsets**, each scoped to one focused capability (a single skillset typically ships several). geno-tools registers all of them in one shot via `npx skills add --skill '*'`.
+- `skills/<subskill>/SKILL.md` — **subskillsets**, each scoped to one focused capability (a single skillset typically ships several). `geno-tools install` registers all of them with every supported agent in a single step.
 - Optional `pyproject.toml`, runtime scripts, and copy-once configs
 
 Subskillsets keep individual SKILL.md files small and tightly scoped, while the umbrella SKILL.md gives the agent enough context to discover them.

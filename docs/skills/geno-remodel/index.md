@@ -37,4 +37,4 @@ Home remodel toolkit
     
     ## Runtime
     
-    No venv or scripts — all commands are pure markdown workflows. `geno-remodel-hoa-fetch` and `geno-remodel-hoa-submit` depend on the `geno-vla` MCP server for browser automation. The `site-*` commands generate pure HTML/CSS/JS with no build tools or dependencies.
+    No venv or scripts — all commands are pure markdown workflows. `gt-remodel-hoa-fetch` and `gt-remodel-hoa-submit` depend on the `geno-vla` MCP server for browser automation. The `site-*` commands generate pure HTML/CSS/JS with no build tools or dependencies.

@@ -25,7 +25,7 @@ Helps an operator onboard a new skillset to their geno-tools install. Two flavor
 ## Public onboarding flow
 
 ```
-1. Verify repo shape       → SKILL.md + commands/ at root, optional skills/<sub>/SKILL.md
+1. Verify repo shape       → SKILL.md at root + skills/<sub>/SKILL.md for each skill
 2. Self-test locally       → geno-tools dev <repo-name> ~/src/<repo-name>
 3. Push to a public remote → git push -u origin main
 4. Register                → PR adding "<repo-name>": "<git-url>" to genotools/registry.py
@@ -37,7 +37,7 @@ Helps an operator onboard a new skillset to their geno-tools install. Two flavor
 
 ```
 1. Pick a namespace        → {company-slug}-* (e.g. acme-finance, acme-incident-response)
-2. Mirror the skillset spec → identical SKILL.md + commands/ + optional venv layout
+2. Mirror the skillset spec → identical SKILL.md + skills/<sub>/SKILL.md + optional venv layout
 3. Host privately          → GitHub Enterprise / GitLab / Bitbucket / Gitea
 4. Configure discovery     → ~/.geno/config.yaml → discovery.sources
 5. Audit                   → docs/onboarding/audit.md (run by platform team)

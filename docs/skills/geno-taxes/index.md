@@ -45,4 +45,4 @@ Tax filing — document parsing, checklists, CPA packet prep
     
     ## Runtime
     
-    No venv or scripts — all commands are pure markdown workflows. `geno-tax-fetch` depends on the `geno-vla` MCP server for browser automation.
+    No venv or scripts — all commands are pure markdown workflows. `gt-tax-fetch` depends on the `geno-vla` MCP server for browser automation.
