@@ -98,7 +98,7 @@ Move them to the appropriate tax folder using bash `mv`.
 
 ### 6. Auto-parse
 
-After downloading, read the files and extract data following the gt-tax-parse workflow.
+After downloading, read the files and extract data following the /geno-tax-parse workflow.
 Update the YAML organizer. Always confirm changes with the user before writing.
 
 ### 7. Report results
