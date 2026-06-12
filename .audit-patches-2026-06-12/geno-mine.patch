@@ -1,0 +1,276 @@
+From d5ecb5e32650b328031f80a742f40ac4811216d0 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Fri, 12 Jun 2026 00:11:22 +0000
+Subject: [PATCH] chore(geno-audit): bring repo into ecosystem compliance
+
+- Add AGENTS.md (pointer to GENO.md for Codex/Antigravity CLI)
+- Add GEMINI.md (pointer to GENO.md for Gemini agent)
+- Add LICENSE (MIT 2025, author 42euge)
+- Expand GENO.md with required Conventions section: command prefix
+  aliasing, adding-a-new-skill checklist, versioning guidance; add
+  geno-mine-backfill to skills table; fix agent-agnostic framing
+- Fix agent-agnostic language in docs/getting-started.md: replace
+  "Claude Code" exclusive framing with "a supported coding CLI /
+  from within an agent session"
+- Fix agent-agnostic language in skills/geno-mine/SKILL.md: replace
+  "Claude Code session transcripts" with "agent session transcripts"
+- Add skills/geno-mine-backfill/SKILL.md for the backfill CLI
+  subcommand that previously had no corresponding skill definition;
+  update umbrella skill to list it
+---
+ AGENTS.md                          |  1 +
+ GEMINI.md                          |  1 +
+ GENO.md                            | 47 ++++++++++++++++++-----
+ LICENSE                            | 21 +++++++++++
+ docs/getting-started.md            |  9 ++++-
+ skills/geno-mine-backfill/SKILL.md | 60 ++++++++++++++++++++++++++++++
+ skills/geno-mine/SKILL.md          |  5 ++-
+ 7 files changed, 132 insertions(+), 12 deletions(-)
+ create mode 100644 AGENTS.md
+ create mode 100644 GEMINI.md
+ create mode 100644 LICENSE
+ create mode 100644 skills/geno-mine-backfill/SKILL.md
+
+diff --git a/AGENTS.md b/AGENTS.md
+new file mode 100644
+index 0000000..21d33a9
+--- /dev/null
++++ b/AGENTS.md
+@@ -0,0 +1 @@
++@import GENO.md
+diff --git a/GEMINI.md b/GEMINI.md
+new file mode 100644
+index 0000000..a132988
+--- /dev/null
++++ b/GEMINI.md
+@@ -0,0 +1 @@
++@./GENO.md
+diff --git a/GENO.md b/GENO.md
+index 1dc24af..25a042c 100644
+--- a/GENO.md
++++ b/GENO.md
+@@ -1,15 +1,16 @@
+ # geno-mine — Session Mining and Finetuning Dataset Generation
+ 
+-`geno-mine` extracts finetuning datasets from Claude Code session transcripts. It correlates structured skill traces (from `geno-trace`) with raw JSONL transcripts, classifies segments by training value, applies privacy filters, and generates examples in multiple formats.
++`geno-mine` extracts finetuning datasets from agent session transcripts. It correlates structured skill traces (from `geno-trace`) with raw JSONL transcripts, classifies segments by training value, applies privacy filters, and generates examples in multiple formats.
+ 
+ ## Skills
+ 
+-| Skill | Slash command | Purpose |
+-|-------|---------------|---------|
+-| geno-mine | — | Umbrella |
+-| geno-mine-extract | /geno-mine-extract | Run the full mining pipeline |
+-| geno-mine-stats | /geno-mine-stats | Show dataset statistics |
+-| geno-mine-export | /geno-mine-export | Export datasets |
++| Skill | Sub-skillset | Slash command |
++|-------|-------------|---------------|
++| geno-mine | — | — (umbrella) |
++| geno-mine-extract | — | /geno-mine-extract |
++| geno-mine-stats | — | /geno-mine-stats |
++| geno-mine-export | — | /geno-mine-export |
++| geno-mine-backfill | — | /geno-mine-backfill |
+ 
+ ## Repo structure
+ 
+@@ -20,17 +21,19 @@ geno-mine/
+ ├── genotools.yaml                       # install manifest
+ ├── pyproject.toml                       # Python package metadata
+ ├── geno_mine/                           # Python package
+-│   ├── cli.py                           #   CLI entry points (extract/stats/export)
++│   ├── cli.py                           #   CLI entry points (extract/stats/export/backfill)
+ │   ├── correlator.py                    #   link traces to transcript segments
+ │   ├── signals.py                       #   classify segment value (tier 1/2/3)
+ │   ├── generator.py                     #   produce SFT, DPO, tool-trace examples
+ │   ├── filters.py                       #   privacy: path scrub, secret/PII removal
++│   ├── backfill.py                      #   retroactively generate traces from transcripts
+ │   └── store.py                         #   dataset versioning at ~/.geno/datasets/
+ └── skills/
+     ├── geno-mine/SKILL.md               #   umbrella
+     ├── geno-mine-extract/SKILL.md       #   full pipeline skill
+     ├── geno-mine-stats/SKILL.md         #   statistics skill
+-    └── geno-mine-export/SKILL.md        #   export skill
++    ├── geno-mine-export/SKILL.md        #   export skill
++    └── geno-mine-backfill/SKILL.md      #   backfill skill
+ ```
+ 
+ ## Entry point
+@@ -58,3 +61,29 @@ All processing is local (zero telemetry). The filter stage:
+ 3. Replaces emails and phone numbers with placeholders
+ 4. Skips segments that touch `.env`, credentials, `~/.ssh/`
+ 5. Configurable exclusions in `~/.geno/config.yaml` under `mining`
++
++## Conventions
++
++### Command prefix aliasing
++
++Slash commands in this repo always use the canonical `geno-` prefix (e.g., `/geno-mine-extract`, `/geno-mine-stats`). The prefix users actually type at runtime (`/gt-`, `/geno-`, or bare `/`) is a user preference configured in `~/.geno/config.yaml`:
++
++```yaml
++aliases:
++  command_prefix: "gt"   # gt-mine-extract, gt-mine-stats, etc.
++```
++
++The prefix is applied at install time by `geno-tools install`. Never hardcode an aliased prefix like `gt-` in SKILL.md descriptions, GENO.md, or any committed file.
++
++### Adding a new skill
++
++1. Create a directory under `skills/` named with the full skill name (e.g., `skills/geno-mine-backfill/`).
++2. Write a `SKILL.md` inside it with YAML frontmatter containing at minimum `name` and `description`.
++3. Update the umbrella skill description in `skills/geno-mine/SKILL.md` to list the new skill.
++4. Add the skill to the skills table in this file (`GENO.md`).
++5. If the skill has a corresponding CLI subcommand, add or verify it in `geno_mine/cli.py`.
++6. Bump the version in all four files: `genotools.yaml`, `pyproject.toml`, `package.json` (if present), `geno_mine/__init__.py`.
++
++### Versioning
++
++The canonical version lives in `genotools.yaml` (`version` field). The same value must appear in `pyproject.toml` (`project.version`) and `geno_mine/__init__.py` (`__version__`). Bump the version whenever skills are added, removed, or behavior changes. Keep all files in sync.
+diff --git a/LICENSE b/LICENSE
+new file mode 100644
+index 0000000..6026324
+--- /dev/null
++++ b/LICENSE
+@@ -0,0 +1,21 @@
++MIT License
++
++Copyright (c) 2025 42euge
++
++Permission is hereby granted, free of charge, to any person obtaining a copy
++of this software and associated documentation files (the "Software"), to deal
++in the Software without restriction, including without limitation the rights
++to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++copies of the Software, and to permit persons to whom the Software is
++furnished to do so, subject to the following conditions:
++
++The above copyright notice and this permission notice shall be included in all
++copies or substantial portions of the Software.
++
++THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++SOFTWARE.
+diff --git a/docs/getting-started.md b/docs/getting-started.md
+index dce645e..40e2ba3 100644
+--- a/docs/getting-started.md
++++ b/docs/getting-started.md
+@@ -2,6 +2,7 @@
+ 
+ ## Prerequisites
+ 
++- A supported coding CLI (Claude Code, Antigravity CLI, Codex, or OpenCode)
+ - [geno-tools](https://github.com/42euge/geno-tools) installed
+ 
+ ## Installation
+@@ -10,6 +11,12 @@
+ geno-tools install geno-mine
+ ```
+ 
++Or from within an agent session:
++
++```
++/geno-tools install geno-mine
++```
++
+ ## Usage
+ 
+-Run `/geno-mine` in Claude Code to get started.
++Run `/geno-mine` from within an agent session to get started.
+diff --git a/skills/geno-mine-backfill/SKILL.md b/skills/geno-mine-backfill/SKILL.md
+new file mode 100644
+index 0000000..da4af1f
+--- /dev/null
++++ b/skills/geno-mine-backfill/SKILL.md
+@@ -0,0 +1,60 @@
++---
++name: geno-mine-backfill
++description: >-
++  Retroactively generate skill traces from historical agent session transcripts.
++  Use when user says /geno-mine-backfill.
++argument-hint: "[--since <days>d] [--skill <name>] [--dry-run]"
++license: MIT
++metadata:
++  author: 42euge
++  version: "0.1.0"
++observability:
++  success_signal: "traces emitted > 0"
++  failure_signals:
++    - "no transcripts found"
++    - "no invocations detected"
++  knowledge_reads:
++    - "~/.claude/projects/ (historical session transcripts)"
++  knowledge_writes:
++    - "~/.geno/traces/ (retroactively generated skill traces)"
++---
++
++# Backfill Traces
++
++Retroactively generate skill traces from historical session transcripts. Useful
++when transcripts exist but traces were not emitted at the time (e.g., before
++`geno-trace` was set up). Deduplicates against existing traces to avoid
++double-counting.
++
++## Workflow
++
++### 1. Run the backfill
++
++```bash
++geno-mine backfill [--since 30d] [--skill <name>] [--dry-run]
++```
++
++Parse `$ARGUMENTS` and pass them to the CLI.
++
++### 2. Review results
++
++Show the user what was generated:
++- Transcripts scanned
++- Invocations found
++- Traces emitted
++- Traces skipped (deduplication)
++- Breakdown by skill and outcome
++
++### 3. Suggest next steps
++
++- `geno-mine extract` to mine the newly backfilled traces into training examples
++
++## Completion
++
++```bash
++geno-trace emit \
++  --skill geno-mine-backfill \
++  --status <success|failure> \
++  --tool-calls <count> \
++  --errors <count>
++```
+diff --git a/skills/geno-mine/SKILL.md b/skills/geno-mine/SKILL.md
+index c0ffbae..58e3751 100644
+--- a/skills/geno-mine/SKILL.md
++++ b/skills/geno-mine/SKILL.md
+@@ -2,7 +2,7 @@
+ name: geno-mine
+ description: >-
+   Session mining and finetuning dataset generation — extract training examples
+-  from Claude Code session transcripts. Use when user says /geno-mine.
++  from agent session transcripts. Use when user says /geno-mine.
+ license: MIT
+ metadata:
+   author: 42euge
+@@ -12,7 +12,7 @@ metadata:
+ # geno-mine
+ 
+ Session mining toolkit for the geno ecosystem. Extracts finetuning datasets
+-from Claude Code session transcripts by correlating structured skill traces
++from agent session transcripts by correlating structured skill traces
+ with raw JSONL transcripts, classifying segments by training value, and
+ generating examples in multiple formats (SFT, DPO, tool traces, Anthropic).
+ 
+@@ -23,3 +23,4 @@ generating examples in multiple formats (SFT, DPO, tool traces, Anthropic).
+ | geno-mine-extract | /geno-mine-extract | Run the full mining pipeline |
+ | geno-mine-stats | /geno-mine-stats | Show dataset statistics |
+ | geno-mine-export | /geno-mine-export | Export datasets to external formats |
++| geno-mine-backfill | /geno-mine-backfill | Retroactively generate traces from historical transcripts |
+-- 
+2.43.0
+

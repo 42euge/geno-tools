@@ -1,0 +1,187 @@
+From 3ac805f0a48520f42daf6d94b6bdafb24b8f68b1 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Fri, 12 Jun 2026 00:13:00 +0000
+Subject: [PATCH 1/2] chore(geno-audit): bring repo into ecosystem compliance
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- Fix Section 11 (FAIL): Remove aliased /gt-pr command from
+  skills/geno-dev-prs-check/SKILL.md description — use canonical
+  /geno-dev-prs-check only
+- Fix Section 5 (WARN): Add geno-dev-sessions-remote to GENO.md skills
+  table and repo structure tree; add to README.md commands table and
+  repository structure tree
+- Fix Section 6 (WARN): Add versioning guidance to GENO.md Conventions
+  section (canonical version in genotools.yaml + package.json, bump
+  when skills are added/removed or behavior changes)
+- Fix Section 4 (WARN): Add allowed-tools field to root SKILL.md
+  frontmatter
+---
+ GENO.md                            | 3 +++
+ README.md                          | 3 +++
+ SKILL.md                           | 1 +
+ skills/geno-dev-prs-check/SKILL.md | 2 +-
+ 4 files changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/GENO.md b/GENO.md
+index 28d5e79..3e128f8 100644
+--- a/GENO.md
++++ b/GENO.md
+@@ -12,6 +12,7 @@ Developer and infrastructure skills for AI coding agents: task execution from la
+ | geno-dev-worktrees-manage | worktrees | /geno-dev-worktrees-manage |
+ | geno-dev-workspaces-init | workspaces | /geno-dev-workspaces-init |
+ | geno-dev-sessions-fork | sessions | /geno-dev-sessions-fork |
++| geno-dev-sessions-remote | sessions | /geno-dev-sessions-remote |
+ | geno-dev-prs-check | prs | /geno-dev-prs-check |
+ | geno-dev-branches-audit | branches | /geno-dev-branches-audit |
+ | geno-dev-scheduling-snooze | scheduling | /geno-dev-scheduling-snooze |
+@@ -32,6 +33,7 @@ geno-dev/
+ │   ├── geno-dev/        #   umbrella
+ │   ├── geno-dev-commits-rewrite/
+ │   ├── geno-dev-sessions-fork/
++│   ├── geno-dev-sessions-remote/
+ │   ├── geno-dev-tasks-start/
+ │   ├── geno-dev-workspaces-init/
+ │   ├── geno-dev-worktrees-manage/
+@@ -77,3 +79,4 @@ Pure markdown skillset — no Python package, no venv, no scripts. Each skill is
+ - This skill never modifies a project's `.gitignore` or tracked config files.
+ - **Prefix aliasing**: Slash commands use the canonical `geno-` prefix in source (e.g., `/geno-dev-tasks-start`). Short `/gt-` aliases are configured per-install by geno-tools and are not part of the skill source.
+ - **Adding a new skill**: Create a directory under `skills/` named after the skill, add a `SKILL.md` with valid frontmatter (name, description, argument-hint, license, metadata), then register the skill in the skills table and repo structure tree in this file.
++- **Versioning**: The canonical version lives in `genotools.yaml` (`version` field). The same value must appear in `package.json` (`version`). Bump the version whenever skills are added, removed, or behavior changes. Keep all version files in sync.
+diff --git a/README.md b/README.md
+index abd60ea..0b1d1b9 100644
+--- a/README.md
++++ b/README.md
+@@ -19,6 +19,7 @@ geno-tools install geno-dev
+ | `/geno-dev-worktrees-manage [list\|create\|switch\|prune]` | Manage git worktrees — list, create, switch, and prune |
+ | `/geno-dev-workspaces-init [config\|list\|<text>]` | Create development workspaces from issues, tickets, repos, or ideas |
+ | `/geno-dev-sessions-fork [session]` | Fork an agent session — extract context to continue in a new session |
++| `/geno-dev-sessions-remote [workspace-path]` | Start a remote-access agent session in a workspace directory |
+ | `/geno-dev-feature-ship [description\|issue URL]` | End-to-end: scope, issue, branch, implement, and PR |
+ | `/geno-dev-issue-work [number\|query\|URL]` | Pick a GitHub issue or JIRA ticket and work on it (normal or loop mode) |
+ | `/geno-dev-loops-drift [question]` | Question-driven exploration loop — maintains a prioritized question queue |
+@@ -48,6 +49,8 @@ geno-dev/
+ │   │   └── SKILL.md
+ │   ├── geno-dev-sessions-fork/
+ │   │   └── SKILL.md
++│   ├── geno-dev-sessions-remote/
++│   │   └── SKILL.md
+ │   ├── geno-dev-tasks-start/
+ │   │   └── SKILL.md
+ │   ├── geno-dev-workspaces-init/
+diff --git a/SKILL.md b/SKILL.md
+index 86e6752..4963b48 100644
+--- a/SKILL.md
++++ b/SKILL.md
+@@ -1,5 +1,6 @@
+ ---
+ name: geno-dev
++allowed-tools: "Bash(git *) Bash(gh *) Bash(geno-*) Read(*) Write(*) Edit(*) Glob(*) Grep(*)"
+ description: >-
+   Developer and infrastructure utilities — task execution from lab notes,
+   git commit history rewriting, worktree management, workspace creation,
+diff --git a/skills/geno-dev-prs-check/SKILL.md b/skills/geno-dev-prs-check/SKILL.md
+index 978fda0..c3e16d8 100644
+--- a/skills/geno-dev-prs-check/SKILL.md
++++ b/skills/geno-dev-prs-check/SKILL.md
+@@ -2,7 +2,7 @@
+ name: geno-dev-prs-check
+ description: >-
+   Check open PRs for repos in the current session and show which ones
+-  may need to be closed. Use when user says /geno-dev-prs-check or /gt-pr.
++  may need to be closed. Use when user says /geno-dev-prs-check.
+ argument-hint: "[repo|--all]"
+ license: MIT
+ metadata:
+-- 
+2.43.0
+
+
+From 3f491692fcdccf8a7c7590764f8c880f3e13a107 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Fri, 12 Jun 2026 00:15:21 +0000
+Subject: [PATCH 2/2] chore(geno-audit): remove stale loop skill refs from
+ SKILL.md; untrack .geno-agents
+
+---
+ .geno-agents |  9 ---------
+ .gitignore   |  1 +
+ SKILL.md     | 17 +++++------------
+ 3 files changed, 6 insertions(+), 21 deletions(-)
+ delete mode 100644 .geno-agents
+
+diff --git a/.geno-agents b/.geno-agents
+deleted file mode 100644
+index 69bb2fa..0000000
+--- a/.geno-agents
++++ /dev/null
+@@ -1,9 +0,0 @@
+-role: geno-dev
+-description: Developer utilities — task execution, commit rewriting, worktree management, workspace creation, agentic loops, scheduling
+-capabilities:
+-  - dev-tools
+-  - git-history
+-  - git-worktrees
+-  - workspaces
+-  - agentic-loops
+-  - scheduling
+diff --git a/.gitignore b/.gitignore
+index c1fb757..f16522d 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -9,3 +9,4 @@ build/
+ .env
+ .idea/
+ .vscode/
++.geno-agents
+diff --git a/SKILL.md b/SKILL.md
+index 4963b48..1a41bc3 100644
+--- a/SKILL.md
++++ b/SKILL.md
+@@ -5,14 +5,12 @@ description: >-
+   Developer and infrastructure utilities — task execution from lab notes,
+   git commit history rewriting, worktree management, workspace creation,
+   session forking, end-to-end feature shipping, issue-driven development,
+-  agentic loops, background monitoring, PR checking and branch auditing,
++  background monitoring, PR checking and branch auditing,
+   scheduled snoozing, and skill retrospectives.
+   Use when user says /geno-dev-tasks-start, /geno-dev-commits-rewrite,
+   /geno-dev-worktrees-manage, /geno-dev-workspaces-init, /geno-dev-sessions-fork,
+-  /geno-dev-feature-ship, /geno-dev-issue-work, /geno-dev-loops-drift,
+-  /geno-dev-loops-turbocharge, /geno-dev-loops-cruise,
+-  /geno-dev-loops-autopilot, /geno-dev-loops-boost,
+-  /geno-dev-loops-ignition, /geno-dev-prs-check, /geno-dev-branches-audit,
++  /geno-dev-sessions-remote, /geno-dev-feature-ship, /geno-dev-issue-work,
++  /geno-dev-prs-check, /geno-dev-branches-audit,
+   /geno-dev-scheduling-snooze, or /geno-dev-skills-retro.
+ license: MIT
+ metadata:
+@@ -22,7 +20,7 @@ metadata:
+ 
+ # geno-dev — Developer Utilities
+ 
+-Dev and infrastructure skills for AI coding agents. Task execution, git history rewriting, worktree management, workspace creation, session forking, end-to-end feature shipping, issue-driven development, agentic loops, background monitoring, PR checking and branch auditing, scheduled snoozing, and skill retrospectives.
++Dev and infrastructure skills for AI coding agents. Task execution, git history rewriting, worktree management, workspace creation, session forking, end-to-end feature shipping, issue-driven development, background monitoring, PR checking and branch auditing, scheduled snoozing, and skill retrospectives.
+ 
+ ## Commands
+ 
+@@ -33,14 +31,9 @@ Dev and infrastructure skills for AI coding agents. Task execution, git history
+ | `/geno-dev-worktrees-manage [list\|create\|switch\|prune]` | Manage git worktrees — list, create, switch, and prune |
+ | `/geno-dev-workspaces-init [config\|list\|<text>]` | Create development workspaces from issues, tickets, repos, or ideas |
+ | `/geno-dev-sessions-fork [session]` | Fork an agent session — extract context to continue in a new session |
++| `/geno-dev-sessions-remote [session]` | Start or continue a remote agent session |
+ | `/geno-dev-feature-ship [description\|issue URL]` | End-to-end: scope, issue, branch, implement, and PR |
+ | `/geno-dev-issue-work [number\|query\|URL]` | Pick a GitHub issue or JIRA ticket and work on it (normal or loop mode) |
+-| `/geno-dev-loops-drift [question]` | Question-driven exploration loop — maintains a prioritized question queue |
+-| `/geno-dev-loops-turbocharge [task] [--spec <file>]` | Spec-driven convergence loop — iterate until all acceptance criteria pass |
+-| `/geno-dev-loops-cruise [task] [--plan <file>]` | Plan-driven sequential loop — execute a plan one step at a time |
+-| `/geno-dev-loops-autopilot [task] [--watch <tests\|ci\|lint\|git\|all>]` | Background monitoring loop — watch CI, tests, lint, and git state |
+-| `/geno-dev-loops-boost [task]` | Pomodoro focus loop — time-boxed work blocks with reflection |
+-| `/geno-dev-loops-ignition [goal] [--blueprint <file>]` | Cold-start bootstrap loop — turn a high-level goal into a blueprint and verified first slice |
+ | `/geno-dev-prs-check [repo\|--all]` | Check open PRs and flag ones that may need closing |
+ | `/geno-dev-branches-audit [repo\|--all]` | Audit all branches — find ones needing PRs, ready to merge, or stale |
+ | `/geno-dev-scheduling-snooze <time> [prompt]` | Snooze session until a specified time, then execute a prompt |
+-- 
+2.43.0
+
