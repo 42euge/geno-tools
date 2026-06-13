@@ -2,91 +2,89 @@
 
 [![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://42euge.github.io/geno-tools/)
 
-Skills-only repo that distributes the `geno-tools` skillset catalog. This package is no longer a Python CLI.
+The manifest-driven compiler ("Yocto for Skills") for AI agent environments.
 
 **Website:** <https://42euge.github.io/geno-tools>
 
 ## What it does
 
-`geno-tools` is a pure-skill collection with:
+`geno-tools` solves the problem of restricting AI agents from using the wrong tools or MCPs. It acts as the "one plugin to rule them all". You describe an environment in a manifest (`geno-image.yaml`), and `geno` compiles a strict, customized environment (`build/`) that you load into your agent.
 
-- **Installable skills** in `skills/`
-- **Agent plugin descriptors** for Claude Code, Codex, Cursor, OpenCode, and Antigravity CLI
-- **Documentation** and skill metadata
+If a skill is not explicitly included in the manifest (or if it's explicitly excluded), it doesn't get baked into the final output. The AI is physically restricted from accessing it.
 
-## Install into an agent
+Every bake is:
 
-Install this repo as a plugin/skillset in your agent of choice:
+- **Audited** — a built-in compliance scan checks every skill file for curl-pipe-sh installs, prompt-injection phrasing, credential access, destructive commands, and over-broad tool grants. Error findings block the bake unless explicitly allowlisted; the full report lands in `build/audit-report.json`.
+- **Reproducible** — `geno-image.lock` records layer sources, git commits, and per-skill content hashes. Two bakes of the same inputs are byte-identical, and the builder warns when the environment drifts from the last bake.
+- **Agent-agnostic** — the build emits adapter manifests for Claude Code, Codex, Cursor, OpenCode, Gemini CLI, and Antigravity, selectable per environment.
 
-### Claude Code
+## The Workflow
 
-```bash
-/plugin marketplace add 42euge/geno-tools
-/plugin install geno-tools@geno-tools
-```
+1. **Run the interactive builder** (the primary interface):
 
-### Antigravity CLI
+   ```bash
+   npm link   # once
+   geno
+   ```
 
-```bash
-agy plugin install https://github.com/42euge/geno-tools
-```
+   Pick skill layers (grouped by ecosystem), pick skills — each shows its description and an inline audit glyph (`✓` clean, `⚠` warnings, `✗` blocking findings; press `a` for details, `/` to filter) — choose which agents to target, and bake. Your choices are saved to `geno-image.yaml`.
 
-### Codex CLI
+2. **Or edit the manifest directly** and bake headless (scripts, CI):
 
-```bash
-/plugin marketplace add 42euge/geno-tools
-/plugins
-```
+   ```yaml
+   name: "geno-strict-env"
+   version: "1.0.0"
 
-### Cursor
+   layers:
+     - ./layers/meta-geno-core
+     - https://github.com/some-org/custom-skill-layer
 
-Install via Cursor's plugin manager (it reads `.cursor-plugin/plugin.json`) or clone the repo into your Cursor plugins directory.
+   install:
+     - core/geno-audit
+     - core/geno-tools
 
-### OpenCode
+   exclude:
+     - dangerous-eval-skill
 
-Add this to `opencode.json`:
+   targets:
+     - claude
+     - generic
+   ```
 
-```json
-{ "plugins": ["geno-tools@git+https://github.com/42euge/geno-tools.git"] }
-```
+   ```bash
+   geno bake     # or: npm run bake
+   ```
 
-## Available skillset surface
+3. **Install the single compiled plugin into your agent:**
 
-The `geno-tools` umbrella skill exposes:
+   ```bash
+   # Antigravity CLI
+   agy plugin install ./build
 
-- `/geno-tools` — skillset overview
-- `/geno-tools-update` — refresh installed skillsets via existing host tooling
-- `/geno-skills-install` — register a local skillset checkout globally
-- `/geno-skills-create` — scaffold a new skill
-- `/geno-audit` — check a repo against ecosystem conventions
-- plus additional companion `geno-*` skills in this repo
+   # Claude Code
+   /plugin install ./build
+   ```
 
 ## Project structure
 
 ```
 .
-├── GENO.md                    # agent-facing canonical guidance
-├── skills/                    # SKILL.md definitions
-├── docs/                      # MkDocs Material docs
-├── docs-home.md               # docs landing
-├── genotools.yaml             # skillset manifest
-├── .claude-plugin/            # Claude Code manifest
-├── .codex-plugin/             # Codex manifest
-├── .cursor-plugin/            # Cursor manifest
-├── .opencode/                 # OpenCode plugin entry
-├── plugin.json                # Antigravity plugin manifest
+├── GENO.md             # agent-facing canonical guidance
+├── geno-image.yaml     # default environment manifest
+├── geno-image.lock     # reproducibility lockfile
+├── layers/             # source layers (meta-geno-core ships the built-in skills)
+├── bin/                # geno CLI + interactive builder
+├── lib/                # the compiler (manifest, layers, audit, lockfile, adapters)
+├── test/               # node:test suite — `npm test`
+├── docs/               # MkDocs Material docs
 └── GEMINI.md, AGENTS.md, CLAUDE.md
 ```
 
-## Notes
+## Development
 
-- No `pyproject.toml`
-- No `genotools/` Python package
-- No bootstrap or installer scripts
-
-## External skillset management
-
-If you need the Python package for local CLI orchestration (`geno-tools install`, `geno-tools ls`, etc.), that flow is now out of scope for this repo.
+```bash
+npm test        # zero-dependency test suite (node:test)
+```
 
 ## License
 

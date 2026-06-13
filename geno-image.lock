@@ -1,0 +1,55 @@
+{
+  "layers": [
+    {
+      "name": "meta-geno-core",
+      "source": "./layers/meta-geno-core",
+      "type": "local"
+    }
+  ],
+  "lockfileVersion": 1,
+  "manifestHash": "sha256:0a43b7994f6a94f503d759e7f19bb06c369f12aa99f2c7ad5aa703a3cd710e8f",
+  "name": "geno-strict-env",
+  "skills": [
+    {
+      "hash": "sha256:71cac430186cb9128720b1134c1579d1cc78e886c9704e4254d2b73e4e974865",
+      "id": "core/geno-alias",
+      "layer": "meta-geno-core"
+    },
+    {
+      "hash": "sha256:b0de34eb7b1651892c4d5575284bd55f76daaad8ce87c93ecf09d0085e8ed64f",
+      "id": "core/geno-audit",
+      "layer": "meta-geno-core"
+    },
+    {
+      "hash": "sha256:3e568e6ea8fe47aa26859fc6b4c60e063ccc1785700e226f1d4c6b5f44849558",
+      "id": "core/geno-tools",
+      "layer": "meta-geno-core"
+    },
+    {
+      "hash": "sha256:165b7ebd8f93849d48a023b7d1dd59d875ec00e5a5ae4398621de80ca6516a05",
+      "id": "misc/geno-tools-improve",
+      "layer": "meta-geno-core"
+    },
+    {
+      "hash": "sha256:7e743b983e58805173c9a6c8d0d6e8d3fe962feced148525a47914ebbb473834",
+      "id": "misc/geno-tools-update",
+      "layer": "meta-geno-core"
+    },
+    {
+      "hash": "sha256:f84937b49302e1dd0e95e1352b76490e3c921e5c4a9510cbf2023a68b99b7f5e",
+      "id": "skills-management/geno-skills-create",
+      "layer": "meta-geno-core"
+    },
+    {
+      "hash": "sha256:c2e4cef0ab81e041c25fcc4c07007941882595364b6e7a6cae0fc1c6dc59e0aa",
+      "id": "skills-management/geno-skills-install",
+      "layer": "meta-geno-core"
+    },
+    {
+      "hash": "sha256:d3e583a100b007c78b3cc625012b6703ba0cd02ba038e4debd636ab2ebc02a62",
+      "id": "skills-management/geno-skills-status",
+      "layer": "meta-geno-core"
+    }
+  ],
+  "version": "1.0.0"
+}

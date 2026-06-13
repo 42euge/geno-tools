@@ -21,3 +21,10 @@ site/
 
 # geno-audit temp clones
 .geno-audit/
+
+# geno-bake generated output
+build/
+.geno-bake-cache/
+
+# WIP staging area for ecosystem snapshots
+scratch/

@@ -191,7 +191,7 @@ aliases:
   # or ""                # /myskill, /myskill-tasks-start
 ```
 
-The prefix is applied at install time by `geno-tools install`. **Repo source files must always use the canonical `geno-` prefix.** Never hardcode `gt-` or any other alias in:
+The prefix is applied when the skill is baked into an environment. **Repo source files must always use the canonical `geno-` prefix.** Never hardcode `gt-` or any other alias in:
 
 - SKILL.md `description` fields
 - SKILL.md body content
@@ -206,32 +206,42 @@ The geno ecosystem is CLI-agnostic — skillsets work with Claude Code, Antigrav
 
 ## Testing locally
 
-Use `dev` to link your local checkout:
+Your repo is a **layer**: a `layer.json` plus skills under `skills/<category>/<name>/SKILL.md`. To test it, add it to a `geno-image.yaml` and bake:
 
-```bash
-geno-tools dev geno-myskill ~/src/geno-myskill
+```yaml
+layers:
+  - ./layers/meta-geno-core
+  - ~/src/geno-myskill          # your local checkout
+
+install:
+  - core/my-new-skill
 ```
 
-Edits take effect immediately. When you're happy, push to a git remote and others can install it:
-
 ```bash
-geno-tools install https://github.com/you/geno-myskill.git
+geno bake
 ```
 
-## Adding to the registry
+Edits take effect on the next bake (the builder shows a drift banner when the build is stale). When you're happy, push to a git remote and others can consume it as a remote layer:
 
-To add your skillset to the built-in registry, submit a PR adding an entry to `genotools/registry.py`:
+```yaml
+layers:
+  - https://github.com/you/geno-myskill
+```
 
-```python
-_FALLBACK: dict[str, str] = {
-    # ...existing entries...
-    "geno-myskill": "https://github.com/you/geno-myskill.git",
+## Making your layer discoverable
+
+Declare your ecosystem category in `layer.json` at the repo root — the interactive builder groups layers by it during discovery:
+
+```json
+{
+  "name": "geno-myskill",
+  "ecosystem": "geno-ecosystem / Developer Tools"
 }
 ```
 
 ## Compliance
 
-Run `geno-audit` against your repo before submitting. It checks all ecosystem conventions — manifest, skills, naming, GENO.md content, aliasing, docs, and more. See the [audit process](../onboarding/audit.md) for details.
+Every `geno bake` runs the built-in compliance scan over your skills — curl-pipe-sh installs, prompt-injection phrasing, credential access, destructive commands, and over-broad `allowed-tools` grants. Error-severity findings block the bake, so fix them (or justify them via the manifest's `audit: allow:` list) before publishing. For full ecosystem-convention checks, run the `geno-audit` skill against your repo; see the [audit process](../onboarding/audit.md) for details.
 
 !!! note "Skillsets vs. plugins"
-    Ecosystem skillsets use the skills format (`SKILL.md` + `skills/`) and are installed via `geno-tools install`. Only geno-tools itself ships as a coding agent plugin to provide the install, remove, and list commands.
+    Ecosystem skillsets use the skills format (`SKILL.md` + `skills/`) and are consumed as layers by `geno bake`. Agents install the compiled `build/` output, never a skillset repo directly.
