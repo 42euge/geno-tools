@@ -1,0 +1,43 @@
+From 12dce42e55d2f1d9f38a9c5a1df6680243415cf7 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Mon, 15 Jun 2026 12:13:40 +0000
+Subject: [PATCH] chore(geno-audit): fix /gt-pr alias in SKILL.md, add
+ versioning convention
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- skills/geno-dev-prs-check/SKILL.md: remove /gt-pr alias from description
+- GENO.md: add versioning guidance to Conventions section
+
+Audit sections: Command Prefix Aliasing (FAIL→PASS)
+---
+ GENO.md                            | 1 +
+ skills/geno-dev-prs-check/SKILL.md | 2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/GENO.md b/GENO.md
+index 28d5e79..e2450af 100644
+--- a/GENO.md
++++ b/GENO.md
+@@ -77,3 +77,4 @@ Pure markdown skillset — no Python package, no venv, no scripts. Each skill is
+ - This skill never modifies a project's `.gitignore` or tracked config files.
+ - **Prefix aliasing**: Slash commands use the canonical `geno-` prefix in source (e.g., `/geno-dev-tasks-start`). Short `/gt-` aliases are configured per-install by geno-tools and are not part of the skill source.
+ - **Adding a new skill**: Create a directory under `skills/` named after the skill, add a `SKILL.md` with valid frontmatter (name, description, argument-hint, license, metadata), then register the skill in the skills table and repo structure tree in this file.
++- **Versioning**: the canonical version lives in `genotools.yaml`. The same value must appear in `package.json`. Bump the version whenever skills are added, removed, or behavior changes. Keep both files in sync.
+diff --git a/skills/geno-dev-prs-check/SKILL.md b/skills/geno-dev-prs-check/SKILL.md
+index 978fda0..c3e16d8 100644
+--- a/skills/geno-dev-prs-check/SKILL.md
++++ b/skills/geno-dev-prs-check/SKILL.md
+@@ -2,7 +2,7 @@
+ name: geno-dev-prs-check
+ description: >-
+   Check open PRs for repos in the current session and show which ones
+-  may need to be closed. Use when user says /geno-dev-prs-check or /gt-pr.
++  may need to be closed. Use when user says /geno-dev-prs-check.
+ argument-hint: "[repo|--all]"
+ license: MIT
+ metadata:
+-- 
+2.43.0
+

@@ -1,0 +1,31 @@
+From d712b1021f681c676df80eec4bb6b64d70a518c8 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Mon, 15 Jun 2026 12:13:42 +0000
+Subject: [PATCH] chore(geno-audit): add versioning guidance to Conventions
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- GENO.md: add versioning bullet to Conventions section (genotools.yaml canonical,
+  must match pyproject.toml and package.json; bump when skills change)
+
+Audit sections: Agent Instruction Files (WARN→PASS)
+---
+ GENO.md | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/GENO.md b/GENO.md
+index ac91d45..e4b2f5c 100644
+--- a/GENO.md
++++ b/GENO.md
+@@ -56,6 +56,7 @@ geno-notes/
+ - The umbrella slash command `/geno-notes` dispatches to the `geno-notes` CLI binary.
+ - **Prefix aliasing**: slash commands use the canonical `geno-` prefix in source (e.g., `/geno-notes`). Short `/gt-` aliases (e.g., `/gt-notes`) are configured per-installation by `geno-tools` and are not defined in this repo.
+ - **Adding a new skill**: create a directory under `skills/` named after the skill, write a `SKILL.md` with YAML frontmatter (name, description, allowed-tools, etc.), add the skill to the Skills table above, and register it in `package.json` under the `skills` map.
++- **Versioning**: the canonical version lives in `genotools.yaml`. The same value must appear in `pyproject.toml` and `package.json`. Bump the version whenever skills are added, removed, or behavior changes. Keep all three files in sync.
+ 
+ ## Architecture
+ 
+-- 
+2.43.0
+
