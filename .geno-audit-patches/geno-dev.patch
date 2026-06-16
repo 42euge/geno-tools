@@ -55,15 +55,15 @@ diff --git a/skills/geno-dev/SKILL.md b/skills/geno-dev/SKILL.md
 index 5536013..81218eb 100644
 --- a/skills/geno-dev/SKILL.md
 +++ b/skills/geno-dev/SKILL.md
-@@ -7,6 +7,7 @@ description: >-
+@@ -7,6 +7,6 @@ description: >-
    PR checking and branch auditing, scheduled snoozing, and skill retrospectives.
    Use when user says /geno-dev-tasks-start, /geno-dev-commits-rewrite,
    /geno-dev-worktrees-manage, /geno-dev-workspaces-init, /geno-dev-sessions-fork,
-+| `/geno-dev-sessions-remote [workspace-path] [--name <name>]` | Start a remote-access session in a workspace directory |
-   /geno-dev-feature-ship, /geno-dev-issue-work, /geno-dev-prs-check,
+-  /geno-dev-feature-ship, /geno-dev-issue-work, /geno-dev-prs-check,
++  /geno-dev-sessions-remote, /geno-dev-feature-ship, /geno-dev-issue-work, /geno-dev-prs-check,
    /geno-dev-branches-audit, /geno-dev-scheduling-snooze, or /geno-dev-skills-retro.
  license: MIT
-@@ -28,6 +29,7 @@ Dev and infrastructure skills for AI coding agents. Task execution, git history
+@@ -28,6 +28,7 @@ Dev and infrastructure skills for AI coding agents. Task execution, git history
  | `/geno-dev-worktrees-manage [list\|create\|switch\|prune]` | Manage git worktrees — list, create, switch, and prune |
  | `/geno-dev-workspaces-init [config\|list\|<text>]` | Create development workspaces from issues, tickets, repos, or ideas |
  | `/geno-dev-sessions-fork [session]` | Fork an agent session — extract context to continue in a new session |
@@ -73,4 +73,3 @@ index 5536013..81218eb 100644
  | `/geno-dev-prs-check [repo\|--all]` | Check open PRs and flag ones that may need closing |
 -- 
 2.43.0
-

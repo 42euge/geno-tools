@@ -8,10 +8,11 @@ Subject: [PATCH] chore(geno-audit): ecosystem compliance fixes
 - SKILL.md (root + skills/geno-agents/): /gt-supercharge -> /geno-agents-supercharge
 - skills/geno-agents-supercharge/SKILL.md: /gt-supercharge, /gt-kaggle-* -> canonical /geno-* refs
 - skills/geno-agents-tasks-start/SKILL.md: remove /gt-tasks-start from description
+- GENO.md: fix 'Adding a new skill' (trim frontmatter field list from step 1, reference versioning in step 6)
 - GENO.md: add Versioning subsection to Conventions
 - docs/getting-started.md: add Cursor and Antigravity CLI to prerequisites
 ---
- GENO.md                                 | 4 ++++
+ GENO.md                                 | 8 ++++++--
  SKILL.md                                | 2 +-
  docs/getting-started.md                 | 2 +-
  geno_agents/__init__.py                 | 1 +
@@ -19,16 +20,22 @@ Subject: [PATCH] chore(geno-audit): ecosystem compliance fixes
  skills/geno-agents-supercharge/SKILL.md | 6 +++---
  skills/geno-agents-tasks-start/SKILL.md | 1 -
  skills/geno-agents/SKILL.md             | 2 +-
- 8 files changed, 12 insertions(+), 8 deletions(-)
+ 8 files changed, 14 insertions(+), 10 deletions(-)
 
 diff --git a/GENO.md b/GENO.md
 index 44b332c..c684c12 100644
 --- a/GENO.md
 +++ b/GENO.md
-@@ -71,3 +71,7 @@ To add a new skill to the geno-agents skillset:
+@@ -66,8 +66,12 @@ To add a new skill to the geno-agents skillset:
+ 
+-1. Create a directory under `skills/<skill-name>/` with a `SKILL.md` file containing YAML front-matter (`name`, `description`, `allowed-tools`, `license`, `metadata`) and usage instructions.
++1. Create a directory under `skills/<skill-name>/` with a `SKILL.md` file and usage instructions.
+ 2. Register the skill in the `Skills` table in this file (`GENO.md`).
+ 3. Add the skill to the `Available skills` table in the umbrella `SKILL.md`.
  4. If the skill needs new CLI subcommands, add them in `geno_agents/cli.py`.
  5. If the skill needs new MCP tools, add them in `geno_agents/mcp_server.py` and list them in the `allowed-tools` front-matter field.
- 6. Update `genotools.yaml` with the new skill entry so `geno-tools install` picks it up.
+-6. Update `genotools.yaml` with the new skill entry so `geno-tools install` picks it up.
++6. Bump the version in `genotools.yaml`, `pyproject.toml`, `package.json`, and `geno_agents/__init__.py` (keep all in sync).
 +
 +### Versioning
 +
@@ -133,4 +140,3 @@ index 7a3ceaa..4964bb7 100644
  license: MIT
 -- 
 2.43.0
-
