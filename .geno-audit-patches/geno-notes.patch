@@ -1,18 +1,36 @@
-From d712b1021f681c676df80eec4bb6b64d70a518c8 Mon Sep 17 00:00:00 2001
+From 71cc29b70efae3e562f072b62dc44b5424e61430 Mon Sep 17 00:00:00 2001
 From: Claude <noreply@anthropic.com>
-Date: Mon, 15 Jun 2026 12:13:42 +0000
-Subject: [PATCH] chore(geno-audit): add versioning guidance to Conventions
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Date: Tue, 16 Jun 2026 00:14:37 +0000
+Subject: [PATCH] chore(geno-audit): ecosystem compliance fixes
 
-- GENO.md: add versioning bullet to Conventions section (genotools.yaml canonical,
-  must match pyproject.toml and package.json; bump when skills change)
-
-Audit sections: Agent Instruction Files (WARN→PASS)
+- geno_notes/__init__.py: fix __version__ 0.2.0 -> 0.1.0 (sync with genotools.yaml)
+- SKILL.md: add geno-notes-init and geno-notes-vault-generate to Available skills table
+- install.sh: replace Claude-only commands/gt-*.md step with 'npx skills add' (agent-agnostic)
+- GENO.md: add Versioning guidance to Conventions
+- skills/geno-notes-tasks-add/: create sub-skill (add/start/done/abandon commands)
+- skills/geno-notes-journal-note/: create sub-skill (note command)
+- skills/geno-notes-inbox-capture/: create sub-skill (inbox/triage commands)
+- skills/geno-notes-tasks-list/: create sub-skill (list/show/search commands)
+- skills/geno-notes-tasks-promote/: create sub-skill (promote command)
+- skills/geno-notes-context/: create sub-skill (context command)
 ---
- GENO.md | 1 +
- 1 file changed, 1 insertion(+)
+ GENO.md                                  |  1 +
+ SKILL.md                                 |  6 +++--
+ geno_notes/__init__.py                   |  2 +-
+ install.sh                               | 10 +++------
+ skills/geno-notes-context/SKILL.md       | 23 +++++++++++++++++++
+ skills/geno-notes-inbox-capture/SKILL.md | 20 +++++++++++++++++
+ skills/geno-notes-journal-note/SKILL.md  | 23 +++++++++++++++++++
+ skills/geno-notes-tasks-add/SKILL.md     | 28 ++++++++++++++++++++++++
+ skills/geno-notes-tasks-list/SKILL.md    | 23 +++++++++++++++++++
+ skills/geno-notes-tasks-promote/SKILL.md | 21 ++++++++++++++++++
+ 10 files changed, 147 insertions(+), 10 deletions(-)
+ create mode 100644 skills/geno-notes-context/SKILL.md
+ create mode 100644 skills/geno-notes-inbox-capture/SKILL.md
+ create mode 100644 skills/geno-notes-journal-note/SKILL.md
+ create mode 100644 skills/geno-notes-tasks-add/SKILL.md
+ create mode 100644 skills/geno-notes-tasks-list/SKILL.md
+ create mode 100644 skills/geno-notes-tasks-promote/SKILL.md
 
 diff --git a/GENO.md b/GENO.md
 index ac91d45..e4b2f5c 100644
@@ -26,6 +44,226 @@ index ac91d45..e4b2f5c 100644
  
  ## Architecture
  
+diff --git a/SKILL.md b/SKILL.md
+index 9e140c8..912e464 100644
+--- a/SKILL.md
++++ b/SKILL.md
+@@ -23,6 +23,8 @@ chunked journal files, and two coexisting storage scopes.
+ | Skill | Slash command | Description |
+ |-------|--------------|-------------|
+ | geno-notes | /geno-notes | Manage tasks, journal entries, plans across global and project scopes |
+-| geno-notes-wiki-compile | /geno-notes-wiki-compile | Compile primary sources into wiki pages |
+-| geno-notes-wiki-lint | /geno-notes-wiki-lint | Health-check the wiki against primary sources |
++| geno-notes-init | /geno-notes-init | Initialize a wiki or report its schema version |
++| geno-notes-wiki-compile | /geno-notes-wiki-compile | Compile primary sources into synthesis pages |
++| geno-notes-wiki-lint | /geno-notes-wiki-lint | Health-check synthesis against primary sources |
+ | geno-notes-sites-generate | /geno-notes-sites-generate | Generate a MkDocs Material website from notes |
++| geno-notes-vault-generate | /geno-notes-vault-generate | Generate an Obsidian vault from notes |
+diff --git a/geno_notes/__init__.py b/geno_notes/__init__.py
+index af36085..1504df3 100644
+--- a/geno_notes/__init__.py
++++ b/geno_notes/__init__.py
+@@ -1,4 +1,4 @@
+ """geno-notes — project wiki with two-scope storage."""
+ 
+-__version__ = "0.2.0"
++__version__ = "0.1.0"
+ SCHEMA_VERSION = "0.2.0"
+diff --git a/install.sh b/install.sh
+index 922a3eb..54431be 100755
+--- a/install.sh
++++ b/install.sh
+@@ -55,13 +55,9 @@ echo ""
+ link_file "$REPO_DIR/skills/geno-notes" "$CLAUDE_SKILLS/geno-notes"
+ echo ""
+ 
+-# ── 4. Claude commands ───────────────────────────────────────────────
+-echo "Installing slash commands..."
+-for cmd_file in "$REPO_DIR"/commands/gt-*.md; do
+-    [ -f "$cmd_file" ] || continue
+-    name="$(basename "$cmd_file")"
+-    link_file "$cmd_file" "$CLAUDE_COMMANDS/$name"
+-done
++# ── 4. Register skills via npx skills add ───────────────────────────────────────────────
++echo "Registering skills..."
++npx skills add "$REPO_DIR" --agent '*' --global --skill '*' --yes
+ echo ""
+ 
+ # ── 5. Initialize global scope ───────────────────────────────────────
+diff --git a/skills/geno-notes-context/SKILL.md b/skills/geno-notes-context/SKILL.md
+new file mode 100644
+index 0000000..8823b0a
+--- /dev/null
++++ b/skills/geno-notes-context/SKILL.md
+@@ -0,0 +1,23 @@
++---
++name: geno-notes-context
++description: >-
++  Retrieve a curated context bundle from geno-notes for skill execution:
++  active tasks, recent journal entries, relevant synthesis pages, task plan,
++  and skill health card. Use before starting a complex skill to load project state.
++argument-hint: "[--skill SKILL] [--task PATTERN] [--json] [--all]"
++allowed-tools: "Bash(geno-notes *) Bash(~/.local/bin/geno-notes *) Bash(~/.geno/venv/bin/geno-notes *)"
++license: MIT
++metadata:
++  author: 42euge
++  version: "0.1.0"
++---
++
++# Context Bundle
++
++Retrieve a curated context snapshot for skill execution.
++
++```bash
++geno-notes context [--skill SKILL] [--task PATTERN] [--json] [--all]
++```
++
++Returns: active tasks, focused task details, recent journal entries, task plan, synthesis pages, and skill health card.
+diff --git a/skills/geno-notes-inbox-capture/SKILL.md b/skills/geno-notes-inbox-capture/SKILL.md
+new file mode 100644
+index 0000000..750bcb2
+--- /dev/null
++++ b/skills/geno-notes-inbox-capture/SKILL.md
+@@ -0,0 +1,20 @@
++---
++name: geno-notes-inbox-capture
++description: >-
++  Quick-capture to geno-notes inbox and triage inbox items into tasks.
++  Use when user wants to capture a fleeting idea, or wants to process
++  inbox items into tasks.
++argument-hint: '"<text>" | triage'
++allowed-tools: "Bash(geno-notes *) Bash(~/.local/bin/geno-notes *) Bash(~/.geno/venv/bin/geno-notes *)"
++license: MIT
++metadata:
++  author: 42euge
++  version: "0.1.0"
++---
++
++# Inbox Capture and Triage
++
++Quick capture free-floating ideas, then triage them into tasks.
++
++- **Capture**: `geno-notes inbox "<text>"` — appends a timestamped line to `inbox.md`
++- **Triage**: `geno-notes triage` — interactively promotes, discards, or skips inbox items
+diff --git a/skills/geno-notes-journal-note/SKILL.md b/skills/geno-notes-journal-note/SKILL.md
+new file mode 100644
+index 0000000..9f0ffb3
+--- /dev/null
++++ b/skills/geno-notes-journal-note/SKILL.md
+@@ -0,0 +1,23 @@
++---
++name: geno-notes-journal-note
++description: >-
++  Append a timestamped journal entry to geno-notes. Supports linking entries
++  to tasks and categorizing by kind. Use when user wants to log a note,
++  jot a finding, or record a decision.
++argument-hint: '"<text>" [--task <pattern>] [--kind note|finding|decision|bug|milestone]'
++allowed-tools: "Bash(geno-notes *) Bash(~/.local/bin/geno-notes *) Bash(~/.geno/venv/bin/geno-notes *)"
++license: MIT
++metadata:
++  author: 42euge
++  version: "0.1.0"
++---
++
++# Journal Note
++
++Append a timestamped entry to the active scope's journal.
++
++```bash
++geno-notes note "<text>" [--task <pattern>] [--kind <kind>]
++```
++
++Pass `$ARGUMENTS` to `geno-notes note`. Available `--kind` values: `note`, `finding`, `decision`, `bug`, `milestone`.
+diff --git a/skills/geno-notes-tasks-add/SKILL.md b/skills/geno-notes-tasks-add/SKILL.md
+new file mode 100644
+index 0000000..249be87
+--- /dev/null
++++ b/skills/geno-notes-tasks-add/SKILL.md
+@@ -0,0 +1,28 @@
++---
++name: geno-notes-tasks-add
++description: >-
++  Manage task lifecycle in geno-notes: create, activate, complete, and abandon
++  tasks across global and project scopes. Use when user wants to add a task,
++  start working on one, mark it done, or abandon it.
++argument-hint: "add|start|done|abandon [args...]"
++allowed-tools: "Bash(geno-notes *) Bash(~/.local/bin/geno-notes *) Bash(~/.geno/venv/bin/geno-notes *)"
++license: MIT
++metadata:
++  author: 42euge
++  version: "0.1.0"
++---
++
++# Task Lifecycle — Add / Start / Done / Abandon
++
++Manage the full task lifecycle in the active geno-notes scope.
++
++## Commands
++
++| Subcommand | Usage |
++|---|---|
++| `add` | `geno-notes add "<description>" [--tag TAG]` |
++| `start` | `geno-notes start <pattern>` |
++| `done` | `geno-notes done <pattern>` |
++| `abandon` | `geno-notes abandon <pattern>` |
++
++Parse `$ARGUMENTS` to determine which subcommand to invoke.
+diff --git a/skills/geno-notes-tasks-list/SKILL.md b/skills/geno-notes-tasks-list/SKILL.md
+new file mode 100644
+index 0000000..c85f499
+--- /dev/null
++++ b/skills/geno-notes-tasks-list/SKILL.md
+@@ -0,0 +1,23 @@
++---
++name: geno-notes-tasks-list
++description: >-
++  List, show, and search tasks and journal entries in geno-notes.
++  Use when user wants to see their task list, view a task, or search
++  across tasks, journal, plans, and inbox.
++argument-hint: "list|show|search [args...]"
++allowed-tools: "Bash(geno-notes *) Bash(~/.local/bin/geno-notes *) Bash(~/.geno/venv/bin/geno-notes *)"
++license: MIT
++metadata:
++  author: 42euge
++  version: "0.1.0"
++---
++
++# Task List, Show, and Search
++
++Browse and search tasks and journal entries in the active scope.
++
++| Subcommand | Usage |
++|---|---|
++| `list` | `geno-notes list [--status STATUS] [--json] [--all]` |
++| `show` | `geno-notes show <pattern> [--all]` |
++| `search` | `geno-notes search <query> [--all]` |
+diff --git a/skills/geno-notes-tasks-promote/SKILL.md b/skills/geno-notes-tasks-promote/SKILL.md
+new file mode 100644
+index 0000000..875072c
+--- /dev/null
++++ b/skills/geno-notes-tasks-promote/SKILL.md
+@@ -0,0 +1,21 @@
++---
++name: geno-notes-tasks-promote
++description: >-
++  Move a task (and its plan) between global and project scopes in geno-notes.
++  Use when user wants to promote a project-scope task to global, or move a
++  global task into a specific project scope.
++argument-hint: "<pattern> [--to global|project]"
++allowed-tools: "Bash(geno-notes *) Bash(~/.local/bin/geno-notes *) Bash(~/.geno/venv/bin/geno-notes *)"
++license: MIT
++metadata:
++  author: 42euge
++  version: "0.1.0"
++---
++
++# Task Promote — Cross-Scope Move
++
++```bash
++geno-notes promote <pattern> [--to global|project]
++```
++
++If `--to` is omitted, the task is moved to the opposite scope from the active one.
 -- 
 2.43.0
 

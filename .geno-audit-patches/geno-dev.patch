@@ -1,30 +1,43 @@
-From 12dce42e55d2f1d9f38a9c5a1df6680243415cf7 Mon Sep 17 00:00:00 2001
+From 0916ded5c3a58c8e5975d52244d0c7d6def54ea2 Mon Sep 17 00:00:00 2001
 From: Claude <noreply@anthropic.com>
-Date: Mon, 15 Jun 2026 12:13:40 +0000
-Subject: [PATCH] chore(geno-audit): fix /gt-pr alias in SKILL.md, add
- versioning convention
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Date: Tue, 16 Jun 2026 00:14:32 +0000
+Subject: [PATCH] chore(geno-audit): ecosystem compliance fixes
 
 - skills/geno-dev-prs-check/SKILL.md: remove /gt-pr alias from description
-- GENO.md: add versioning guidance to Conventions section
-
-Audit sections: Command Prefix Aliasing (FAIL→PASS)
+- GENO.md: replace Conventions section (remove SSoT violations, add Versioning bullet)
+- GENO.md: register missing geno-dev-sessions-remote in skills table
+- skills/geno-dev/SKILL.md: add geno-dev-sessions-remote to Commands table
 ---
- GENO.md                            | 1 +
+ GENO.md                            | 9 +++++----
  skills/geno-dev-prs-check/SKILL.md | 2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ skills/geno-dev/SKILL.md           | 2 ++
+ 3 files changed, 8 insertions(+), 5 deletions(-)
 
 diff --git a/GENO.md b/GENO.md
-index 28d5e79..e2450af 100644
+index 28d5e79..b68f0eb 100644
 --- a/GENO.md
 +++ b/GENO.md
-@@ -77,3 +77,4 @@ Pure markdown skillset — no Python package, no venv, no scripts. Each skill is
- - This skill never modifies a project's `.gitignore` or tracked config files.
- - **Prefix aliasing**: Slash commands use the canonical `geno-` prefix in source (e.g., `/geno-dev-tasks-start`). Short `/gt-` aliases are configured per-install by geno-tools and are not part of the skill source.
- - **Adding a new skill**: Create a directory under `skills/` named after the skill, add a `SKILL.md` with valid frontmatter (name, description, argument-hint, license, metadata), then register the skill in the skills table and repo structure tree in this file.
-+- **Versioning**: the canonical version lives in `genotools.yaml`. The same value must appear in `package.json`. Bump the version whenever skills are added, removed, or behavior changes. Keep both files in sync.
+@@ -12,6 +12,7 @@ Developer and infrastructure skills for AI coding agents: task execution from la
+ | geno-dev-worktrees-manage | worktrees | /geno-dev-worktrees-manage |
+ | geno-dev-workspaces-init | workspaces | /geno-dev-workspaces-init |
+ | geno-dev-sessions-fork | sessions | /geno-dev-sessions-fork |
++| geno-dev-sessions-remote | sessions | /geno-dev-sessions-remote |
+ | geno-dev-prs-check | prs | /geno-dev-prs-check |
+ | geno-dev-branches-audit | branches | /geno-dev-branches-audit |
+ | geno-dev-scheduling-snooze | scheduling | /geno-dev-scheduling-snooze |
+@@ -72,8 +73,8 @@ Pure markdown skillset — no Python package, no venv, no scripts. Each skill is
+ 
+ ## Conventions
+ 
+-- Skill directories live under `skills/` and must contain a `SKILL.md` with valid frontmatter.
+ - The `.geno/` directory and `CLAUDE.local.md` are never committed — they hold machine-local state.
+-- This skill never modifies a project's `.gitignore` or tracked config files.
+-- **Prefix aliasing**: Slash commands use the canonical `geno-` prefix in source (e.g., `/geno-dev-tasks-start`). Short `/gt-` aliases are configured per-install by geno-tools and are not part of the skill source.
+-- **Adding a new skill**: Create a directory under `skills/` named after the skill, add a `SKILL.md` with valid frontmatter (name, description, argument-hint, license, metadata), then register the skill in the skills table and repo structure tree in this file.
++- This skillset never modifies a project's `.gitignore` or tracked config files.
++- **Prefix aliasing**: Slash commands use the canonical `geno-` prefix in source (e.g., `/geno-dev-tasks-start`). Runtime aliases (`/gt-`) are configured per-install by geno-tools and must not appear in skill source files.
++- **Adding a new skill**: Create a directory under `skills/`, add a `SKILL.md`, register it in the skills table and repo structure tree in this file, and bump the version in `genotools.yaml` and `package.json`.
++- **Versioning**: The canonical version lives in `genotools.yaml`. Keep `package.json` and root `SKILL.md` `metadata.version` in sync. Bump whenever skills are added, removed, or behavior changes.
 diff --git a/skills/geno-dev-prs-check/SKILL.md b/skills/geno-dev-prs-check/SKILL.md
 index 978fda0..c3e16d8 100644
 --- a/skills/geno-dev-prs-check/SKILL.md
@@ -38,6 +51,26 @@ index 978fda0..c3e16d8 100644
  argument-hint: "[repo|--all]"
  license: MIT
  metadata:
+diff --git a/skills/geno-dev/SKILL.md b/skills/geno-dev/SKILL.md
+index 5536013..81218eb 100644
+--- a/skills/geno-dev/SKILL.md
++++ b/skills/geno-dev/SKILL.md
+@@ -7,6 +7,7 @@ description: >-
+   PR checking and branch auditing, scheduled snoozing, and skill retrospectives.
+   Use when user says /geno-dev-tasks-start, /geno-dev-commits-rewrite,
+   /geno-dev-worktrees-manage, /geno-dev-workspaces-init, /geno-dev-sessions-fork,
++| `/geno-dev-sessions-remote [workspace-path] [--name <name>]` | Start a remote-access session in a workspace directory |
+   /geno-dev-feature-ship, /geno-dev-issue-work, /geno-dev-prs-check,
+   /geno-dev-branches-audit, /geno-dev-scheduling-snooze, or /geno-dev-skills-retro.
+ license: MIT
+@@ -28,6 +29,7 @@ Dev and infrastructure skills for AI coding agents. Task execution, git history
+ | `/geno-dev-worktrees-manage [list\|create\|switch\|prune]` | Manage git worktrees — list, create, switch, and prune |
+ | `/geno-dev-workspaces-init [config\|list\|<text>]` | Create development workspaces from issues, tickets, repos, or ideas |
+ | `/geno-dev-sessions-fork [session]` | Fork an agent session — extract context to continue in a new session |
++| `/geno-dev-sessions-remote [workspace-path] [--name <name>]` | Start a remote-access session in a workspace directory |
+ | `/geno-dev-feature-ship [description\|issue URL]` | End-to-end: scope, issue, branch, implement, and PR |
+ | `/geno-dev-issue-work [number\|query\|URL]` | Pick a GitHub issue or JIRA ticket and work on it (normal or loop mode) |
+ | `/geno-dev-prs-check [repo\|--all]` | Check open PRs and flag ones that may need closing |
 -- 
 2.43.0
 

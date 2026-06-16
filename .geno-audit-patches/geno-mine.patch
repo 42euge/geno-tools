@@ -1,24 +1,25 @@
-From 0a332891f7879e05f3c36641c5806090ab004759 Mon Sep 17 00:00:00 2001
+From b93713dc635ee90523438bacde9f4e52f7f1e1ca Mon Sep 17 00:00:00 2001
 From: Claude <noreply@anthropic.com>
-Date: Mon, 15 Jun 2026 12:13:35 +0000
-Subject: [PATCH] chore(geno-audit): add missing AGENTS.md, LICENSE, and
- Conventions section
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Date: Tue, 16 Jun 2026 00:14:25 +0000
+Subject: [PATCH] chore(geno-audit): ecosystem compliance fixes
 
-- AGENTS.md: add thin pointer file (`@import GENO.md`)
+- AGENTS.md: add thin pointer file
 - LICENSE: add MIT license
 - GENO.md: add Conventions section (prefix aliasing, adding skills, versioning)
-
-Audit sections: Agent Instruction Files (FAIL→PASS), Repo Hygiene (WARN→PASS)
+- skills/geno-mine/SKILL.md: add allowed-tools to frontmatter
+- skills/geno-mine-backfill/SKILL.md: create sub-skill for backfill CLI subcommand
+- docs/getting-started.md: replace Claude Code-exclusive framing with agent-neutral
 ---
- AGENTS.md |  1 +
- GENO.md   |  6 ++++++
- LICENSE   | 21 +++++++++++++++++++++
- 3 files changed, 28 insertions(+)
+ AGENTS.md                          |  1 +
+ GENO.md                            |  6 ++++++
+ LICENSE                            | 21 ++++++++++++++++++
+ docs/getting-started.md            |  2 +-
+ skills/geno-mine-backfill/SKILL.md | 34 ++++++++++++++++++++++++++++++
+ skills/geno-mine/SKILL.md          |  1 +
+ 6 files changed, 64 insertions(+), 1 deletion(-)
  create mode 100644 AGENTS.md
  create mode 100644 LICENSE
+ create mode 100644 skills/geno-mine-backfill/SKILL.md
 
 diff --git a/AGENTS.md b/AGENTS.md
 new file mode 100644
@@ -68,6 +69,68 @@ index 0000000..e5f6771
 +LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 +OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 +SOFTWARE.
+diff --git a/docs/getting-started.md b/docs/getting-started.md
+index dce645e..f524d87 100644
+--- a/docs/getting-started.md
++++ b/docs/getting-started.md
+@@ -12,4 +12,4 @@ geno-tools install geno-mine
+ 
+ ## Usage
+ 
+-Run `/geno-mine` in Claude Code to get started.
++Run `/geno-mine` from within your agent session to get started.
+diff --git a/skills/geno-mine-backfill/SKILL.md b/skills/geno-mine-backfill/SKILL.md
+new file mode 100644
+index 0000000..227d288
+--- /dev/null
++++ b/skills/geno-mine-backfill/SKILL.md
+@@ -0,0 +1,34 @@
++---
++name: geno-mine-backfill
++description: >-
++  Retroactively generate traces from historical session transcripts.
++  Scans transcript archives, detects past skill invocations, and emits
++  corresponding traces to populate the trace store. Use when user says /geno-mine-backfill.
++argument-hint: "[--since <days>d] [--skill <name>] [--dry-run]"
++license: MIT
++allowed-tools:
++  - Bash
++  - Read
++metadata:
++  author: 42euge
++  version: "0.1.0"
++---
++
++# Backfill Traces
++
++Retroactively generate traces from historical session transcripts.
++
++## Workflow
++
++```bash
++geno-mine backfill [--since 30d] [--skill <name>] [--dry-run]
++```
++
++Parse `$ARGUMENTS` and pass them to the CLI.
++
++Show the user:
++- Transcripts scanned
++- Invocations found
++- Traces emitted
++- Skipped (duplicates)
++- Breakdown by skill and outcome
+diff --git a/skills/geno-mine/SKILL.md b/skills/geno-mine/SKILL.md
+index c0ffbae..47283d1 100644
+--- a/skills/geno-mine/SKILL.md
++++ b/skills/geno-mine/SKILL.md
+@@ -3,6 +3,7 @@ name: geno-mine
+ description: >-
+   Session mining and finetuning dataset generation — extract training examples
+   from Claude Code session transcripts. Use when user says /geno-mine.
++allowed-tools: "Bash(geno-mine *) Bash(~/.local/bin/geno-mine *) Bash(~/.geno/venv/bin/geno-mine *)"
+ license: MIT
+ metadata:
+   author: 42euge
 -- 
 2.43.0
 
