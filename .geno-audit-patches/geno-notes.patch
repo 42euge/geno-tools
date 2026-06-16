@@ -3,7 +3,8 @@ From: Claude <noreply@anthropic.com>
 Date: Tue, 16 Jun 2026 00:14:37 +0000
 Subject: [PATCH] chore(geno-audit): ecosystem compliance fixes
 
-- geno_notes/__init__.py: fix __version__ 0.2.0 -> 0.1.0 (sync with genotools.yaml)
+- genotools.yaml, pyproject.toml, package.json: bump version 0.1.0 -> 0.2.0 (sync with __init__.py which is already at 0.2.0)
+- GENO.md: fix 'Adding a new skill' (remove frontmatter field enumeration)
 - SKILL.md: add geno-notes-init and geno-notes-vault-generate to Available skills table
 - install.sh: replace Claude-only commands/gt-*.md step with 'npx skills add' (agent-agnostic)
 - GENO.md: add Versioning guidance to Conventions
@@ -14,9 +15,11 @@ Subject: [PATCH] chore(geno-audit): ecosystem compliance fixes
 - skills/geno-notes-tasks-promote/: create sub-skill (promote command)
 - skills/geno-notes-context/: create sub-skill (context command)
 ---
- GENO.md                                  |  1 +
+ GENO.md                                  |  3 ++-
  SKILL.md                                 |  6 +++--
- geno_notes/__init__.py                   |  2 +-
+ genotools.yaml                           |  2 +-
+ package.json                             |  2 +-
+ pyproject.toml                           |  2 +-
  install.sh                               | 10 +++------
  skills/geno-notes-context/SKILL.md       | 23 +++++++++++++++++++
  skills/geno-notes-inbox-capture/SKILL.md | 20 +++++++++++++++++
@@ -24,7 +27,7 @@ Subject: [PATCH] chore(geno-audit): ecosystem compliance fixes
  skills/geno-notes-tasks-add/SKILL.md     | 28 ++++++++++++++++++++++++
  skills/geno-notes-tasks-list/SKILL.md    | 23 +++++++++++++++++++
  skills/geno-notes-tasks-promote/SKILL.md | 21 ++++++++++++++++++
- 10 files changed, 147 insertions(+), 10 deletions(-)
+ 12 files changed, 150 insertions(+), 13 deletions(-)
  create mode 100644 skills/geno-notes-context/SKILL.md
  create mode 100644 skills/geno-notes-inbox-capture/SKILL.md
  create mode 100644 skills/geno-notes-journal-note/SKILL.md
@@ -39,7 +42,8 @@ index ac91d45..e4b2f5c 100644
 @@ -56,6 +56,7 @@ geno-notes/
  - The umbrella slash command `/geno-notes` dispatches to the `geno-notes` CLI binary.
  - **Prefix aliasing**: slash commands use the canonical `geno-` prefix in source (e.g., `/geno-notes`). Short `/gt-` aliases (e.g., `/gt-notes`) are configured per-installation by `geno-tools` and are not defined in this repo.
- - **Adding a new skill**: create a directory under `skills/` named after the skill, write a `SKILL.md` with YAML frontmatter (name, description, allowed-tools, etc.), add the skill to the Skills table above, and register it in `package.json` under the `skills` map.
+-- **Adding a new skill**: create a directory under `skills/` named after the skill, write a `SKILL.md` with YAML frontmatter (name, description, allowed-tools, etc.), add the skill to the Skills table above, and register it in `package.json` under the `skills` map.
++- **Adding a new skill**: create a directory under `skills/` named after the skill, write a `SKILL.md`, add the skill to the Skills table above, and register it in `package.json` under the `skills` map.
 +- **Versioning**: the canonical version lives in `genotools.yaml`. The same value must appear in `pyproject.toml` and `package.json`. Bump the version whenever skills are added, removed, or behavior changes. Keep all three files in sync.
  
  ## Architecture
@@ -59,16 +63,39 @@ index 9e140c8..912e464 100644
 +| geno-notes-wiki-lint | /geno-notes-wiki-lint | Health-check synthesis against primary sources |
  | geno-notes-sites-generate | /geno-notes-sites-generate | Generate a MkDocs Material website from notes |
 +| geno-notes-vault-generate | /geno-notes-vault-generate | Generate an Obsidian vault from notes |
-diff --git a/geno_notes/__init__.py b/geno_notes/__init__.py
-index af36085..1504df3 100644
---- a/geno_notes/__init__.py
-+++ b/geno_notes/__init__.py
-@@ -1,4 +1,4 @@
- """geno-notes — project wiki with two-scope storage."""
- 
--__version__ = "0.2.0"
-+__version__ = "0.1.0"
- SCHEMA_VERSION = "0.2.0"
+diff --git a/genotools.yaml b/genotools.yaml
+index 1dc24af..9d07e6a 100644
+--- a/genotools.yaml
++++ b/genotools.yaml
+@@ -1,5 +1,5 @@
+ name: geno-notes
+-version: "0.1.0"
++version: "0.2.0"
+ description: >-
+   Project journal — tasks, timestamped journal entries, plans with
+   two-scope (global + per-project) storage.
+diff --git a/package.json b/package.json
+index 1dc24af..9d07e6a 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+   "name": "geno-notes",
+-  "version": "0.1.0",
++  "version": "0.2.0",
+   "description": "Project journal — tasks, timestamped journal entries, plans with two-scope (global + per-project) storage",
+   "skills": {
+diff --git a/pyproject.toml b/pyproject.toml
+index 1dc24af..9d07e6a 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -1,5 +1,5 @@
+ [project]
+ name = "geno-notes"
+-version = "0.1.0"
++version = "0.2.0"
+ description = "Project journal — tasks, timestamped journal entries, plans, with two-scope (global + per-project) storage"
+ requires-python = ">=3.10"
 diff --git a/install.sh b/install.sh
 index 922a3eb..54431be 100755
 --- a/install.sh
