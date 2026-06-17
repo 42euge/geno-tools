@@ -1,32 +1,44 @@
-From a01cb5b985b853cf8b75edf12e321a6c92ff01a2 Mon Sep 17 00:00:00 2001
+From 1ad8e7bd6c30af1971a2aedfc08d4977455bf204 Mon Sep 17 00:00:00 2001
 From: Claude <noreply@anthropic.com>
-Date: Tue, 16 Jun 2026 00:14:29 +0000
+Date: Wed, 17 Jun 2026 00:14:59 +0000
 Subject: [PATCH] chore(geno-audit): ecosystem compliance fixes
 
-- genotools.yaml: fix name: agents -> geno-agents (FAIL: must match repo dir name)
-- geno_agents/__init__.py: add missing __version__ = '0.1.0'
+- genotools.yaml: fix name: agents -> geno-agents (FAIL)
+- geno_agents/__init__.py: add missing __version__
 - SKILL.md (root + skills/geno-agents/): /gt-supercharge -> /geno-agents-supercharge
-- skills/geno-agents-supercharge/SKILL.md: /gt-supercharge, /gt-kaggle-* -> canonical /geno-* refs
-- skills/geno-agents-tasks-start/SKILL.md: remove /gt-tasks-start from description
-- GENO.md: fix 'Adding a new skill' (trim frontmatter field list from step 1, reference versioning in step 6)
-- GENO.md: add Versioning subsection to Conventions
+- skills/geno-agents-supercharge/SKILL.md: fix /gt-* refs, add allowed-tools
+- skills/geno-agents-tasks-start/SKILL.md: remove /gt-tasks-start, fix version 0.3.0->0.1.0, add allowed-tools
+- GENO.md: fix Adding-a-new-skill SSoT, add Versioning subsection, fix /gt- in prefix aliasing
 - docs/getting-started.md: add Cursor and Antigravity CLI to prerequisites
 ---
- GENO.md                                 | 8 ++++++--
- SKILL.md                                | 2 +-
- docs/getting-started.md                 | 2 +-
- geno_agents/__init__.py                 | 1 +
- genotools.yaml                          | 2 +-
- skills/geno-agents-supercharge/SKILL.md | 6 +++---
- skills/geno-agents-tasks-start/SKILL.md | 1 -
- skills/geno-agents/SKILL.md             | 2 +-
- 8 files changed, 14 insertions(+), 10 deletions(-)
+ GENO.md                                 | 10 +++++++---
+ SKILL.md                                |  2 +-
+ docs/getting-started.md                 |  2 +-
+ geno_agents/__init__.py                 |  1 +
+ genotools.yaml                          |  2 +-
+ skills/geno-agents-supercharge/SKILL.md |  7 ++++---
+ skills/geno-agents-tasks-start/SKILL.md |  4 ++--
+ skills/geno-agents/SKILL.md             |  2 +-
+ 8 files changed, 18 insertions(+), 12 deletions(-)
 
 diff --git a/GENO.md b/GENO.md
-index 44b332c..c684c12 100644
+index 44b332c..a1dcad6 100644
 --- a/GENO.md
 +++ b/GENO.md
-@@ -66,8 +66,12 @@ To add a new skill to the geno-agents skillset:
+@@ -59,15 +59,19 @@ Projects declare agent identity via a `.geno-agents` YAML file at the repo root.
+ 
+ ### Prefix aliasing
+ 
+-Source code and documentation use the canonical `geno-` prefix (e.g., `geno-agents`, `/geno-agents-supercharge`). Short `/gt-` aliases (e.g., `/gt-supercharge`, `/gt-agents`) are configured per-install by `geno-tools` and are not defined in this repo. When adding new skills or commands, always use the canonical `geno-agents` prefix; the installer handles alias generation.
++Source code and documentation use the canonical `geno-` prefix (e.g., `geno-agents`, `/geno-agents-supercharge`). Short prefix aliases are configured per-install by `geno-tools` and are not defined in this repo. When adding new skills or commands, always use the canonical `geno-agents` prefix; the installer handles alias generation.
++
++### Versioning
++
++The canonical version lives in `genotools.yaml`. The same value must appear in `pyproject.toml`, `package.json`, and `geno_agents/__init__.py`. Bump the version whenever skills are added, removed, or behavior changes. Keep all files in sync.
+ 
+ ### Adding a new skill
+ 
+ To add a new skill to the geno-agents skillset:
  
 -1. Create a directory under `skills/<skill-name>/` with a `SKILL.md` file containing YAML front-matter (`name`, `description`, `allowed-tools`, `license`, `metadata`) and usage instructions.
 +1. Create a directory under `skills/<skill-name>/` with a `SKILL.md` file and usage instructions.
@@ -36,10 +48,6 @@ index 44b332c..c684c12 100644
  5. If the skill needs new MCP tools, add them in `geno_agents/mcp_server.py` and list them in the `allowed-tools` front-matter field.
 -6. Update `genotools.yaml` with the new skill entry so `geno-tools install` picks it up.
 +6. Bump the version in `genotools.yaml`, `pyproject.toml`, `package.json`, and `geno_agents/__init__.py` (keep all in sync).
-+
-+### Versioning
-+
-+The canonical version lives in `genotools.yaml`. The same value must appear in `pyproject.toml` and `package.json`. Bump the version whenever skills are added, removed, or behavior changes. Keep all three files in sync.
 diff --git a/SKILL.md b/SKILL.md
 index 77ec2d2..ac7fa7e 100644
 --- a/SKILL.md
@@ -83,10 +91,10 @@ index af44b62..b142fbb 100644
  description: "Agent coordination layer — registration, discovery, and presence for multi-agent systems"
  
 diff --git a/skills/geno-agents-supercharge/SKILL.md b/skills/geno-agents-supercharge/SKILL.md
-index b8962cd..f285263 100644
+index b8962cd..52894e1 100644
 --- a/skills/geno-agents-supercharge/SKILL.md
 +++ b/skills/geno-agents-supercharge/SKILL.md
-@@ -3,7 +3,7 @@ name: geno-agents-supercharge
+@@ -3,9 +3,10 @@ name: geno-agents-supercharge
  description: >-
    Run an extended autonomous work session across benchmark tasks with
    structured cycles of implementation, reflection, and research.
@@ -94,8 +102,11 @@ index b8962cd..f285263 100644
 +  Use when the user says /geno-agents-supercharge, or asks
    for a long-running autonomous run across tasks.
  disable-model-invocation: true
++allowed-tools: "Bash(geno-agents *) Bash(git *) Bash(geno-trace *)"
  argument-hint: "[duration] [scope]  e.g. 'go!', '4h change_blindness', '12h all'"
-@@ -81,7 +81,7 @@ Three specialized agent roles cycle through work:
+ license: MIT
+ metadata:
+@@ -81,7 +82,7 @@ Three specialized agent roles cycle through work:
  - Writes a brief handoff note to `checkpoints/impl_<cycle>.md`
  
  ### Evaluator (runs every 2-3 cycles)
@@ -104,7 +115,7 @@ index b8962cd..f285263 100644
  - If no new results, checks if a run is in progress or needs to be triggered
  - Compares results against previous runs
  - Writes evaluation to the task's `review/` folder
-@@ -191,7 +191,7 @@ After all cycles or early stop:
+@@ -191,7 +192,7 @@ After all cycles or early stop:
  ## What NOT to Do
  
  - Don't spend multiple cycles on the same issue without trying a different approach
@@ -114,17 +125,23 @@ index b8962cd..f285263 100644
  - Don't push broken code — verify changes make sense before committing
  - Don't ignore CLAUDE.md rules (self-contained notebooks, llm as list, etc.)
 diff --git a/skills/geno-agents-tasks-start/SKILL.md b/skills/geno-agents-tasks-start/SKILL.md
-index c614003..1874801 100644
+index c614003..9c24c0b 100644
 --- a/skills/geno-agents-tasks-start/SKILL.md
 +++ b/skills/geno-agents-tasks-start/SKILL.md
-@@ -4,7 +4,6 @@ description: >-
+@@ -4,11 +4,11 @@ description: >-
    Pick up a task from the current workspace's geno-notes project scope,
    plan if needed, and start executing. Workspace-only — global-scope tasks
    are out of scope for v0.1.
 -  Installed by geno-tools as the /gt-tasks-start slash command.
++allowed-tools: "Bash(geno-notes *) Bash(geno-trace *)"
  license: MIT
  metadata:
    author: 42euge
+-  version: "0.3.0"
++  version: "0.1.0"
+ observability:
+   success_signal: "task marked done via geno-notes with milestone journal entry summarizing what was accomplished"
+   failure_signals:
 diff --git a/skills/geno-agents/SKILL.md b/skills/geno-agents/SKILL.md
 index 7a3ceaa..4964bb7 100644
 --- a/skills/geno-agents/SKILL.md

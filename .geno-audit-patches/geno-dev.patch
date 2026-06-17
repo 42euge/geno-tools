@@ -1,20 +1,21 @@
-From 0916ded5c3a58c8e5975d52244d0c7d6def54ea2 Mon Sep 17 00:00:00 2001
+From b3703d0000101bf0731bca849df065a878f4f6e2 Mon Sep 17 00:00:00 2001
 From: Claude <noreply@anthropic.com>
-Date: Tue, 16 Jun 2026 00:14:32 +0000
+Date: Wed, 17 Jun 2026 00:15:01 +0000
 Subject: [PATCH] chore(geno-audit): ecosystem compliance fixes
 
-- skills/geno-dev-prs-check/SKILL.md: remove /gt-pr alias from description
-- GENO.md: replace Conventions section (remove SSoT violations, add Versioning bullet)
-- GENO.md: register missing geno-dev-sessions-remote in skills table
-- skills/geno-dev/SKILL.md: add geno-dev-sessions-remote to Commands table
+- skills/geno-dev-prs-check/SKILL.md: remove /gt-pr alias from description (FAIL)
+- GENO.md: add Versioning subsection, fix Adding-a-new-skill SSoT, register geno-dev-sessions-remote
+- skills/geno-dev/SKILL.md: add geno-dev-sessions-remote to dispatch list
+- skills/geno-dev-sessions-remote/SKILL.md: fix agent-exclusive language
 ---
- GENO.md                            | 9 +++++----
- skills/geno-dev-prs-check/SKILL.md | 2 +-
- skills/geno-dev/SKILL.md           | 2 ++
- 3 files changed, 8 insertions(+), 5 deletions(-)
+ GENO.md                                  | 5 ++++-
+ skills/geno-dev-prs-check/SKILL.md       | 2 +-
+ skills/geno-dev-sessions-remote/SKILL.md | 4 ++--
+ skills/geno-dev/SKILL.md                 | 3 ++-
+ 4 files changed, 9 insertions(+), 5 deletions(-)
 
 diff --git a/GENO.md b/GENO.md
-index 28d5e79..b68f0eb 100644
+index 28d5e79..d517171 100644
 --- a/GENO.md
 +++ b/GENO.md
 @@ -12,6 +12,7 @@ Developer and infrastructure skills for AI coding agents: task execution from la
@@ -25,19 +26,21 @@ index 28d5e79..b68f0eb 100644
  | geno-dev-prs-check | prs | /geno-dev-prs-check |
  | geno-dev-branches-audit | branches | /geno-dev-branches-audit |
  | geno-dev-scheduling-snooze | scheduling | /geno-dev-scheduling-snooze |
-@@ -72,8 +73,8 @@ Pure markdown skillset — no Python package, no venv, no scripts. Each skill is
- 
- ## Conventions
- 
--- Skill directories live under `skills/` and must contain a `SKILL.md` with valid frontmatter.
+@@ -32,6 +33,7 @@ geno-dev/
+ │   ├── geno-dev/        #   umbrella
+ │   ├── geno-dev-commits-rewrite/
+ │   ├── geno-dev-sessions-fork/
++│   ├── geno-dev-sessions-remote/
+ │   ├── geno-dev-tasks-start/
+ │   ├── geno-dev-workspaces-init/
+ │   ├── geno-dev-worktrees-manage/
+@@ -76,4 +78,5 @@ Pure markdown skillset — no Python package, no venv, no scripts. Each skill is
  - The `.geno/` directory and `CLAUDE.local.md` are never committed — they hold machine-local state.
--- This skill never modifies a project's `.gitignore` or tracked config files.
--- **Prefix aliasing**: Slash commands use the canonical `geno-` prefix in source (e.g., `/geno-dev-tasks-start`). Short `/gt-` aliases are configured per-install by geno-tools and are not part of the skill source.
+ - This skill never modifies a project's `.gitignore` or tracked config files.
+ - **Prefix aliasing**: Slash commands use the canonical `geno-` prefix in source (e.g., `/geno-dev-tasks-start`). Short `/gt-` aliases are configured per-install by geno-tools and are not part of the skill source.
 -- **Adding a new skill**: Create a directory under `skills/` named after the skill, add a `SKILL.md` with valid frontmatter (name, description, argument-hint, license, metadata), then register the skill in the skills table and repo structure tree in this file.
-+- This skillset never modifies a project's `.gitignore` or tracked config files.
-+- **Prefix aliasing**: Slash commands use the canonical `geno-` prefix in source (e.g., `/geno-dev-tasks-start`). Runtime aliases (`/gt-`) are configured per-install by geno-tools and must not appear in skill source files.
-+- **Adding a new skill**: Create a directory under `skills/`, add a `SKILL.md`, register it in the skills table and repo structure tree in this file, and bump the version in `genotools.yaml` and `package.json`.
-+- **Versioning**: The canonical version lives in `genotools.yaml`. Keep `package.json` and root `SKILL.md` `metadata.version` in sync. Bump whenever skills are added, removed, or behavior changes.
++- **Adding a new skill**: Create a directory under `skills/` named after the skill, add a `SKILL.md` with valid frontmatter following the geno-tools skill contract, then register the skill in the skills table and repo structure tree in this file.
++- **Versioning**: The canonical version lives in `genotools.yaml`. The same value must appear in `package.json`. Bump the version whenever skills are added, removed, or behavior changes.
 diff --git a/skills/geno-dev-prs-check/SKILL.md b/skills/geno-dev-prs-check/SKILL.md
 index 978fda0..c3e16d8 100644
 --- a/skills/geno-dev-prs-check/SKILL.md
@@ -51,11 +54,26 @@ index 978fda0..c3e16d8 100644
  argument-hint: "[repo|--all]"
  license: MIT
  metadata:
+diff --git a/skills/geno-dev-sessions-remote/SKILL.md b/skills/geno-dev-sessions-remote/SKILL.md
+index b1943c3..36fda91 100644
+--- a/skills/geno-dev-sessions-remote/SKILL.md
++++ b/skills/geno-dev-sessions-remote/SKILL.md
+@@ -1,8 +1,8 @@
+ ---
+ name: geno-dev-sessions-remote
+ description: >-
+-  Start a Claude Code session with remote access in a workspace directory.
+-  Opens a new Terminal window with claude --remote-control.
++  Start a remote-access agent session in a workspace directory.
++  Launches the agent with remote-control mode enabled (claude --remote-control).
+   Use when user says /geno-dev-sessions-remote.
+ argument-hint: "[workspace-path] [--name <session-name>]"
+ license: MIT
 diff --git a/skills/geno-dev/SKILL.md b/skills/geno-dev/SKILL.md
-index 5536013..81218eb 100644
+index 5536013..8c7bc60 100644
 --- a/skills/geno-dev/SKILL.md
 +++ b/skills/geno-dev/SKILL.md
-@@ -7,6 +7,6 @@ description: >-
+@@ -7,7 +7,7 @@ description: >-
    PR checking and branch auditing, scheduled snoozing, and skill retrospectives.
    Use when user says /geno-dev-tasks-start, /geno-dev-commits-rewrite,
    /geno-dev-worktrees-manage, /geno-dev-workspaces-init, /geno-dev-sessions-fork,
@@ -63,11 +81,12 @@ index 5536013..81218eb 100644
 +  /geno-dev-sessions-remote, /geno-dev-feature-ship, /geno-dev-issue-work, /geno-dev-prs-check,
    /geno-dev-branches-audit, /geno-dev-scheduling-snooze, or /geno-dev-skills-retro.
  license: MIT
+ metadata:
 @@ -28,6 +28,7 @@ Dev and infrastructure skills for AI coding agents. Task execution, git history
  | `/geno-dev-worktrees-manage [list\|create\|switch\|prune]` | Manage git worktrees — list, create, switch, and prune |
  | `/geno-dev-workspaces-init [config\|list\|<text>]` | Create development workspaces from issues, tickets, repos, or ideas |
  | `/geno-dev-sessions-fork [session]` | Fork an agent session — extract context to continue in a new session |
-+| `/geno-dev-sessions-remote [workspace-path] [--name <name>]` | Start a remote-access session in a workspace directory |
++| `/geno-dev-sessions-remote [path] [--name <name>]` | Start a remote-access agent session in a workspace directory |
  | `/geno-dev-feature-ship [description\|issue URL]` | End-to-end: scope, issue, branch, implement, and PR |
  | `/geno-dev-issue-work [number\|query\|URL]` | Pick a GitHub issue or JIRA ticket and work on it (normal or loop mode) |
  | `/geno-dev-prs-check [repo\|--all]` | Check open PRs and flag ones that may need closing |
