@@ -25,7 +25,7 @@ Tax filing — document parsing, checklists, CPA packet prep
 
     # geno-taxes
     
-    Personal tax filing skills for AI coding agents. Manages the yearly cycle of collecting 1099s / W-2s / earnings reports, parsing them into YAML organizers under `~/docs/finance/taxes/`, and generating CPA-ready summaries.
+    Personal tax filing skills for Claude Code. Manages the yearly cycle of collecting 1099s / W-2s / earnings reports, parsing them into YAML organizers under `~/docs/finance/taxes/`, and generating CPA-ready summaries.
     
     **Local-only skillset.** Tax data is sensitive; this repo is not published. Its `geno-tools` registry entry points at this directory's absolute path, and `install` copies it into `~/.geno-tools/geno-taxes/repo/`:
     
@@ -45,4 +45,4 @@ Tax filing — document parsing, checklists, CPA packet prep
     
     ## Runtime
     
-    No venv or scripts — all commands are pure markdown workflows. `gt-tax-fetch` depends on the `geno-vla` MCP server for browser automation.
+    No venv or scripts — all commands are pure markdown workflows. `geno-tax-fetch` depends on the `geno-vla` MCP server for browser automation.

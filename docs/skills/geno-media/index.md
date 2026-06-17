@@ -15,7 +15,7 @@ Audiobooks, animated videos, podcasts, TTS/STT config
 
     # geno-media
     
-    Media creation skills for AI coding agents. Audiobook generation (Kokoro TTS), animated
+    Media creation skills for Claude Code. Audiobook generation (Kokoro TTS), animated
     video creation (Manim), podcast-style videos, TTS/STT configuration, and audio
     uploads. Optimized for Apple Silicon.
     

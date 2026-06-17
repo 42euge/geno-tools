@@ -76,7 +76,6 @@ geno-tools/
 [project.scripts]
 geno-tools = "genotools.cli:main"
 geno-trace = "genotools.trace:main"
-geno-docs = "genotools.docs:main"
 ```
 
 `genotools/cli.py` parses subcommands and lazy-imports `genotools.commands` to keep `--version`/`--help` fast.
@@ -176,20 +175,6 @@ To add a new skill to this repo:
 4. Add the skill to the skills table in this file (`GENO.md`).
 5. If the skill needs docs, add a page under `docs/`.
 6. Bump the version in all four files: `genotools.yaml`, `pyproject.toml`, `package.json`, `genotools/__init__.py`.
-
-### What a skillset repo needs to provide
-
-Minimum viable `geno-{name}` skillset:
-
-```
-geno-{name}/
-├── SKILL.md                # umbrella skill manifest (symlink to skills/{name}/SKILL.md)
-├── GENO.md                 # agent instructions
-├── genotools.yaml          # install manifest (name, version, description)
-├── skills/
-│   └── {name}/SKILL.md     # umbrella skill definition
-└── pyproject.toml           # optional — triggers venv creation if present
-```
 
 ### Skill observability contract
 

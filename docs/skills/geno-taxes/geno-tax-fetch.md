@@ -48,7 +48,7 @@ Extract platform and year from `$ARGUMENTS`.
 Use `geno_navigate` to go to the platform's tax documents page:
 
 | Platform | URL |
-|----------|-----|
+|----------|
 | Coinbase | `https://accounts.coinbase.com/taxes/documents` |
 | Robinhood | `https://robinhood.com/account/tax-documents` |
 | Fidelity | `https://digital.fidelity.com/ftgw/digital/tax-forms` |
@@ -98,7 +98,7 @@ Move them to the appropriate tax folder using bash `mv`.
 
 ### 6. Auto-parse
 
-After downloading, read the files and extract data following the /geno-tax-parse workflow.
+After downloading, read the files and extract data following the geno-tax-parse workflow.
 Update the YAML organizer. Always confirm changes with the user before writing.
 
 ### 7. Report results
