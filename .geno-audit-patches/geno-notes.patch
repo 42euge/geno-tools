@@ -1,7 +1,7 @@
-From a30a179c1ffff01df88c2b079e01f3d47325539f Mon Sep 17 00:00:00 2001
+From 8a6de98bfa5c42cbf9f51f8779a1af94591905d2 Mon Sep 17 00:00:00 2001
 From: Claude <noreply@anthropic.com>
 Date: Wed, 17 Jun 2026 00:14:21 +0000
-Subject: [PATCH] chore(geno-audit): ecosystem compliance fixes
+Subject: [PATCH 1/2] chore(geno-audit): ecosystem compliance fixes
 
 - genotools.yaml, pyproject.toml, package.json, SKILL.md: bump version 0.1.0->0.2.0 to sync with __init__.py
 - GENO.md: fix Adding-a-new-skill SSoT (remove frontmatter field list), add Versioning bullet
@@ -281,5 +281,95 @@ index 0000000..d96542f
 +```
 +
 +Parse `$ARGUMENTS` and pass them to the CLI. Confirm the task was moved and show its new location.
+-- 
+2.43.0
+
+
+From 7780be0805c1cf6e88d851d0eea8fd6c3f826ccc Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Wed, 17 Jun 2026 12:21:12 +0000
+Subject: [PATCH 2/2] chore(geno-audit): remove SSoT violations from README
+
+- Remove 'Repository structure' section (GENO.md is the SSoT for repo layout)
+- Remove 'Storage layout (v0.1)' section (contradicts GENO.md v0.2 layout; duplicates GENO.md content)
+---
+ README.md | 64 -------------------------------------------------------
+ 1 file changed, 64 deletions(-)
+
+diff --git a/README.md b/README.md
+index 4dcf827..2f8d886 100644
+--- a/README.md
++++ b/README.md
+@@ -40,70 +40,6 @@ Active scope resolves in this order:
+ 
+ Use `--global` or `--project` on any command to override. Use `--all` on reads to union both scopes.
+ 
+-## Repository structure
+-
+-```
+-geno-notes/
+-├── package.json          # Vercel Skills manifest
+-├── GENO.md               # agent instructions (canonical)
+-├── CLAUDE.md             # agent shim → GENO.md
+-├── install.sh            # installer (venv, symlinks, global scope)
+-├── pyproject.toml        # Python package metadata
+-├── skills/
+-│   ├── geno-notes/
+-│   │   └── SKILL.md      # umbrella skill definition
+-│   ├── geno-notes-wiki-compile/
+-│   │   └── SKILL.md      # sub-skill: compile wiki
+-│   ├── geno-notes-wiki-lint/
+-│   │   └── SKILL.md      # sub-skill: lint wiki
+-│   └── geno-notes-sites-generate/
+-│       └── SKILL.md      # sub-skill: generate site
+-├── geno_notes/           # Python CLI package
+-│   ├── __init__.py
+-│   ├── cli.py
+-│   ├── config.py
+-│   ├── events.py
+-│   ├── ids.py
+-│   ├── indexer.py
+-│   ├── journal.py
+-│   ├── locks.py
+-│   ├── paths.py
+-│   ├── search.py
+-│   ├── site.py
+-│   └── tasks.py
+-└── tests/
+-    ├── conftest.py
+-    ├── test_ids.py
+-    ├── test_journal.py
+-    ├── test_locks.py
+-    ├── test_paths.py
+-    ├── test_scope.py
+-    └── test_tasks.py
+-```
+-
+-## Storage layout (v0.1)
+-
+-```
+-<scope-dir>/
+-├── index.md                          # auto-gen dashboard
+-├── tasks/
+-│   ├── _index.md                     # auto-gen list grouped by status
+-│   └── <task-id>.md                  # frontmatter: id, status, created, activated, completed, tags
+-├── journal/
+-│   └── YYYY/
+-│       ├── YYYY-MM.md                # human-readable
+-│       └── YYYY-MM.jsonl             # machine-readable
+-├── plans/
+-│   └── <task-id>.md
+-├── wiki/                             # compiled wiki pages
+-│   └── README.md
+-├── inbox.md
+-└── .geno-notes/
+-    ├── config.toml
+-    ├── events.jsonl                  # append-only audit log
+-    └── locks/
+-```
+-
+ ## Runtime
+ 
+ Python CLI installed into `~/.geno/venv`. PATH shim at `~/.local/bin/geno-notes`.
 -- 
 2.43.0
