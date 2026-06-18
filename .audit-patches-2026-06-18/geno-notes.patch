@@ -1,0 +1,39 @@
+From 5e7d7d69691b491540efe4bef8573798fe1851ca Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Thu, 18 Jun 2026 12:14:19 +0000
+Subject: [PATCH] chore(geno-audit): ecosystem compliance fixes
+
+- Fix __version__ in geno_notes/__init__.py: 0.2.0 -> 0.1.0 (matches genotools.yaml)
+- Add versioning guidance to GENO.md Conventions (also documents SCHEMA_VERSION distinction)
+---
+ GENO.md                | 3 ++-
+ geno_notes/__init__.py | 2 +-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/GENO.md b/GENO.md
+index ac91d45..9cf5e77 100644
+--- a/GENO.md
++++ b/GENO.md
+@@ -55,7 +55,8 @@ geno-notes/
+ - Sub-skillsets have their own `skills/{name}/SKILL.md` and dispatch to the `geno-notes` CLI.
+ - The umbrella slash command `/geno-notes` dispatches to the `geno-notes` CLI binary.
+ - **Prefix aliasing**: slash commands use the canonical `geno-` prefix in source (e.g., `/geno-notes`). Short `/gt-` aliases (e.g., `/gt-notes`) are configured per-installation by `geno-tools` and are not defined in this repo.
+-- **Adding a new skill**: create a directory under `skills/` named after the skill, write a `SKILL.md` with YAML frontmatter (name, description, allowed-tools, etc.), add the skill to the Skills table above, and register it in `package.json` under the `skills` map.
++- **Adding a new skill**: create a directory under `skills/` named after the skill, write a `SKILL.md` with YAML frontmatter (name, description, allowed-tools, etc.), add the skill to the Skills table above, register it in `package.json` under the `skills` map, and bump the version.
++- **Versioning**: The canonical version lives in `genotools.yaml`. All four files must agree: `genotools.yaml`, `pyproject.toml`, `package.json`, and `geno_notes/__init__.py.__version__`. Bump the version whenever skills are added, removed, or behavior changes. Note: `SCHEMA_VERSION` in `__init__.py` tracks the storage schema version and may differ from the package version.
+ 
+ ## Architecture
+ 
+diff --git a/geno_notes/__init__.py b/geno_notes/__init__.py
+index af36085..1504df3 100644
+--- a/geno_notes/__init__.py
++++ b/geno_notes/__init__.py
+@@ -1,4 +1,4 @@
+ """geno-notes — project wiki with two-scope storage."""
+ 
+-__version__ = "0.2.0"
++__version__ = "0.1.0"
+ SCHEMA_VERSION = "0.2.0"
+-- 
+2.43.0
+

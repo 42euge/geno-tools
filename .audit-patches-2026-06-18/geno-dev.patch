@@ -1,0 +1,72 @@
+From 16c57973d025c32e55f3b0dca5a1c13064169c9e Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Thu, 18 Jun 2026 12:14:14 +0000
+Subject: [PATCH] chore(geno-audit): ecosystem compliance fixes
+
+- Remove /gt-pr alias from geno-dev-prs-check SKILL.md (FAIL fix)
+- Add allowed-tools to umbrella SKILL.md frontmatter
+- Add geno-dev-sessions-remote to skills table and repo structure in GENO.md
+- Add versioning guidance to Conventions
+---
+ GENO.md                            | 5 ++++-
+ SKILL.md                           | 3 ++-
+ skills/geno-dev-prs-check/SKILL.md | 2 +-
+ 3 files changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/GENO.md b/GENO.md
+index 28d5e79..aaeae4f 100644
+--- a/GENO.md
++++ b/GENO.md
+@@ -18,6 +18,7 @@ Developer and infrastructure skills for AI coding agents: task execution from la
+ | geno-dev-feature-ship | feature-ship | /geno-dev-feature-ship |
+ | geno-dev-issue-work | issue-work | /geno-dev-issue-work |
+ | geno-dev-skills-retro | meta | /geno-dev-skills-retro |
++| geno-dev-sessions-remote | sessions | /geno-dev-sessions-remote |
+ 
+ ## Repo structure
+ 
+@@ -32,6 +33,7 @@ geno-dev/
+ │   ├── geno-dev/        #   umbrella
+ │   ├── geno-dev-commits-rewrite/
+ │   ├── geno-dev-sessions-fork/
++│   ├── geno-dev-sessions-remote/
+ │   ├── geno-dev-tasks-start/
+ │   ├── geno-dev-workspaces-init/
+ │   ├── geno-dev-worktrees-manage/
+@@ -76,4 +78,5 @@ Pure markdown skillset — no Python package, no venv, no scripts. Each skill is
+ - The `.geno/` directory and `CLAUDE.local.md` are never committed — they hold machine-local state.
+ - This skill never modifies a project's `.gitignore` or tracked config files.
+ - **Prefix aliasing**: Slash commands use the canonical `geno-` prefix in source (e.g., `/geno-dev-tasks-start`). Short `/gt-` aliases are configured per-install by geno-tools and are not part of the skill source.
+-- **Adding a new skill**: Create a directory under `skills/` named after the skill, add a `SKILL.md` with valid frontmatter (name, description, argument-hint, license, metadata), then register the skill in the skills table and repo structure tree in this file.
++- **Adding a new skill**: Create a directory under `skills/` named after the skill, add a `SKILL.md` with valid frontmatter (name, description, argument-hint, license, metadata), then register the skill in the skills table and repo structure tree in this file. Bump the version in `genotools.yaml` and `package.json`.
++- **Versioning**: The canonical version lives in `genotools.yaml`. Both `genotools.yaml` and `package.json` must agree. Bump the version whenever skills are added, removed, or behavior changes.
+diff --git a/SKILL.md b/SKILL.md
+index 86e6752..6f57ee5 100644
+--- a/SKILL.md
++++ b/SKILL.md
+@@ -12,7 +12,8 @@ description: >-
+   /geno-dev-loops-turbocharge, /geno-dev-loops-cruise,
+   /geno-dev-loops-autopilot, /geno-dev-loops-boost,
+   /geno-dev-loops-ignition, /geno-dev-prs-check, /geno-dev-branches-audit,
+-  /geno-dev-scheduling-snooze, or /geno-dev-skills-retro.
++  /geno-dev-scheduling-snooze, /geno-dev-skills-retro, or /geno-dev-sessions-remote.
++allowed-tools: "Bash(git *) Bash(gh *) Bash(geno-notes *) Bash(geno-trace *) Read(*) Glob(*) Grep(*)"
+ license: MIT
+ metadata:
+   author: 42euge
+diff --git a/skills/geno-dev-prs-check/SKILL.md b/skills/geno-dev-prs-check/SKILL.md
+index 978fda0..c3e16d8 100644
+--- a/skills/geno-dev-prs-check/SKILL.md
++++ b/skills/geno-dev-prs-check/SKILL.md
+@@ -2,7 +2,7 @@
+ name: geno-dev-prs-check
+ description: >-
+   Check open PRs for repos in the current session and show which ones
+-  may need to be closed. Use when user says /geno-dev-prs-check or /gt-pr.
++  may need to be closed. Use when user says /geno-dev-prs-check.
+ argument-hint: "[repo|--all]"
+ license: MIT
+ metadata:
+-- 
+2.43.0
+
