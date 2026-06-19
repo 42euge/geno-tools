@@ -1,6 +1,6 @@
-From 929e09248745bb2382a4c26428829bb0b4c9e6fb Mon Sep 17 00:00:00 2001
-From: 42euge <42euge@gmail.com>
-Date: Fri, 19 Jun 2026 12:11:34 +0000
+From 20a4039b00af8397b9102d3670fc0d55eda5df25 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Fri, 19 Jun 2026 12:22:35 +0000
 Subject: [PATCH] chore(geno-audit): ecosystem compliance fixes 2026-06-19
 
 - genotools.yaml: bump version 0.1.0 -> 0.2.0 to match geno_notes/__init__.py (FAIL)

@@ -1,6 +1,6 @@
-From b20e632cb895d1695be061c12241db08de816cea Mon Sep 17 00:00:00 2001
-From: 42euge <42euge@gmail.com>
-Date: Fri, 19 Jun 2026 12:11:24 +0000
+From 05d439ea2c90dd5b484123fbe856eec823525e33 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Fri, 19 Jun 2026 12:22:34 +0000
 Subject: [PATCH] chore(geno-audit): ecosystem compliance fixes 2026-06-19
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -372,7 +372,6 @@ index 1ff2f96..6a199fa 100644
 -```
 -
 -Rationale: pointer files are fragile across agent runtimes and editor integrations. Full copies ensure every agent sees the same instructions regardless of runtime.
--
 +Skills in this repo use the canonical `geno-` prefix in source (e.g., `/geno-iso-containers-run`). Short aliases are configured per-installation via `~/.geno/config.yaml` by `geno-tools` and are never committed to this repo.
  
  ### Adding a new skill

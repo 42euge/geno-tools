@@ -1,6 +1,6 @@
-From 0d497be41bd70cc58d22d66ea3d43349347d179b Mon Sep 17 00:00:00 2001
-From: 42euge <42euge@gmail.com>
-Date: Fri, 19 Jun 2026 12:11:26 +0000
+From 0aee24814180883473fc86505b9c8d877c24989f Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Fri, 19 Jun 2026 12:22:35 +0000
 Subject: [PATCH] chore(geno-audit): ecosystem compliance fixes 2026-06-19
 
 - Add AGENTS.md thin pointer (@import GENO.md)

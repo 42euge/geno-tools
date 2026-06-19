@@ -1,6 +1,6 @@
-From 0ccaebc77fc28c8e5578066ed0585c449ac84733 Mon Sep 17 00:00:00 2001
-From: 42euge <42euge@gmail.com>
-Date: Fri, 19 Jun 2026 12:11:32 +0000
+From 4799ba55481cfebcf00ebce941b47817d76b400f Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Fri, 19 Jun 2026 12:22:19 +0000
 Subject: [PATCH] chore(geno-audit): ecosystem compliance fixes 2026-06-19
 
 - skills/geno-dev-prs-check/SKILL.md: remove 'or /gt-pr' from description (FAIL)

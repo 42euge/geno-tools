@@ -1,6 +1,6 @@
-From 632ad7dc57eb365e5a60561a70771e5daa622043 Mon Sep 17 00:00:00 2001
-From: 42euge <42euge@gmail.com>
-Date: Fri, 19 Jun 2026 12:11:29 +0000
+From 6a182245d7225f63f731fe5768ffc06b1936b46f Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Fri, 19 Jun 2026 12:22:35 +0000
 Subject: [PATCH] chore(geno-audit): ecosystem compliance fixes 2026-06-19
 
 - genotools.yaml: fix name from 'agents' to 'geno-agents'
