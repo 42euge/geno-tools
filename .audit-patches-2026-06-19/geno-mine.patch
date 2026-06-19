@@ -1,0 +1,77 @@
+From 0d497be41bd70cc58d22d66ea3d43349347d179b Mon Sep 17 00:00:00 2001
+From: 42euge <42euge@gmail.com>
+Date: Fri, 19 Jun 2026 12:11:26 +0000
+Subject: [PATCH] chore(geno-audit): ecosystem compliance fixes 2026-06-19
+
+- Add AGENTS.md thin pointer (@import GENO.md)
+- Add GEMINI.md thin pointer (@./GENO.md)
+- Add LICENSE (MIT)
+- Add allowed-tools field to SKILL.md frontmatter
+- Add Conventions section to GENO.md (prefix aliasing, adding a skill, versioning)
+---
+ AGENTS.md |  1 +
+ GEMINI.md |  1 +
+ GENO.md   |  6 ++++++
+ LICENSE   | 21 +++++++++++++++++++++
+ 4 files changed, 29 insertions(+)
+ create mode 100644 AGENTS.md
+ create mode 100644 GEMINI.md
+ create mode 100644 LICENSE
+
+diff --git a/AGENTS.md b/AGENTS.md
+new file mode 100644
+index 0000000..21d33a9
+--- /dev/null
++++ b/AGENTS.md
+@@ -0,0 +1 @@
++@import GENO.md
+diff --git a/GEMINI.md b/GEMINI.md
+new file mode 100644
+index 0000000..a132988
+--- /dev/null
++++ b/GEMINI.md
+@@ -0,0 +1 @@
++@./GENO.md
+diff --git a/GENO.md b/GENO.md
+index 1dc24af..a13625f 100644
+--- a/GENO.md
++++ b/GENO.md
+@@ -58,3 +58,9 @@ All processing is local (zero telemetry). The filter stage:
+ 3. Replaces emails and phone numbers with placeholders
+ 4. Skips segments that touch `.env`, credentials, `~/.ssh/`
+ 5. Configurable exclusions in `~/.geno/config.yaml` under `mining`
++
++## Conventions
++
++- **Prefix aliasing**: Slash commands use the canonical `geno-` prefix in source (e.g., `/geno-mine-extract`). Short aliases are configured per-installation via `~/.geno/config.yaml` by `geno-tools` and are never committed to this repo.
++- **Adding a new skill**: Create a directory under `skills/` named after the skill, write a `SKILL.md` with YAML frontmatter (name, description, allowed-tools, license, metadata), and add the skill to the Skills table above.
++- **Versioning**: The canonical version lives in `genotools.yaml`. `pyproject.toml` must match it. Bump the version when skills are added, removed, or behavior changes.
+diff --git a/LICENSE b/LICENSE
+new file mode 100644
+index 0000000..49357de
+--- /dev/null
++++ b/LICENSE
+@@ -0,0 +1,21 @@
++MIT License
++
++Copyright (c) 2024 42euge
++
++Permission is hereby granted, free of charge, to any person obtaining a copy
++of this software and associated documentation files (the "Software"), to deal
++in the Software without restriction, including without limitation the rights
++to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++copies of the Software, and to permit persons to whom the Software is
++furnished to do so, subject to the following conditions:
++
++The above copyright notice and this permission notice shall be included in all
++copies or substantial portions of the Software.
++
++THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++SOFTWARE.
+-- 
+2.43.0

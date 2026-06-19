@@ -1,0 +1,65 @@
+From 0ccaebc77fc28c8e5578066ed0585c449ac84733 Mon Sep 17 00:00:00 2001
+From: 42euge <42euge@gmail.com>
+Date: Fri, 19 Jun 2026 12:11:32 +0000
+Subject: [PATCH] chore(geno-audit): ecosystem compliance fixes 2026-06-19
+
+- skills/geno-dev-prs-check/SKILL.md: remove 'or /gt-pr' from description (FAIL)
+- SKILL.md: remove stale /geno-dev-loops-* skill references; add /geno-dev-sessions-remote
+- GENO.md: add geno-dev-sessions-remote to skills table; add Versioning bullet to Conventions
+---
+ GENO.md                            | 2 ++
+ SKILL.md                           | 8 +++-----
+ skills/geno-dev-prs-check/SKILL.md | 2 +-
+ 3 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/GENO.md b/GENO.md
+index 28d5e79..5b74e47 100644
+--- a/GENO.md
++++ b/GENO.md
+@@ -12,6 +12,7 @@ Developer and infrastructure skills for AI coding agents: task execution from la
+ | geno-dev-worktrees-manage | worktrees | /geno-dev-worktrees-manage |
+ | geno-dev-workspaces-init | workspaces | /geno-dev-workspaces-init |
+ | geno-dev-sessions-fork | sessions | /geno-dev-sessions-fork |
++| geno-dev-sessions-remote | sessions | /geno-dev-sessions-remote |
+ | geno-dev-prs-check | prs | /geno-dev-prs-check |
+ | geno-dev-branches-audit | branches | /geno-dev-branches-audit |
+ | geno-dev-scheduling-snooze | scheduling | /geno-dev-scheduling-snooze |
+@@ -77,3 +78,4 @@ Pure markdown skillset — no Python package, no venv, no scripts. Each skill is
+ - This skill never modifies a project's `.gitignore` or tracked config files.
+ - **Prefix aliasing**: Slash commands use the canonical `geno-` prefix in source (e.g., `/geno-dev-tasks-start`). Short `/gt-` aliases are configured per-install by geno-tools and are not part of the skill source.
+ - **Adding a new skill**: Create a directory under `skills/` named after the skill, add a `SKILL.md` with valid frontmatter (name, description, argument-hint, license, metadata), then register the skill in the skills table and repo structure tree in this file.
++- **Versioning**: The canonical version lives in `genotools.yaml`. Bump the version when skills are added, removed, or behavior changes.
+diff --git a/SKILL.md b/SKILL.md
+index 86e6752..b492da9 100644
+--- a/SKILL.md
++++ b/SKILL.md
+@@ -8,11 +8,9 @@ description: >-
+   scheduled snoozing, and skill retrospectives.
+   Use when user says /geno-dev-tasks-start, /geno-dev-commits-rewrite,
+   /geno-dev-worktrees-manage, /geno-dev-workspaces-init, /geno-dev-sessions-fork,
+-  /geno-dev-feature-ship, /geno-dev-issue-work, /geno-dev-loops-drift,
+-  /geno-dev-loops-turbocharge, /geno-dev-loops-cruise,
+-  /geno-dev-loops-autopilot, /geno-dev-loops-boost,
+-  /geno-dev-loops-ignition, /geno-dev-prs-check, /geno-dev-branches-audit,
+-  /geno-dev-scheduling-snooze, or /geno-dev-skills-retro.
++  /geno-dev-feature-ship, /geno-dev-issue-work, /geno-dev-prs-check,
++  /geno-dev-branches-audit, /geno-dev-scheduling-snooze,
++  /geno-dev-sessions-remote, or /geno-dev-skills-retro.
+ license: MIT
+ metadata:
+   author: 42euge
+diff --git a/skills/geno-dev-prs-check/SKILL.md b/skills/geno-dev-prs-check/SKILL.md
+index 978fda0..c3e16d8 100644
+--- a/skills/geno-dev-prs-check/SKILL.md
++++ b/skills/geno-dev-prs-check/SKILL.md
+@@ -2,7 +2,7 @@
+ name: geno-dev-prs-check
+ description: >-
+   Check open PRs for repos in the current session and show which ones
+-  may need to be closed. Use when user says /geno-dev-prs-check or /gt-pr.
++  may need to be closed. Use when user says /geno-dev-prs-check.
+ argument-hint: "[repo|--all]"
+ license: MIT
+ metadata:
+-- 
+2.43.0

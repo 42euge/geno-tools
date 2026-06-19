@@ -1,0 +1,51 @@
+From 929e09248745bb2382a4c26428829bb0b4c9e6fb Mon Sep 17 00:00:00 2001
+From: 42euge <42euge@gmail.com>
+Date: Fri, 19 Jun 2026 12:11:34 +0000
+Subject: [PATCH] chore(geno-audit): ecosystem compliance fixes 2026-06-19
+
+- genotools.yaml: bump version 0.1.0 -> 0.2.0 to match geno_notes/__init__.py (FAIL)
+- pyproject.toml: bump version 0.1.0 -> 0.2.0 to match canonical genotools.yaml
+- GENO.md: add Versioning bullet to Conventions
+---
+ GENO.md        | 1 +
+ genotools.yaml | 2 +-
+ pyproject.toml | 2 +-
+ 3 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/GENO.md b/GENO.md
+index ac91d45..02a4bc3 100644
+--- a/GENO.md
++++ b/GENO.md
+@@ -56,6 +56,7 @@ geno-notes/
+ - The umbrella slash command `/geno-notes` dispatches to the `geno-notes` CLI binary.
+ - **Prefix aliasing**: slash commands use the canonical `geno-` prefix in source (e.g., `/geno-notes`). Short `/gt-` aliases (e.g., `/gt-notes`) are configured per-installation by `geno-tools` and are not defined in this repo.
+ - **Adding a new skill**: create a directory under `skills/` named after the skill, write a `SKILL.md` with YAML frontmatter (name, description, allowed-tools, etc.), add the skill to the Skills table above, and register it in `package.json` under the `skills` map.
++- **Versioning**: The canonical version lives in `genotools.yaml` and `pyproject.toml`; they must stay in sync. Bump the version when skills are added, removed, or behavior changes.
+ 
+ ## Architecture
+ 
+diff --git a/genotools.yaml b/genotools.yaml
+index b2ac060..f51d6be 100644
+--- a/genotools.yaml
++++ b/genotools.yaml
+@@ -1,5 +1,5 @@
+ name: geno-notes
+-version: "0.1.0"
++version: "0.2.0"
+ description: >-
+   Project journal — tasks, timestamped journal entries, plans with
+   two-scope (global + per-project) storage.
+diff --git a/pyproject.toml b/pyproject.toml
+index 4c08a2b..6c6d70e 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -1,6 +1,6 @@
+ [project]
+ name = "geno-notes"
+-version = "0.1.0"
++version = "0.2.0"
+ description = "Project journal — tasks, timestamped journal entries, plans, with two-scope (global + per-project) storage"
+ requires-python = ">=3.10"
+ dependencies = ["click>=8.0"]
+-- 
+2.43.0
