@@ -76,6 +76,7 @@ geno-tools/
 [project.scripts]
 geno-tools = "genotools.cli:main"
 geno-trace = "genotools.trace:main"
+geno-docs = "genotools.docs:main"
 ```
 
 `genotools/cli.py` parses subcommands and lazy-imports `genotools.commands` to keep `--version`/`--help` fast.
