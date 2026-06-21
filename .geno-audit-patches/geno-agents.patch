@@ -1,22 +1,32 @@
-From c1b587273a3d47b3fb6016cdcbcd0c830643e591 Mon Sep 17 00:00:00 2001
-From: geno-audit <42euge@gmail.com>
-Date: Sun, 21 Jun 2026 00:08:51 +0000
-Subject: [PATCH] chore(geno-audit): bring geno-agents into ecosystem compliance
+From dce688a7f7461b08176874809150974421ce21eb Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sun, 21 Jun 2026 12:11:37 +0000
+Subject: [PATCH] chore(geno-audit): bring repo into ecosystem compliance
 
-- genotools.yaml: fix name from "agents" to "geno-agents"
-- SKILL.md + skills/geno-agents/SKILL.md: replace /gt-supercharge with /geno-agents-supercharge
-- skills/geno-agents-supercharge/SKILL.md: replace aliased command names with canonical geno- prefixed names
-- skills/geno-agents-tasks-start/SKILL.md: replace /gt-tasks-start with /geno-agents-tasks-start; fix metadata.version from 0.3.0 to 0.1.0
-- geno_agents/__init__.py: add __version__ = "0.1.0"
+- Fix /gt-supercharge -> /geno-agents-supercharge in 4 SKILL.md files
+- Fix Kaggle command refs: /gt-kaggle-* -> /geno-agents-kaggle-*
+- Remove /gt- alias examples from GENO.md Conventions
 ---
+ GENO.md                                 | 2 +-
  SKILL.md                                | 2 +-
- geno_agents/__init__.py                 | 1 +
- genotools.yaml                          | 2 +-
  skills/geno-agents-supercharge/SKILL.md | 6 +++---
- skills/geno-agents-tasks-start/SKILL.md | 4 ++--
+ skills/geno-agents-tasks-start/SKILL.md | 2 +-
  skills/geno-agents/SKILL.md             | 2 +-
- 6 files changed, 9 insertions(+), 8 deletions(-)
+ 5 files changed, 7 insertions(+), 7 deletions(-)
 
+diff --git a/GENO.md b/GENO.md
+index 44b332c..ab41196 100644
+--- a/GENO.md
++++ b/GENO.md
+@@ -59,7 +59,7 @@ Projects declare agent identity via a `.geno-agents` YAML file at the repo root.
+ 
+ ### Prefix aliasing
+ 
+-Source code and documentation use the canonical `geno-` prefix (e.g., `geno-agents`, `/geno-agents-supercharge`). Short `/gt-` aliases (e.g., `/gt-supercharge`, `/gt-agents`) are configured per-install by `geno-tools` and are not defined in this repo. When adding new skills or commands, always use the canonical `geno-agents` prefix; the installer handles alias generation.
++Source code and documentation use the canonical `geno-` prefix (e.g., `geno-agents`, `/geno-agents-supercharge`). Users can configure a shorter command prefix via `~/.geno/config.yaml`; the canonical `geno-agents-*` names are always used in source and docs, and the installer handles alias remapping at install time.
+ 
+ ### Adding a new skill
+ 
 diff --git a/SKILL.md b/SKILL.md
 index 77ec2d2..ac7fa7e 100644
 --- a/SKILL.md
@@ -30,24 +40,8 @@ index 77ec2d2..ac7fa7e 100644
  allowed-tools: "Bash(geno-agents *) mcp__geno-agents__list_agents mcp__geno-agents__who mcp__geno-agents__whois mcp__geno-agents__update_agent mcp__geno-agents__register_agent"
  argument-hint: "[who|whois|ls|register|update|status] [args...]"
  license: MIT
-diff --git a/geno_agents/__init__.py b/geno_agents/__init__.py
-index e69de29..3dc1f76 100644
---- a/geno_agents/__init__.py
-+++ b/geno_agents/__init__.py
-@@ -0,0 +1 @@
-+__version__ = "0.1.0"
-diff --git a/genotools.yaml b/genotools.yaml
-index af44b62..b142fbb 100644
---- a/genotools.yaml
-+++ b/genotools.yaml
-@@ -1,4 +1,4 @@
--name: agents
-+name: geno-agents
- version: "0.1.0"
- description: "Agent coordination layer — registration, discovery, and presence for multi-agent systems"
- 
 diff --git a/skills/geno-agents-supercharge/SKILL.md b/skills/geno-agents-supercharge/SKILL.md
-index b8962cd..f285263 100644
+index b8962cd..c069acd 100644
 --- a/skills/geno-agents-supercharge/SKILL.md
 +++ b/skills/geno-agents-supercharge/SKILL.md
 @@ -3,7 +3,7 @@ name: geno-agents-supercharge
@@ -64,7 +58,7 @@ index b8962cd..f285263 100644
  
  ### Evaluator (runs every 2-3 cycles)
 -- Pulls latest results from Kaggle using `/gt-kaggle-benchmarks-task-review`
-+- Pulls latest results from Kaggle using `/geno-kaggle-benchmarks-task-review`
++- Pulls latest results from Kaggle using `/geno-agents-kaggle-benchmarks-task-review`
  - If no new results, checks if a run is in progress or needs to be triggered
  - Compares results against previous runs
  - Writes evaluation to the task's `review/` folder
@@ -73,15 +67,15 @@ index b8962cd..f285263 100644
  
  - Don't spend multiple cycles on the same issue without trying a different approach
 -- Don't create new tasks without using `/gt-kaggle-benchmarks-task-generate`
-+- Don't create new tasks without using `/geno-kaggle-benchmarks-task-generate`
++- Don't create new tasks without using `/geno-agents-kaggle-benchmarks-task-generate`
  - Don't modify notebooks without updating the timestamp
  - Don't push broken code — verify changes make sense before committing
  - Don't ignore CLAUDE.md rules (self-contained notebooks, llm as list, etc.)
 diff --git a/skills/geno-agents-tasks-start/SKILL.md b/skills/geno-agents-tasks-start/SKILL.md
-index c614003..999e01c 100644
+index c614003..f0ced30 100644
 --- a/skills/geno-agents-tasks-start/SKILL.md
 +++ b/skills/geno-agents-tasks-start/SKILL.md
-@@ -4,11 +4,11 @@ description: >-
+@@ -4,7 +4,7 @@ description: >-
    Pick up a task from the current workspace's geno-notes project scope,
    plan if needed, and start executing. Workspace-only — global-scope tasks
    are out of scope for v0.1.
@@ -90,11 +84,6 @@ index c614003..999e01c 100644
  license: MIT
  metadata:
    author: 42euge
--  version: "0.3.0"
-+  version: "0.1.0"
- observability:
-   success_signal: "task marked done via geno-notes with milestone journal entry summarizing what was accomplished"
-   failure_signals:
 diff --git a/skills/geno-agents/SKILL.md b/skills/geno-agents/SKILL.md
 index 7a3ceaa..4964bb7 100644
 --- a/skills/geno-agents/SKILL.md

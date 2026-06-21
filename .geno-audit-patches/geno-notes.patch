@@ -1,160 +1,25 @@
-From cac067c95614b8c18dde1bc289b0108d64731898 Mon Sep 17 00:00:00 2001
-From: geno-audit <42euge@gmail.com>
-Date: Sun, 21 Jun 2026 00:09:41 +0000
-Subject: [PATCH] chore(geno-audit): bring geno-notes into ecosystem compliance
+From 7a13000e60ea0b1a81e885485fdbb106fd3af22f Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sun, 21 Jun 2026 12:11:37 +0000
+Subject: [PATCH] chore(geno-audit): bring repo into ecosystem compliance
 
-- fix(versioning): sync __init__.py __version__ and SCHEMA_VERSION to 0.1.0
-- fix(skill-nomenclature): add geno-notes-init and geno-notes-vault-generate to root SKILL.md
-- fix(single-source-of-truth): replace ecosystem-level checklist in GENO.md with repo-specific pointer
-- fix(docs): update docs/commands.md wiki/ → synthesis/ throughout
-- fix(docs): update README repo structure and storage layout
-- fix(agent-language): update getting-started.md prerequisites (Antigravity CLI not Gemini CLI)
+- Remove /gt-notes example from GENO.md prefix aliasing explanation (WARN)
 ---
- GENO.md                 |  3 ++-
- README.md               | 28 ++++++++++++++++++++--------
- SKILL.md                |  2 ++
- docs/commands.md        | 24 ++++++++++++++----------
- docs/getting-started.md |  2 +-
- geno_notes/__init__.py  |  4 ++--
- 6 files changed, 41 insertions(+), 22 deletions(-)
+ GENO.md | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/GENO.md b/GENO.md
-index ac91d45..eadb0a5 100644
+index ac91d45..f9b633a 100644
 --- a/GENO.md
 +++ b/GENO.md
-@@ -55,7 +55,8 @@ geno-notes/
+@@ -54,7 +54,7 @@ geno-notes/
+ 
  - Sub-skillsets have their own `skills/{name}/SKILL.md` and dispatch to the `geno-notes` CLI.
  - The umbrella slash command `/geno-notes` dispatches to the `geno-notes` CLI binary.
- - **Prefix aliasing**: slash commands use the canonical `geno-` prefix in source (e.g., `/geno-notes`). Short `/gt-` aliases (e.g., `/gt-notes`) are configured per-installation by `geno-tools` and are not defined in this repo.
--- **Adding a new skill**: create a directory under `skills/` named after the skill, write a `SKILL.md` with YAML frontmatter (name, description, allowed-tools, etc.), add the skill to the Skills table above, and register it in `package.json` under the `skills` map.
-+- **Adding a new skill**: follow the standard geno-tools skill creation process, then also register the new skill in `package.json` under the `skills` map and add it to the Skills table above.
-+- **Versioning**: the canonical version is in `genotools.yaml`. The same value must appear in `pyproject.toml` (`project.version`), `package.json` (`version`), and `geno_notes/__init__.py` (`__version__`). Bump the version when adding or removing skills, or when behavior changes.
+-- **Prefix aliasing**: slash commands use the canonical `geno-` prefix in source (e.g., `/geno-notes`). Short `/gt-` aliases (e.g., `/gt-notes`) are configured per-installation by `geno-tools` and are not defined in this repo.
++- **Prefix aliasing**: slash commands use the canonical `geno-` prefix in source (e.g., `/geno-notes`). User-configured short aliases are applied at install time by `geno-tools` and are not defined in this repo.
+ - **Adding a new skill**: create a directory under `skills/` named after the skill, write a `SKILL.md` with YAML frontmatter (name, description, allowed-tools, etc.), add the skill to the Skills table above, and register it in `package.json` under the `skills` map.
  
  ## Architecture
- 
-diff --git a/README.md b/README.md
-index 4dcf827..7659edf 100644
---- a/README.md
-+++ b/README.md
-@@ -44,20 +44,26 @@ Use `--global` or `--project` on any command to override. Use `--all` on reads t
- 
- ```
- geno-notes/
--├── package.json          # Vercel Skills manifest
- ├── GENO.md               # agent instructions (canonical)
- ├── CLAUDE.md             # agent shim → GENO.md
--├── install.sh            # installer (venv, symlinks, global scope)
-+├── AGENTS.md             # agent shim → GENO.md (Codex/Antigravity)
-+├── GEMINI.md             # agent shim → GENO.md
-+├── genotools.yaml        # geno-tools install manifest
-+├── package.json          # npm/skills metadata
- ├── pyproject.toml        # Python package metadata
- ├── skills/
- │   ├── geno-notes/
- │   │   └── SKILL.md      # umbrella skill definition
-+│   ├── geno-notes-init/
-+│   │   └── SKILL.md      # sub-skill: initialize wiki
- │   ├── geno-notes-wiki-compile/
- │   │   └── SKILL.md      # sub-skill: compile wiki
- │   ├── geno-notes-wiki-lint/
- │   │   └── SKILL.md      # sub-skill: lint wiki
--│   └── geno-notes-sites-generate/
--│       └── SKILL.md      # sub-skill: generate site
-+│   ├── geno-notes-sites-generate/
-+│   │   └── SKILL.md      # sub-skill: generate site
-+│   └── geno-notes-vault-generate/
-+│       └── SKILL.md      # sub-skill: generate Obsidian vault
- ├── geno_notes/           # Python CLI package
- │   ├── __init__.py
- │   ├── cli.py
-@@ -70,7 +76,8 @@ geno-notes/
- │   ├── paths.py
- │   ├── search.py
- │   ├── site.py
--│   └── tasks.py
-+│   ├── tasks.py
-+│   └── vault.py
- └── tests/
-     ├── conftest.py
-     ├── test_ids.py
-diff --git a/SKILL.md b/SKILL.md
-index 9e140c8..27c5cb1 100644
---- a/SKILL.md
-+++ b/SKILL.md
-@@ -23,6 +23,8 @@ chunked journal files, and two coexisting storage scopes.
- | Skill | Slash command | Description |
- |-------|--------------|-------------|
- | geno-notes | /geno-notes | Manage tasks, journal entries, plans across global and project scopes |
-+| geno-notes-init | /geno-notes-init | Initialize a wiki or report its schema version |
- | geno-notes-wiki-compile | /geno-notes-wiki-compile | Compile primary sources into wiki pages |
- | geno-notes-wiki-lint | /geno-notes-wiki-lint | Health-check the wiki against primary sources |
- | geno-notes-sites-generate | /geno-notes-sites-generate | Generate a MkDocs Material website from notes |
-+| geno-notes-vault-generate | /geno-notes-vault-generate | Generate an Obsidian vault from notes |
-diff --git a/docs/commands.md b/docs/commands.md
-index 7f80581..e813dc7 100644
---- a/docs/commands.md
-+++ b/docs/commands.md
-@@ -86,22 +86,22 @@ Regenerate `index.md` and `tasks/_index.md`. The CLI does this automatically on
- 
- **`/geno-notes compile`**
- 
--Compile primary sources into wiki pages ([Karpathy llm-wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)). The CLI gathers all source material and existing wiki pages; the agent synthesizes them into interlinked markdown pages under `wiki/`.
-+Compile primary sources into synthesis pages ([Karpathy llm-wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)). The CLI gathers all source material and existing synthesis pages; the agent synthesizes them into interlinked markdown pages under `synthesis/`.
- 
--The primary sources (tasks, journal, plans) are the system of record. The wiki is a **derived view** — a persistent, compounding synthesis that can always be rebuilt. Each page covers one topic, uses `[[wikilinks]]` to connect related pages, and cites source tasks/journal entries. Existing pages are updated, not replaced.
-+The primary sources (tasks, journal, plans) are the system of record. The synthesis is a **derived view** — a persistent, compounding synthesis that can always be rebuilt. Each page covers one topic, uses `[[wikilinks]]` to connect related pages, and cites source tasks/journal entries. Existing pages are updated, not replaced.
- 
- !!! tip
--    The wiki compounds over time. Each compile pass integrates new sources into existing pages rather than starting from scratch. Status changes in tasks (done, abandoned) are reflected in the wiki.
-+    The synthesis compounds over time. Each compile pass integrates new sources into existing pages rather than starting from scratch. Status changes in tasks (done, abandoned) are reflected in the synthesis.
- 
- **`/geno-notes lint`**
- 
--Health-check the wiki against primary sources. The agent reads both layers and reports:
-+Health-check synthesis pages against primary sources. The agent reads both layers and reports:
- 
- - Stale pages superseded by newer sources
- - Orphan pages with no inbound links
- - Missing pages referenced by wikilinks but not yet created
--- Gaps — important topics with no wiki coverage
--- Contradictions between wiki pages or between wiki and sources
-+- Gaps — important topics with no synthesis coverage
-+- Contradictions between synthesis pages or between synthesis and sources
- - Dead references to deleted tasks or journal entries
- 
- ---
-@@ -113,7 +113,7 @@ geno-notes implements the Karpathy llm-wiki pattern. Three layers:
- | Layer | geno-notes | Role |
- |---|---|---|
- | **Primary sources** | `tasks/`, `journal/`, `plans/`, `inbox.md` | System of record. Human + agent edited. |
--| **Wiki** | `wiki/` | Derived view. Agent-generated, rebuildable. |
-+| **Synthesis** | `synthesis/` | Derived view. Agent-generated, rebuildable. Compounds over time. |
- | **Schema** | `SKILL.md`, `GENO.md` | Tells the agent how to operate. |
- 
- ---
-diff --git a/docs/getting-started.md b/docs/getting-started.md
-index 5a0f501..ed7416b 100644
---- a/docs/getting-started.md
-+++ b/docs/getting-started.md
-@@ -4,7 +4,7 @@
- 
- - Python 3.10+
- - [geno-tools](https://42euge.github.io/geno-tools) installed
--- A supported coding CLI (Claude Code, Gemini CLI, Codex, or OpenCode)
-+- A supported coding CLI (Claude Code, Antigravity CLI, Codex, or OpenCode)
- 
- ## Install
- 
-diff --git a/geno_notes/__init__.py b/geno_notes/__init__.py
-index af36085..ccb76da 100644
---- a/geno_notes/__init__.py
-+++ b/geno_notes/__init__.py
-@@ -1,4 +1,4 @@
- """geno-notes — project wiki with two-scope storage."""
- 
--__version__ = "0.2.0"
--SCHEMA_VERSION = "0.2.0"
-+__version__ = "0.1.0"
-+SCHEMA_VERSION = "0.1.0"
 -- 
 2.43.0
