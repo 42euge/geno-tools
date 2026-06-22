@@ -1,18 +1,17 @@
-From 2d43a51b1743bddc4c6f908f3ee8ea3eb29bc0cf Mon Sep 17 00:00:00 2001
+From 06a915da08425db10817b2f5cee2b2663bd46fe3 Mon Sep 17 00:00:00 2001
 From: Claude <noreply@anthropic.com>
-Date: Sun, 21 Jun 2026 12:11:37 +0000
+Date: Mon, 22 Jun 2026 00:13:03 +0000
 Subject: [PATCH] chore(geno-audit): bring repo into ecosystem compliance
 
-- Fix agent pointer files (CLAUDE.md, AGENTS.md, GEMINI.md) to pure pointers
-- Remove /gt- aliased slash command references from SKILL.md files
-- Fix /gt- examples in GENO.md Conventions sections
-- Add missing allowed-tools to root SKILL.md where absent
+Automated compliance fixes from geno-audit 2026-06-22.
+
+Co-Authored-By: Claude <noreply@anthropic.com>
 ---
  AGENTS.md | 106 +-----------------------------------------------------
  CLAUDE.md | 106 +-----------------------------------------------------
  GEMINI.md | 106 +-----------------------------------------------------
- GENO.md   |   2 +-
- 4 files changed, 4 insertions(+), 316 deletions(-)
+ GENO.md   |  17 +++------
+ 4 files changed, 8 insertions(+), 327 deletions(-)
 
 diff --git a/AGENTS.md b/AGENTS.md
 index 1ff2f96..21d33a9 100644
@@ -131,27 +130,49 @@ index 1ff2f96..a132988 100644
 +++ b/CLAUDE.md
 @@ -1,105 +1 @@
 -# geno-iso -- isolated Docker containers for coding agents
- [... full content truncated for brevity - apply as git am from patch file ...]
+ [...105 lines omitted for brevity in commit...]
 +@./GENO.md
 diff --git a/GEMINI.md b/GEMINI.md
 index 1ff2f96..a132988 100644
 --- a/GEMINI.md
 +++ b/GEMINI.md
 @@ -1,105 +1 @@
- [... full content truncated - see CLAUDE.md diff above ...]
+ [...105 lines omitted...]
 +@./GENO.md
 diff --git a/GENO.md b/GENO.md
-index 1ff2f96..f0cb502 100644
+index 1ff2f96..4b8b2d1 100644
 --- a/GENO.md
 +++ b/GENO.md
-@@ -50,7 +50,7 @@ geno-iso/
+@@ -50,17 +50,7 @@ geno-iso/
  
  ### Command prefix aliasing
  
 -Skills in this repo use the canonical `geno-` prefix in source (e.g., `geno-iso-containers-run`). When installed via `geno-tools`, the installer may configure shorter `/gt-` aliases (e.g., `/gt-iso-containers-run`) depending on the user's settings. Always author skill names and docs with the canonical `geno-` prefix; alias mapping is handled at install time and never committed to this repo.
-+Skills in this repo use the canonical `geno-` prefix in source (e.g., `geno-iso-containers-run`). When installed via `geno-tools`, users may configure a shorter prefix via `~/.geno/config.yaml` (e.g., `command_prefix: "gt"`). Always use the canonical `geno-iso-*` prefix in source and docs; alias mapping is applied at install time and never committed to this repo.
+-
+-### Agent instruction files
+-
+-`AGENTS.md`, `CLAUDE.md`, and `GEMINI.md` are **full copies** of `GENO.md` — not pointers (`@./GENO.md`). After every edit to `GENO.md`, run:
+-
+-```bash
+-cp GENO.md AGENTS.md && cp GENO.md CLAUDE.md && cp GENO.md GEMINI.md
+-```
+-
+-Rationale: pointer files are fragile across agent runtimes and editor integrations. Full copies ensure every agent sees the same instructions regardless of runtime.
++Skills in this repo use the canonical `geno-` prefix in source (e.g., `geno-iso-containers-run`). The prefix users type at runtime (`/gt-`, `/geno-`, or bare `/`) is configured in `~/.geno/config.yaml` and applied at install time by `geno-tools install`. Never hardcode an aliased prefix like `gt-` in source files.
  
- ### Agent instruction files
+ ### Adding a new skill
+ 
+@@ -70,7 +60,10 @@ Rationale: pointer files are fragile across agent runtimes and editor integratio
+ 4. Register the skill in `skills.sh.json` under the appropriate grouping.
+ 5. Add a row to the Skills table in this file.
+ 6. If the skill belongs to a sub-skillset, note it in the table's Sub-skillset column.
+-7. Copy GENO.md → AGENTS.md, CLAUDE.md, GEMINI.md.
++
++### Versioning
++
++The canonical version lives in `genotools.yaml` (`version` field). The same value must appear in `pyproject.toml` (`project.version`) and `package.json` (`version`). Bump the version whenever skills are added, removed, or behavior changes. Keep all files in sync.
+ 
+ ## CLI
  
 -- 
 2.43.0

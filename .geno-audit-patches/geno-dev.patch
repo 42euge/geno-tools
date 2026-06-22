@@ -1,37 +1,47 @@
-From d4b02e4913874831ff4c7539cff3725b8666f814 Mon Sep 17 00:00:00 2001
+From 28fb68eb32deab3add90e0c5f25c654d70db4abb Mon Sep 17 00:00:00 2001
 From: Claude <noreply@anthropic.com>
-Date: Sun, 21 Jun 2026 12:11:37 +0000
+Date: Mon, 22 Jun 2026 00:13:04 +0000
 Subject: [PATCH] chore(geno-audit): bring repo into ecosystem compliance
 
-- Remove /gt-pr alias from geno-dev-prs-check description (FAIL)
-- Add allowed-tools to root SKILL.md (WARN)
-- Remove /gt- alias example from GENO.md prefix aliasing section (WARN)
+Automated compliance fixes from geno-audit 2026-06-22.
+
+Co-Authored-By: Claude <noreply@anthropic.com>
 ---
- GENO.md                            | 2 +-
+ GENO.md                            | 5 +++++
  SKILL.md                           | 1 +
  skills/geno-dev-prs-check/SKILL.md | 2 +-
- 3 files changed, 3 insertions(+), 2 deletions(-)
+ skills/geno-dev/SKILL.md           | 1 +
+ 4 files changed, 8 insertions(+), 1 deletion(-)
 
 diff --git a/GENO.md b/GENO.md
-index 28d5e79..c0f5780 100644
+index 28d5e79..8eeccaf 100644
 --- a/GENO.md
 +++ b/GENO.md
-@@ -75,5 +75,5 @@ Pure markdown skillset — no Python package, no venv, no scripts. Each skill is
- - Skill directories live under `skills/` and must contain a `SKILL.md` with valid frontmatter.
- - The `.geno/` directory and `CLAUDE.local.md` are never committed — they hold machine-local state.
+@@ -12,6 +12,7 @@ Developer and infrastructure skills for AI coding agents: task execution from la
+ | geno-dev-worktrees-manage | worktrees | /geno-dev-worktrees-manage |
+ | geno-dev-workspaces-init | workspaces | /geno-dev-workspaces-init |
+ | geno-dev-sessions-fork | sessions | /geno-dev-sessions-fork |
++| geno-dev-sessions-remote | sessions | /geno-dev-sessions-remote |
+ | geno-dev-prs-check | prs | /geno-dev-prs-check |
+ | geno-dev-branches-audit | branches | /geno-dev-branches-audit |
+ | geno-dev-scheduling-snooze | scheduling | /geno-dev-scheduling-snooze |
+@@ -77,3 +78,7 @@ Pure markdown skillset — no Python package, no venv, no scripts. Each skill is
  - This skill never modifies a project's `.gitignore` or tracked config files.
--- **Prefix aliasing**: Slash commands use the canonical `geno-` prefix in source (e.g., `/geno-dev-tasks-start`). Short `/gt-` aliases are configured per-install by geno-tools and are not part of the skill source.
-+- **Prefix aliasing**: Slash commands use the canonical `geno-` prefix in source (e.g., `/geno-dev-tasks-start`). User-configured short aliases are applied at install time by geno-tools and are not part of the skill source.
+ - **Prefix aliasing**: Slash commands use the canonical `geno-` prefix in source (e.g., `/geno-dev-tasks-start`). Short `/gt-` aliases are configured per-install by geno-tools and are not part of the skill source.
  - **Adding a new skill**: Create a directory under `skills/` named after the skill, add a `SKILL.md` with valid frontmatter (name, description, argument-hint, license, metadata), then register the skill in the skills table and repo structure tree in this file.
++
++### Versioning
++
++The canonical version lives in `genotools.yaml` (`version` field). The same value must appear in `package.json` (`version`). Bump the version whenever skills are added, removed, or behavior changes.
 diff --git a/SKILL.md b/SKILL.md
-index 86e6752..cfcf6cc 100644
+index 86e6752..fd376de 100644
 --- a/SKILL.md
 +++ b/SKILL.md
 @@ -13,6 +13,7 @@ description: >-
    /geno-dev-loops-autopilot, /geno-dev-loops-boost,
    /geno-dev-loops-ignition, /geno-dev-prs-check, /geno-dev-branches-audit,
    /geno-dev-scheduling-snooze, or /geno-dev-skills-retro.
-+allowed-tools: "Bash(geno-dev *) Bash(geno-trace *)"
++allowed-tools: "Bash(git *) Bash(geno-notes *) Bash(geno-trace *)"
  license: MIT
  metadata:
    author: 42euge
@@ -48,5 +58,17 @@ index 978fda0..c3e16d8 100644
  argument-hint: "[repo|--all]"
  license: MIT
  metadata:
+diff --git a/skills/geno-dev/SKILL.md b/skills/geno-dev/SKILL.md
+index 5536013..a9d57e7 100644
+--- a/skills/geno-dev/SKILL.md
++++ b/skills/geno-dev/SKILL.md
+@@ -9,6 +9,7 @@ description: >-
+   /geno-dev-worktrees-manage, /geno-dev-workspaces-init, /geno-dev-sessions-fork,
+   /geno-dev-feature-ship, /geno-dev-issue-work, /geno-dev-prs-check,
+   /geno-dev-branches-audit, /geno-dev-scheduling-snooze, or /geno-dev-skills-retro.
++allowed-tools: "Bash(git *) Bash(geno-notes *) Bash(geno-trace *)"
+ license: MIT
+ metadata:
+   author: 42euge
 -- 
 2.43.0

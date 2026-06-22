@@ -1,19 +1,18 @@
-From d3d7860ed175624817981f03d0a71042df0f7450 Mon Sep 17 00:00:00 2001
+From c675dcef05241abe8a6f31058355aa3ab0edba15 Mon Sep 17 00:00:00 2001
 From: Claude <noreply@anthropic.com>
-Date: Sun, 21 Jun 2026 12:11:37 +0000
+Date: Mon, 22 Jun 2026 00:13:03 +0000
 Subject: [PATCH] chore(geno-audit): bring repo into ecosystem compliance
 
-- Add AGENTS.md and GEMINI.md pointer files
-- Add MIT LICENSE
-- Add Conventions section to GENO.md (prefix aliasing, versioning, adding skills)
-- Add allowed-tools to umbrella SKILL.md
+Automated compliance fixes from geno-audit 2026-06-22.
+
+Co-Authored-By: Claude <noreply@anthropic.com>
 ---
  AGENTS.md                 |  1 +
  GEMINI.md                 |  1 +
- GENO.md                   |  7 +++++++
+ GENO.md                   | 17 +++++++++++++++++
  LICENSE                   | 21 +++++++++++++++++++++
  skills/geno-mine/SKILL.md |  1 +
- 5 files changed, 31 insertions(+)
+ 5 files changed, 41 insertions(+)
  create mode 100644 AGENTS.md
  create mode 100644 GEMINI.md
  create mode 100644 LICENSE
@@ -33,20 +32,30 @@ index 0000000..a132988
 @@ -0,0 +1 @@
 +@./GENO.md
 diff --git a/GENO.md b/GENO.md
-index 1dc24af..5b3c9c8 100644
+index 1dc24af..94884dd 100644
 --- a/GENO.md
 +++ b/GENO.md
-@@ -58,3 +58,10 @@ All processing is local (zero telemetry). The filter stage:
+@@ -58,3 +58,20 @@ All processing is local (zero telemetry). The filter stage:
  3. Replaces emails and phone numbers with placeholders
  4. Skips segments that touch `.env`, credentials, `~/.ssh/`
  5. Configurable exclusions in `~/.geno/config.yaml` under `mining`
 +
 +## Conventions
 +
-+- **Skill naming**: Skills follow the `geno-mine-{sub-skillset}-{action}` pattern. Sub-skillset is a pluralized noun; action is a verb (e.g., `geno-mine-datasets-export`).
-+- **Command prefix aliasing**: Source files always use the canonical `geno-mine-*` prefix for slash commands (e.g., `/geno-mine-extract`). User-configured short aliases are applied at install time by `geno-tools` and are not committed to this repo.
-+- **Adding a new skill**: Create a directory under `skills/` named after the skill, write a `SKILL.md` with YAML frontmatter (`name`, `description`, `allowed-tools`, `license`, `metadata`), add the skill to the Skills table above, and update `skills/geno-mine/SKILL.md` to list it.
-+- **Versioning**: The canonical version is in `genotools.yaml`. Keep `pyproject.toml` `project.version` in sync. Bump the version when adding or removing skills, or when behavior changes significantly.
++### Command prefix aliasing
++
++Slash commands in this repo use the canonical `geno-` prefix (e.g., `/geno-mine-extract`). The prefix users type at runtime (`/gt-`, `/geno-`, or bare `/`) is configured in `~/.geno/config.yaml` and applied at install time by `geno-tools install`. Never hardcode an aliased prefix in source files.
++
++### Adding a new skill
++
++1. Create a directory under `skills/` named after the skill (e.g., `skills/geno-mine-<verb>/`).
++2. Write a `SKILL.md` with YAML frontmatter (`name`, `description`, `allowed-tools`, `license`, `metadata`).
++3. Update the umbrella `SKILL.md` (`skills/geno-mine/SKILL.md`) to list the new skill.
++4. Add the skill to the Skills table in this file.
++
++### Versioning
++
++The canonical version lives in `genotools.yaml` (`version` field). The same value must appear in `pyproject.toml` (`project.version`). Bump the version whenever skills are added, removed, or behavior changes.
 diff --git a/LICENSE b/LICENSE
 new file mode 100644
 index 0000000..7e440bd
@@ -81,7 +90,7 @@ index c0ffbae..f061387 100644
 @@ -3,6 +3,7 @@ name: geno-mine
  description: >-
    Session mining and finetuning dataset generation — extract training examples
-   from coding agent session transcripts. Use when user says /geno-mine.
+   from Claude Code session transcripts. Use when user says /geno-mine.
 +allowed-tools: "Bash(geno-mine *) Bash(~/.local/bin/geno-mine *)"
  license: MIT
  metadata:

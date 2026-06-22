@@ -1,21 +1,21 @@
-From dce688a7f7461b08176874809150974421ce21eb Mon Sep 17 00:00:00 2001
+From 04d132903c7a334b18c1c70fdff43a33b857113b Mon Sep 17 00:00:00 2001
 From: Claude <noreply@anthropic.com>
-Date: Sun, 21 Jun 2026 12:11:37 +0000
+Date: Mon, 22 Jun 2026 00:13:04 +0000
 Subject: [PATCH] chore(geno-audit): bring repo into ecosystem compliance
 
-- Fix /gt-supercharge -> /geno-agents-supercharge in 4 SKILL.md files
-- Fix Kaggle command refs: /gt-kaggle-* -> /geno-agents-kaggle-*
-- Remove /gt- alias examples from GENO.md Conventions
+Automated compliance fixes from geno-audit 2026-06-22.
+
+Co-Authored-By: Claude <noreply@anthropic.com>
 ---
- GENO.md                                 | 2 +-
+ GENO.md                                 | 6 +++++-
  SKILL.md                                | 2 +-
  skills/geno-agents-supercharge/SKILL.md | 6 +++---
  skills/geno-agents-tasks-start/SKILL.md | 2 +-
  skills/geno-agents/SKILL.md             | 2 +-
- 5 files changed, 7 insertions(+), 7 deletions(-)
+ 5 files changed, 11 insertions(+), 7 deletions(-)
 
 diff --git a/GENO.md b/GENO.md
-index 44b332c..ab41196 100644
+index 44b332c..6202878 100644
 --- a/GENO.md
 +++ b/GENO.md
 @@ -59,7 +59,7 @@ Projects declare agent identity via a `.geno-agents` YAML file at the repo root.
@@ -23,10 +23,18 @@ index 44b332c..ab41196 100644
  ### Prefix aliasing
  
 -Source code and documentation use the canonical `geno-` prefix (e.g., `geno-agents`, `/geno-agents-supercharge`). Short `/gt-` aliases (e.g., `/gt-supercharge`, `/gt-agents`) are configured per-install by `geno-tools` and are not defined in this repo. When adding new skills or commands, always use the canonical `geno-agents` prefix; the installer handles alias generation.
-+Source code and documentation use the canonical `geno-` prefix (e.g., `geno-agents`, `/geno-agents-supercharge`). Users can configure a shorter command prefix via `~/.geno/config.yaml`; the canonical `geno-agents-*` names are always used in source and docs, and the installer handles alias remapping at install time.
++Source code and documentation use the canonical `geno-` prefix (e.g., `geno-agents`, `/geno-agents-supercharge`). The prefix users type at runtime (`/gt-`, `/geno-`, or bare `/`) is configured in `~/.geno/config.yaml` and applied at install time by `geno-tools install`. When adding new skills or commands, always use the canonical `geno-agents-*` prefix; never hardcode aliased forms in source files.
  
  ### Adding a new skill
  
+@@ -71,3 +71,7 @@ To add a new skill to the geno-agents skillset:
+ 4. If the skill needs new CLI subcommands, add them in `geno_agents/cli.py`.
+ 5. If the skill needs new MCP tools, add them in `geno_agents/mcp_server.py` and list them in the `allowed-tools` front-matter field.
+ 6. Update `genotools.yaml` with the new skill entry so `geno-tools install` picks it up.
++
++### Versioning
++
++The canonical version lives in `genotools.yaml` (`version` field). The same value must appear in `pyproject.toml` (`project.version`) and `package.json` (`version`). Bump the version whenever skills are added, removed, or behavior changes. Keep all files in sync.
 diff --git a/SKILL.md b/SKILL.md
 index 77ec2d2..ac7fa7e 100644
 --- a/SKILL.md
@@ -72,7 +80,7 @@ index b8962cd..c069acd 100644
  - Don't push broken code — verify changes make sense before committing
  - Don't ignore CLAUDE.md rules (self-contained notebooks, llm as list, etc.)
 diff --git a/skills/geno-agents-tasks-start/SKILL.md b/skills/geno-agents-tasks-start/SKILL.md
-index c614003..f0ced30 100644
+index c614003..76dc3fe 100644
 --- a/skills/geno-agents-tasks-start/SKILL.md
 +++ b/skills/geno-agents-tasks-start/SKILL.md
 @@ -4,7 +4,7 @@ description: >-
@@ -80,7 +88,7 @@ index c614003..f0ced30 100644
    plan if needed, and start executing. Workspace-only — global-scope tasks
    are out of scope for v0.1.
 -  Installed by geno-tools as the /gt-tasks-start slash command.
-+  Installed by geno-tools as the /geno-agents-tasks-start slash command.
++  Use when user says /geno-agents-tasks-start.
  license: MIT
  metadata:
    author: 42euge

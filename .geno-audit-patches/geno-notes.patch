@@ -1,25 +1,29 @@
-From 7a13000e60ea0b1a81e885485fdbb106fd3af22f Mon Sep 17 00:00:00 2001
+From b943a4193e65fbb3827f209b5ae85db852db1cc9 Mon Sep 17 00:00:00 2001
 From: Claude <noreply@anthropic.com>
-Date: Sun, 21 Jun 2026 12:11:37 +0000
+Date: Mon, 22 Jun 2026 00:13:04 +0000
 Subject: [PATCH] chore(geno-audit): bring repo into ecosystem compliance
 
-- Remove /gt-notes example from GENO.md prefix aliasing explanation (WARN)
+Automated compliance fixes from geno-audit 2026-06-22.
+
+Co-Authored-By: Claude <noreply@anthropic.com>
 ---
- GENO.md | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ GENO.md | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/GENO.md b/GENO.md
-index ac91d45..f9b633a 100644
+index ac91d45..aef9ba9 100644
 --- a/GENO.md
 +++ b/GENO.md
-@@ -54,7 +54,7 @@ geno-notes/
+@@ -54,8 +54,9 @@ geno-notes/
  
  - Sub-skillsets have their own `skills/{name}/SKILL.md` and dispatch to the `geno-notes` CLI.
  - The umbrella slash command `/geno-notes` dispatches to the `geno-notes` CLI binary.
 -- **Prefix aliasing**: slash commands use the canonical `geno-` prefix in source (e.g., `/geno-notes`). Short `/gt-` aliases (e.g., `/gt-notes`) are configured per-installation by `geno-tools` and are not defined in this repo.
-+- **Prefix aliasing**: slash commands use the canonical `geno-` prefix in source (e.g., `/geno-notes`). User-configured short aliases are applied at install time by `geno-tools` and are not defined in this repo.
++- **Prefix aliasing**: slash commands use the canonical `geno-` prefix in source (e.g., `/geno-notes`). The prefix users type at runtime (`/gt-`, `/geno-`, or bare `/`) is configured in `~/.geno/config.yaml` and applied at install time by `geno-tools install`. Never hardcode aliased forms in source files.
  - **Adding a new skill**: create a directory under `skills/` named after the skill, write a `SKILL.md` with YAML frontmatter (name, description, allowed-tools, etc.), add the skill to the Skills table above, and register it in `package.json` under the `skills` map.
++- **Versioning**: the canonical version lives in `genotools.yaml`. The same value must appear in `pyproject.toml` and `package.json`. Bump when skills are added, removed, or behavior changes.
  
  ## Architecture
+ 
 -- 
 2.43.0
