@@ -1,32 +1,23 @@
-From 04d132903c7a334b18c1c70fdff43a33b857113b Mon Sep 17 00:00:00 2001
-From: Claude <noreply@anthropic.com>
-Date: Mon, 22 Jun 2026 00:13:04 +0000
+From 135293d127a8c87e0a79424cd8ef8aca0ad8d0cc Mon Sep 17 00:00:00 2001
+From: 42euge <42euge@gmail.com>
+Date: Mon, 22 Jun 2026 12:15:25 +0000
 Subject: [PATCH] chore(geno-audit): bring repo into ecosystem compliance
 
-Automated compliance fixes from geno-audit 2026-06-22.
-
-Co-Authored-By: Claude <noreply@anthropic.com>
+Replace non-canonical /gt-* slash command references with their canonical
+/geno-* equivalents across all SKILL.md files, and add Versioning guidance
+to GENO.md Conventions so contributors keep version files in sync.
 ---
- GENO.md                                 | 6 +++++-
+ GENO.md                                 | 4 ++++
  SKILL.md                                | 2 +-
  skills/geno-agents-supercharge/SKILL.md | 6 +++---
  skills/geno-agents-tasks-start/SKILL.md | 2 +-
  skills/geno-agents/SKILL.md             | 2 +-
- 5 files changed, 11 insertions(+), 7 deletions(-)
+ 5 files changed, 10 insertions(+), 6 deletions(-)
 
 diff --git a/GENO.md b/GENO.md
-index 44b332c..6202878 100644
+index 44b332c..84a8737 100644
 --- a/GENO.md
 +++ b/GENO.md
-@@ -59,7 +59,7 @@ Projects declare agent identity via a `.geno-agents` YAML file at the repo root.
- 
- ### Prefix aliasing
- 
--Source code and documentation use the canonical `geno-` prefix (e.g., `geno-agents`, `/geno-agents-supercharge`). Short `/gt-` aliases (e.g., `/gt-supercharge`, `/gt-agents`) are configured per-install by `geno-tools` and are not defined in this repo. When adding new skills or commands, always use the canonical `geno-agents` prefix; the installer handles alias generation.
-+Source code and documentation use the canonical `geno-` prefix (e.g., `geno-agents`, `/geno-agents-supercharge`). The prefix users type at runtime (`/gt-`, `/geno-`, or bare `/`) is configured in `~/.geno/config.yaml` and applied at install time by `geno-tools install`. When adding new skills or commands, always use the canonical `geno-agents-*` prefix; never hardcode aliased forms in source files.
- 
- ### Adding a new skill
- 
 @@ -71,3 +71,7 @@ To add a new skill to the geno-agents skillset:
  4. If the skill needs new CLI subcommands, add them in `geno_agents/cli.py`.
  5. If the skill needs new MCP tools, add them in `geno_agents/mcp_server.py` and list them in the `allowed-tools` front-matter field.
@@ -34,7 +25,7 @@ index 44b332c..6202878 100644
 +
 +### Versioning
 +
-+The canonical version lives in `genotools.yaml` (`version` field). The same value must appear in `pyproject.toml` (`project.version`) and `package.json` (`version`). Bump the version whenever skills are added, removed, or behavior changes. Keep all files in sync.
++The canonical version lives in `genotools.yaml`. The same value must appear in `pyproject.toml` (`project.version`), `package.json` (`version`), and `geno_agents/__init__.py` (`__version__`) if present. Bump the version whenever skills are added, removed, or behavior changes. Keep all files in sync.
 diff --git a/SKILL.md b/SKILL.md
 index 77ec2d2..ac7fa7e 100644
 --- a/SKILL.md
@@ -49,7 +40,7 @@ index 77ec2d2..ac7fa7e 100644
  argument-hint: "[who|whois|ls|register|update|status] [args...]"
  license: MIT
 diff --git a/skills/geno-agents-supercharge/SKILL.md b/skills/geno-agents-supercharge/SKILL.md
-index b8962cd..c069acd 100644
+index b8962cd..58a8dc2 100644
 --- a/skills/geno-agents-supercharge/SKILL.md
 +++ b/skills/geno-agents-supercharge/SKILL.md
 @@ -3,7 +3,7 @@ name: geno-agents-supercharge
@@ -57,7 +48,7 @@ index b8962cd..c069acd 100644
    Run an extended autonomous work session across benchmark tasks with
    structured cycles of implementation, reflection, and research.
 -  Use when the user says /gt-supercharge, /geno-agents-supercharge, or asks
-+  Use when the user says /geno-agents-supercharge, or asks
++  Use when the user says /geno-agents-supercharge or asks
    for a long-running autonomous run across tasks.
  disable-model-invocation: true
  argument-hint: "[duration] [scope]  e.g. 'go!', '4h change_blindness', '12h all'"
@@ -66,7 +57,7 @@ index b8962cd..c069acd 100644
  
  ### Evaluator (runs every 2-3 cycles)
 -- Pulls latest results from Kaggle using `/gt-kaggle-benchmarks-task-review`
-+- Pulls latest results from Kaggle using `/geno-agents-kaggle-benchmarks-task-review`
++- Pulls latest results from Kaggle using `/geno-kaggle-benchmarks-task-review`
  - If no new results, checks if a run is in progress or needs to be triggered
  - Compares results against previous runs
  - Writes evaluation to the task's `review/` folder
@@ -75,7 +66,7 @@ index b8962cd..c069acd 100644
  
  - Don't spend multiple cycles on the same issue without trying a different approach
 -- Don't create new tasks without using `/gt-kaggle-benchmarks-task-generate`
-+- Don't create new tasks without using `/geno-agents-kaggle-benchmarks-task-generate`
++- Don't create new tasks without using `/geno-kaggle-benchmarks-task-generate`
  - Don't modify notebooks without updating the timestamp
  - Don't push broken code — verify changes make sense before committing
  - Don't ignore CLAUDE.md rules (self-contained notebooks, llm as list, etc.)
@@ -107,3 +98,4 @@ index 7a3ceaa..4964bb7 100644
  license: MIT
 -- 
 2.43.0
+

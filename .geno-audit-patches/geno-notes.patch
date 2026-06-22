@@ -1,29 +1,131 @@
-From b943a4193e65fbb3827f209b5ae85db852db1cc9 Mon Sep 17 00:00:00 2001
-From: Claude <noreply@anthropic.com>
-Date: Mon, 22 Jun 2026 00:13:04 +0000
+From 406d831f81749a700e9ae55c840b265ef93625f6 Mon Sep 17 00:00:00 2001
+From: 42euge <42euge@gmail.com>
+Date: Mon, 22 Jun 2026 12:15:39 +0000
 Subject: [PATCH] chore(geno-audit): bring repo into ecosystem compliance
 
-Automated compliance fixes from geno-audit 2026-06-22.
-
-Co-Authored-By: Claude <noreply@anthropic.com>
+- Fix version mismatch: geno_notes/__init__.py was 0.2.0, now matches canonical 0.1.0 in genotools.yaml
+- GENO.md Conventions: rephrase prefix aliasing to forbid hardcoded /gt- prefixes
+- GENO.md Conventions: add Versioning subsection explaining canonical version source
+- Remove install.sh: legacy artifact hardwiring ~/.claude/skills and ~/,claude/commands, bypassing geno-tools lifecycle
 ---
- GENO.md | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ GENO.md                |  6 +++-
+ geno_notes/__init__.py |  2 +-
+ install.sh             | 77 ------------------------------------------
+ 3 files changed, 6 insertions(+), 79 deletions(-)
+ delete mode 100755 install.sh
 
 diff --git a/GENO.md b/GENO.md
-index ac91d45..aef9ba9 100644
+index ac91d45..d9ea6c9 100644
 --- a/GENO.md
 +++ b/GENO.md
-@@ -54,8 +54,9 @@ geno-notes/
+@@ -54,9 +54,13 @@ geno-notes/
  
  - Sub-skillsets have their own `skills/{name}/SKILL.md` and dispatch to the `geno-notes` CLI.
  - The umbrella slash command `/geno-notes` dispatches to the `geno-notes` CLI binary.
 -- **Prefix aliasing**: slash commands use the canonical `geno-` prefix in source (e.g., `/geno-notes`). Short `/gt-` aliases (e.g., `/gt-notes`) are configured per-installation by `geno-tools` and are not defined in this repo.
-+- **Prefix aliasing**: slash commands use the canonical `geno-` prefix in source (e.g., `/geno-notes`). The prefix users type at runtime (`/gt-`, `/geno-`, or bare `/`) is configured in `~/.geno/config.yaml` and applied at install time by `geno-tools install`. Never hardcode aliased forms in source files.
++- **Prefix aliasing**: slash commands use the canonical `geno-` prefix in source (e.g., `/geno-notes`). Never hardcode an aliased prefix like `/gt-` in source files. Always use the canonical `/geno-notes` form. The prefix users type is configured per-installation in `~/.geno/config.yaml`.
  - **Adding a new skill**: create a directory under `skills/` named after the skill, write a `SKILL.md` with YAML frontmatter (name, description, allowed-tools, etc.), add the skill to the Skills table above, and register it in `package.json` under the `skills` map.
-+- **Versioning**: the canonical version lives in `genotools.yaml`. The same value must appear in `pyproject.toml` and `package.json`. Bump when skills are added, removed, or behavior changes.
  
++### Versioning
++
++The canonical version lives in `genotools.yaml`. The same value must appear in `pyproject.toml` (`project.version`), `package.json` (`version`), `SKILL.md` (`metadata.version`), and `geno_notes/__init__.py` (`__version__`). Bump the version whenever skills are added, removed, or behavior changes. Keep all files in sync.
++
  ## Architecture
  
+ The entire `.geno/geno-notes/` directory **is** the wiki — a structured knowledge base where tasks, journal entries, plans, and synthesis pages coexist. geno-notes implements the [Karpathy llm-wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) with three layers:
+diff --git a/geno_notes/__init__.py b/geno_notes/__init__.py
+index af36085..1504df3 100644
+--- a/geno_notes/__init__.py
++++ b/geno_notes/__init__.py
+@@ -1,4 +1,4 @@
+ """geno-notes — project wiki with two-scope storage."""
+ 
+-__version__ = "0.2.0"
++__version__ = "0.1.0"
+ SCHEMA_VERSION = "0.2.0"
+diff --git a/install.sh b/install.sh
+deleted file mode 100755
+index 922a3eb..0000000
+--- a/install.sh
++++ /dev/null
+@@ -1,77 +0,0 @@
+-#!/usr/bin/env bash
+-# install.sh — geno-notes installer.
+-#
+-# Does:
+-#   1. pip install -e . into ~/.geno/venv
+-#   2. Symlink ~/.geno/venv/bin/geno-notes → ~/.local/bin/geno-notes (PATH shim
+-#      so consumers can call a bare `geno-notes`, no hardcoded venv paths).
+-#   3. Symlink skills/geno-notes/ → ~/.claude/skills/geno-notes
+-#   4. Symlink commands/gt-notes.md → ~/.claude/commands/gt-notes.md
+-#   5. Scaffold ~/.geno/geno-notes/ (global scope) on first install.
+-
+-set -euo pipefail
+-
+-REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
+-VENV_DIR="${HOME}/.geno/venv"
+-LOCAL_BIN="${HOME}/.local/bin"
+-CLAUDE_SKILLS="${HOME}/.claude/skills"
+-CLAUDE_COMMANDS="${HOME}/.claude/commands"
+-GLOBAL_SCOPE="${HOME}/.geno/geno-notes"
+-
+-echo "geno-notes installer"
+-echo "  Source:  $REPO_DIR"
+-echo "  Venv:    $VENV_DIR"
+-echo "  Bin:     $LOCAL_BIN"
+-echo "  Claude:  $CLAUDE_SKILLS, $CLAUDE_COMMANDS"
+-echo ""
+-
+-link_file() {
+-    local src="$1" dst="$2"
+-    mkdir -p "$(dirname "$dst")"
+-    if [ -L "$dst" ] || [ -e "$dst" ]; then
+-        rm -f "$dst"
+-    fi
+-    ln -s "$src" "$dst"
+-    echo "  Linked: $dst → $src"
+-}
+-
+-# ── 1. pip install into venv ─────────────────────────────────────────
+-if [ ! -x "$VENV_DIR/bin/python" ]; then
+-    echo "error: $VENV_DIR/bin/python not found."
+-    echo "       Create the ecosystem venv first (geno-agents / geno-term etc.)."
+-    exit 1
+-fi
+-echo "Installing Python package into $VENV_DIR..."
+-"$VENV_DIR/bin/pip" install -e "$REPO_DIR" --quiet
+-echo "  Installed: geno-notes (editable)"
+-echo ""
+-
+-# ── 2. PATH shim ─────────────────────────────────────────────────────
+-mkdir -p "$LOCAL_BIN"
+-link_file "$VENV_DIR/bin/geno-notes" "$LOCAL_BIN/geno-notes"
+-echo ""
+-
+-# ── 3. Claude skill ──────────────────────────────────────────────────
+-link_file "$REPO_DIR/skills/geno-notes" "$CLAUDE_SKILLS/geno-notes"
+-echo ""
+-
+-# ── 4. Claude commands ───────────────────────────────────────────────
+-echo "Installing slash commands..."
+-for cmd_file in "$REPO_DIR"/commands/gt-*.md; do
+-    [ -f "$cmd_file" ] || continue
+-    name="$(basename "$cmd_file")"
+-    link_file "$cmd_file" "$CLAUDE_COMMANDS/$name"
+-done
+-echo ""
+-
+-# ── 5. Initialize global scope ───────────────────────────────────────
+-if [ ! -d "$GLOBAL_SCOPE" ]; then
+-    echo "Initializing global scope at $GLOBAL_SCOPE..."
+-    "$VENV_DIR/bin/geno-notes" init --global >/dev/null
+-    echo "  Created: $GLOBAL_SCOPE"
+-else
+-    echo "Global scope already exists: $GLOBAL_SCOPE"
+-fi
+-
+-echo ""
+-echo "Done. Verify with:  geno-notes scope"
 -- 
 2.43.0
+

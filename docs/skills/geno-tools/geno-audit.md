@@ -223,7 +223,7 @@ Rather than maintaining duplicate content across `CLAUDE.md`, `AGENTS.md`, and O
    - **Nomenclature**: how skills are named in this repo (e.g. `geno-{name}-{sub-skillset}-{skill}`). Do not restate ecosystem-wide naming rules — just show the pattern as it applies to this skillset.
    - **SKILL.md frontmatter**: required fields and format for new skills
    - **Adding a new skill**: step-by-step checklist (create directory under `skills/`, write SKILL.md with frontmatter, update umbrella description, update docs, update this file's skills table)
-   - **Command prefix aliasing**: slash commands in repo source files must always use the canonical `geno-` prefix (e.g. `/geno-{name}-tasks-start`). The prefix users type (`/gt-`, `/geno-`, or bare `/`) is configured per-installation in `~/.geno/config.yaml` and applied at install time by `geno-tools install`. Never hardcode an aliased prefix like `gt-` in SKILL.md descriptions, GENO.md, or any committed file.
+   - **Command prefix aliasing**: slash commands in repo source files must always use the canonical `geno-` prefix (e.g. `/geno-{name}-tasks-start`). The prefix users type (`/geno-`, `/geno-`, or bare `/`) is configured per-installation in `~/.geno/config.yaml` and applied at install time by `geno-tools install`. Never hardcode an aliased prefix like `gt-` in SKILL.md descriptions, GENO.md, or any committed file.
    - **Versioning**: which files contain the version number (always `genotools.yaml`; plus any others like `pyproject.toml` or `package.json`) and the rule that the version must be bumped when adding/removing skills or changing behavior
 
 #### Recommended sections
@@ -272,7 +272,7 @@ This way, updating `GENO.md` updates every agent at once. No content lives in th
 - `GENO.md` contains a Conventions section (a heading matching `Conventions`, case-insensitive)
 - `GENO.md` Conventions section mentions command prefix aliasing — at minimum, states that source files use canonical `geno-` prefixed names for slash commands, not aliased prefixes
 - `GENO.md` Conventions section includes skill creation guidance — at minimum, a checklist for adding a new skill
-- `GENO.md` skills table uses canonical `/geno-{name}-*` slash command names, not aliased forms like `/gt-*`
+- `GENO.md` skills table uses canonical `/geno-{name}-*` slash command names, not aliased forms like `/geno-*`
 - `GENO.md` Conventions section includes versioning guidance — at minimum, identifies which files contain the version and states that the version should be bumped when skills are added, removed, or behavior changes
 
 ---
@@ -482,7 +482,7 @@ Slash commands in the geno ecosystem use a configurable prefix. Users set their 
 
 ```yaml
 aliases:
-  command_prefix: "gt"   # /gt-install, /gt-media-audiobook-create
+  command_prefix: "gt"   # /geno-install, /geno-media-audiobook-create
   # or "geno"            # /geno-install, /geno-media-audiobook-create
   # or ""                # /install, /media-audiobook-create
 ```
@@ -495,8 +495,8 @@ Scan all committed files that reference slash commands: SKILL.md (root and `skil
 
 Look for patterns that indicate an aliased prefix was hardcoded:
 
-- `/gt-` followed by a skill name (e.g. `/gt-notes`, `/gt-dev-tasks-start`, `/gt-research`)
-- `gt-` used as a command prefix in section headers (e.g. `### /gt-notes add`)
+- `/geno-` followed by a skill name (e.g. `/geno-notes`, `/geno-dev-tasks-start`, `/geno-research`)
+- `gt-` used as a command prefix in section headers (e.g. `### /geno-notes add`)
 - Any non-`geno-` prefix in slash command references
 
 Do NOT flag:
@@ -509,16 +509,16 @@ Do NOT flag:
 
 Replace every aliased slash command reference with its canonical form:
 
-- `/gt-notes` → `/geno-notes`
-- `/gt-dev-tasks-start` → `/geno-dev-tasks-start`
-- `/gt-research-paper-generate` → `/geno-research-paper-generate`
+- `/geno-notes` → `/geno-notes`
+- `/geno-dev-tasks-start` → `/geno-dev-tasks-start`
+- `/geno-research-paper-generate` → `/geno-research-paper-generate`
 
-In SKILL.md `description` fields, replace trigger phrases like `Use when user says /gt-foo` with `Use when user says /geno-foo`.
+In SKILL.md `description` fields, replace trigger phrases like `Use when user says /geno-foo` with `Use when user says /geno-foo`.
 
 ### Audit checks
 
 **Required:**
-- No SKILL.md file (root or under `skills/`) contains aliased command prefixes like `/gt-` in its `description` frontmatter field or body content. Slash command references must use the canonical `geno-` prefix. This is a functional requirement — agents use these descriptions to match user intent to skills, and aliased names may not match the installed command name.
+- No SKILL.md file (root or under `skills/`) contains aliased command prefixes like `/geno-` in its `description` frontmatter field or body content. Slash command references must use the canonical `geno-` prefix. This is a functional requirement — agents use these descriptions to match user intent to skills, and aliased names may not match the installed command name.
 
 **Recommended:**
 - No file in the repo (`GENO.md`, `README.md`, `docs/**/*.md`, `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`) contains aliased slash command references. All slash command references use the canonical `geno-` prefix.

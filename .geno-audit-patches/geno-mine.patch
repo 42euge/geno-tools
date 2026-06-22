@@ -1,18 +1,23 @@
-From c675dcef05241abe8a6f31058355aa3ab0edba15 Mon Sep 17 00:00:00 2001
-From: Claude <noreply@anthropic.com>
-Date: Mon, 22 Jun 2026 00:13:03 +0000
+From e9f44cd92b75303c960ca7fcecef51b38449a42d Mon Sep 17 00:00:00 2001
+From: 42euge <42euge@gmail.com>
+Date: Mon, 22 Jun 2026 12:15:26 +0000
 Subject: [PATCH] chore(geno-audit): bring repo into ecosystem compliance
 
-Automated compliance fixes from geno-audit 2026-06-22.
-
-Co-Authored-By: Claude <noreply@anthropic.com>
+- Add AGENTS.md and GEMINI.md pointer files for Codex and Gemini agents
+- Add MIT LICENSE file (copyright 2024-2026 42euge)
+- Replace Claude Code-specific transcript references with agent-neutral
+  "coding agent session transcripts" in SKILL.md, GENO.md descriptions
+- Fix docs/getting-started.md usage instruction to be agent-neutral
+- Add Conventions section to GENO.md (command prefix aliasing, versioning,
+  adding a new skill)
 ---
  AGENTS.md                 |  1 +
  GEMINI.md                 |  1 +
- GENO.md                   | 17 +++++++++++++++++
+ GENO.md                   | 20 +++++++++++++++++++-
  LICENSE                   | 21 +++++++++++++++++++++
- skills/geno-mine/SKILL.md |  1 +
- 5 files changed, 41 insertions(+)
+ docs/getting-started.md   |  2 +-
+ skills/geno-mine/SKILL.md |  4 ++--
+ 6 files changed, 45 insertions(+), 4 deletions(-)
  create mode 100644 AGENTS.md
  create mode 100644 GEMINI.md
  create mode 100644 LICENSE
@@ -32,10 +37,18 @@ index 0000000..a132988
 @@ -0,0 +1 @@
 +@./GENO.md
 diff --git a/GENO.md b/GENO.md
-index 1dc24af..94884dd 100644
+index 1dc24af..4171337 100644
 --- a/GENO.md
 +++ b/GENO.md
-@@ -58,3 +58,20 @@ All processing is local (zero telemetry). The filter stage:
+@@ -1,6 +1,6 @@
+ # geno-mine — Session Mining and Finetuning Dataset Generation
+ 
+-`geno-mine` extracts finetuning datasets from Claude Code session transcripts. It correlates structured skill traces (from `geno-trace`) with raw JSONL transcripts, classifies segments by training value, applies privacy filters, and generates examples in multiple formats.
++`geno-mine` extracts finetuning datasets from coding agent session transcripts. It correlates structured skill traces (from `geno-trace`) with raw JSONL transcripts, classifies segments by training value, applies privacy filters, and generates examples in multiple formats.
+ 
+ ## Skills
+ 
+@@ -58,3 +58,21 @@ All processing is local (zero telemetry). The filter stage:
  3. Replaces emails and phone numbers with placeholders
  4. Skips segments that touch `.env`, credentials, `~/.ssh/`
  5. Configurable exclusions in `~/.geno/config.yaml` under `mining`
@@ -44,18 +57,19 @@ index 1dc24af..94884dd 100644
 +
 +### Command prefix aliasing
 +
-+Slash commands in this repo use the canonical `geno-` prefix (e.g., `/geno-mine-extract`). The prefix users type at runtime (`/gt-`, `/geno-`, or bare `/`) is configured in `~/.geno/config.yaml` and applied at install time by `geno-tools install`. Never hardcode an aliased prefix in source files.
-+
-+### Adding a new skill
-+
-+1. Create a directory under `skills/` named after the skill (e.g., `skills/geno-mine-<verb>/`).
-+2. Write a `SKILL.md` with YAML frontmatter (`name`, `description`, `allowed-tools`, `license`, `metadata`).
-+3. Update the umbrella `SKILL.md` (`skills/geno-mine/SKILL.md`) to list the new skill.
-+4. Add the skill to the Skills table in this file.
++Slash commands in repo source files always use the canonical `geno-` prefix (e.g. `/geno-mine-extract`). The prefix users type at runtime (`/gt-`, `/geno-`, or bare `/`) is configured per-installation in `~/.geno/config.yaml` and applied at install time by `geno-tools install`. Never hardcode an aliased prefix in SKILL.md descriptions, GENO.md, or any committed file.
 +
 +### Versioning
 +
-+The canonical version lives in `genotools.yaml` (`version` field). The same value must appear in `pyproject.toml` (`project.version`). Bump the version whenever skills are added, removed, or behavior changes.
++The canonical version lives in `genotools.yaml`. The same value must appear in `pyproject.toml` (`project.version`) and `geno_mine/__init__.py` (`__version__`). Bump the version whenever skills are added, removed, or behavior changes. Keep all files in sync.
++
++### Adding a new skill
++
++1. Create a directory under `skills/` named with the full skill name (e.g. `skills/geno-mine-datasets-extract/`).
++2. Write a `SKILL.md` inside it with YAML frontmatter containing at minimum `name`, `description`, and `allowed-tools`.
++3. Update the umbrella skill description in `skills/geno-mine/SKILL.md` to list the new skill.
++4. Add the skill to the skills table in `GENO.md`.
++5. Bump the version in all version files.
 diff --git a/LICENSE b/LICENSE
 new file mode 100644
 index 0000000..7e440bd
@@ -83,17 +97,38 @@ index 0000000..7e440bd
 +LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 +OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 +SOFTWARE.
+diff --git a/docs/getting-started.md b/docs/getting-started.md
+index dce645e..7f9a53c 100644
+--- a/docs/getting-started.md
++++ b/docs/getting-started.md
+@@ -12,4 +12,4 @@ geno-tools install geno-mine
+ 
+ ## Usage
+ 
+-Run `/geno-mine` in Claude Code to get started.
++Run `/geno-mine` from within an agent session to get started.
 diff --git a/skills/geno-mine/SKILL.md b/skills/geno-mine/SKILL.md
-index c0ffbae..f061387 100644
+index c0ffbae..fa0e4f9 100644
 --- a/skills/geno-mine/SKILL.md
 +++ b/skills/geno-mine/SKILL.md
-@@ -3,6 +3,7 @@ name: geno-mine
+@@ -2,7 +2,7 @@
+ name: geno-mine
  description: >-
    Session mining and finetuning dataset generation — extract training examples
-   from Claude Code session transcripts. Use when user says /geno-mine.
-+allowed-tools: "Bash(geno-mine *) Bash(~/.local/bin/geno-mine *)"
+-  from Claude Code session transcripts. Use when user says /geno-mine.
++  from coding agent session transcripts. Use when user says /geno-mine.
  license: MIT
  metadata:
    author: 42euge
+@@ -12,7 +12,7 @@ metadata:
+ # geno-mine
+ 
+ Session mining toolkit for the geno ecosystem. Extracts finetuning datasets
+-from Claude Code session transcripts by correlating structured skill traces
++from coding agent session transcripts by correlating structured skill traces
+ with raw JSONL transcripts, classifying segments by training value, and
+ generating examples in multiple formats (SFT, DPO, tool traces, Anthropic).
+ 
 -- 
 2.43.0
+

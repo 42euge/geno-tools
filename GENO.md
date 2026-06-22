@@ -177,23 +177,6 @@ To add a new skill to this repo:
 5. If the skill needs docs, add a page under `docs/`.
 6. Bump the version in all four files: `genotools.yaml`, `pyproject.toml`, `package.json`, `genotools/__init__.py`.
 
-### Skill observability contract
-
-Skills may declare an optional `observability` section in SKILL.md frontmatter:
-
-```yaml
-observability:
-  success_signal: "description of what success looks like"
-  failure_signals:
-    - "condition that indicates failure"
-  knowledge_reads:
-    - "what knowledge this skill consumes"
-  knowledge_writes:
-    - "what knowledge this skill produces"
-```
-
-Skills that declare observability should also include a `## Completion` section at the end of their workflow that emits a trace via `geno-trace emit`. This feeds the self-improvement loop (health cards, retro, mining).
-
 ## Plugin structure
 
 geno-tools ships platform-specific plugin manifests following the `obra/superpowers` conventions so it can be installed as a native plugin on each supported CLI. Skills are platform-agnostic; each CLI-specific manifest points at the shared `skills/` directory.
