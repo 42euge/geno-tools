@@ -4,61 +4,42 @@ description: >-
   Meta-CLI for installing and managing geno-* skillsets.
   Use when user asks about installing, removing, listing, or updating
   geno ecosystem skillsets.
-allowed-tools: "Bash(geno-tools *) Bash(python3 -m genotools *)"
+allowed-tools: "Bash(geno-tools *) Bash(python3 -m geno_tools *)"
 metadata:
   author: 42euge
-  version: "0.1.0"
+  version: "0.3.0"
 ---
 
 # geno-tools — Skillset Manager
 
-Orchestrator for the geno-* ecosystem. Manages installation, removal, and updates of skillset repos.
+Orchestrator for the geno-* ecosystem. Its own skills are organized into
+category directories (`skills/<category>/<name>/SKILL.md`) — see `SKILLS.md` for
+the nesting standard.
 
 ```!
-which geno-tools >/dev/null 2>&1 || echo "geno-tools CLI not on PATH. The plugin's SessionStart hook (Claude Code) and OpenCode plugin loader run geno_tools/scripts/bootstrap.sh automatically. On Antigravity CLI / Codex / Cursor, run 'bash \$PLUGIN_ROOT/geno_tools/scripts/bootstrap.sh' once (\$PLUGIN_ROOT is e.g. ~/.gemini/antigravity-cli/plugins/geno-tools)."
+which geno-tools >/dev/null 2>&1 || echo "geno-tools CLI not on PATH. The plugin's SessionStart hook (Claude Code) runs geno_tools/scripts/bootstrap.sh automatically. On Antigravity CLI / Codex, run 'bash \$PLUGIN_ROOT/geno_tools/scripts/bootstrap.sh' once."
 ```
 
-## Available Skillsets
+## Skills by category
 
-Install by full repo name (e.g. `geno-tools install geno-<name>`):
+| Category | Skills |
+|----------|--------|
+| **manager/** | `install` · `remove` · `ls` · `update` · `status` · `deps` · `doctor` |
+| **audit/** | `run` — ecosystem compliance auditor |
+| **meta/harness/** | `fork` · `use` · `promote` — variant evaluate/evolve loop |
+| **meta/ecosystem/** | `discover` · `scan` · `onboarding` — find/absorb new skillsets |
+| **author/** | `skill` · `repo` — scaffold a skill / a whole skillset repo |
 
-| Repo | Description |
-|------|-------------|
-| geno-agents | Agent coordination, presence, and multi-agent networking |
-| geno-media | Audiobooks (Kokoro TTS), animated videos (Manim), podcasts |
-| geno-research | Wiki-based research notes, paper generation, repo docs |
-| geno-kaggle | Kaggle benchmarks, competition notebooks, discussion scraping |
-| geno-dev | Developer utilities, Colab uploads, commit rewriting |
+## CLI
 
-## Infrastructure Skills
+- `geno-tools ls [--available]` — list installed / registry skillsets
+- `geno-tools install <repo|url|path>` — clone, venv, register with all agents
+- `geno-tools remove <repo> [--keep-data]` — uninstall from all agents
+- `geno-tools update [repo]` — pull latest + re-register
+- `geno-tools deps <repo>` — dependency tree
+- `geno-tools discover | scan` — find / queue candidate skillsets
 
-| Skill | Description |
-|-------|-------------|
-| geno-alias | Create, remove, and list custom slash-command aliases |
-| geno-audit | Audit a geno-ecosystem repo for compliance with skillset conventions |
-| geno-data-workspaces-init | Create data workspaces for personal/life skills (taxes, remodel, career) |
-| geno-icons | Generate pixel-art icons for geno ecosystem repos |
-| geno-onboarding | Onboarding wizard for new geno ecosystem skillsets |
-| geno-skills-create | Scaffold a new skill in a geno ecosystem repo |
-| geno-tools-create-skillset-repo | Scaffold a new geno ecosystem skillset repo from scratch |
-| geno-skills-install | Install skills from a local repo checkout globally |
-| geno-skills-status | Show version, commit, and freshness of installed skillsets |
-| geno-tools-improve | Run the self-improvement cycle — health report, retro triage, session mining |
-| geno-tools-open-docs | Open the geno-tools documentation site |
-| geno-tools-update | Pull the latest version of installed skillsets and re-register with all agents |
+## Source resolution
 
-## Commands
-
-- `geno-tools ls` — list installed skillsets and their active variant
-- `geno-tools ls --available` — show all registered skillsets in the registry
-- `geno-tools install <repo|url|path>` — install a skillset (clone, venv, register with all agents)
-- `geno-tools remove <repo> [--keep-data]` — uninstall a skillset from all agents
-- `geno-tools update [repo]` — pull latest for one or all skillsets
-- `geno-tools doctor` — verify symlinks, worktrees, venvs
-
-## Source Resolution
-
-The `<repo>` argument resolves in order:
-1. Registered repo name (e.g. `geno-<name>`) -> git URL. Bare slug (e.g. `<name>`) is also accepted for backwards compatibility.
-2. Local directory path
-3. Git URL (https:// or git@)
+`<repo>` resolves in order: (1) registered repo name → git URL (bare slug also
+accepted), (2) local directory path, (3) git URL (`https://` or `git@`).
