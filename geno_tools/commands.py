@@ -344,7 +344,7 @@ def _install_skills_via_npx(full: str) -> None:
     for skill_dir in skill_dirs:
         subprocess.check_call([
             "npx", "--yes", "skills", "add", str(skill_dir),
-            "--agent", "*", "--global", "--yes",
+            "--agent", "*", "--global", "--full-depth", "--yes",
         ])
 
 
@@ -360,25 +360,68 @@ def _uninstall_skills_via_npx(full: str) -> None:
     )
 
 
+def _walk_skill_dirs(root: Path) -> list[Path]:
+    """Recursively collect every dir under ``root`` that holds a SKILL.md.
+
+    Applies the shadowing rule: once a directory has its own SKILL.md it is a
+    skill leaf — we record it and do NOT descend into it (a nested SKILL.md is
+    shadowed by the shallower one, matching ``npx skills`` discovery). Dirs
+    without a SKILL.md are pure category dirs and are walked through, not
+    recorded. Hidden dirs (``.git`` etc.) are skipped. Results are sorted by
+    path for deterministic ordering.
+    """
+    found: list[Path] = []
+
+    def _walk(d: Path) -> None:
+        if (d / "SKILL.md").exists():
+            found.append(d)
+            return  # shadow: don't descend past a skill leaf
+        for child in sorted(d.iterdir()):
+            if child.is_dir() and not child.name.startswith("."):
+                _walk(child)
+
+    if root.exists():
+        for child in sorted(root.iterdir()):
+            if child.is_dir() and not child.name.startswith("."):
+                _walk(child)
+    return found
+
+
+def _skill_name(skill_dir: Path, fallback: str) -> str:
+    """Read the ``name:`` from a skill's SKILL.md frontmatter.
+
+    Falls back to ``fallback`` (usually the dir name) when frontmatter is
+    missing or unparseable. Used so nested skills register under their unique
+    fully-qualified name rather than a colliding leaf dir name (e.g. two
+    ``install/`` dirs under different categories).
+    """
+    skill_md = skill_dir / "SKILL.md"
+    try:
+        text = skill_md.read_text()
+        if text.startswith("---"):
+            fm = text.split("---", 2)[1]
+            data = yaml.safe_load(fm) or {}
+            name = data.get("name")
+            if isinstance(name, str) and name.strip():
+                return name.strip()
+    except (OSError, yaml.YAMLError, IndexError):
+        pass
+    return fallback
+
+
 def _enumerate_skill_dirs(full: str) -> list[Path]:
     """Return flat list of skill dirs to register.
 
-    When sub-skills exist under ``skills/``, return only those dirs — skip
-    the umbrella root so ``npx skills add`` doesn't copy the whole tree and
-    stop at the root SKILL.md (it stops when it finds a root SKILL.md
-    unless ``--full-depth`` is passed).  For skillsets with no sub-skills,
-    return the root dir.
+    Recursively walks ``skills/`` (arbitrary depth) collecting every dir that
+    holds a SKILL.md, applying the shadowing rule. Category dirs (no SKILL.md)
+    are traversed, not registered. When sub-skills exist, the umbrella root is
+    skipped so ``npx skills add --full-depth`` registers the leaves. For
+    skillsets with no sub-skills, the root dir is returned.
     """
     active = paths.skillset_active(full)
-    skills_dir = active / "skills"
-    if skills_dir.exists():
-        sub = sorted(
-            (p for p in skills_dir.iterdir()
-             if p.is_dir() and (p / "SKILL.md").exists()),
-            key=lambda p: p.name,
-        )
-        if sub:
-            return sub
+    sub = _walk_skill_dirs(active / "skills")
+    if sub:
+        return sub
     if (active / "SKILL.md").exists():
         return [active]
     return []
@@ -387,7 +430,7 @@ def _enumerate_skill_dirs(full: str) -> list[Path]:
 def _enumerate_skills(full: str) -> list[str]:
     active = paths.skillset_active(full)
     dirs = _enumerate_skill_dirs(full)
-    names = [d.name if d != active else full for d in dirs]
+    names = [_skill_name(d, full if d == active else d.name) for d in dirs]
     if (active / "SKILL.md").exists() and active not in dirs:
         names.insert(0, full)
     return names
