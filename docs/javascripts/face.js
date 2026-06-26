@@ -44,15 +44,7 @@
   btnPrimary.onmouseenter = function(){this.style.transform="translateY(-2px)";this.style.boxShadow="0 6px 25px #e8650a60"};
   btnPrimary.onmouseleave = function(){this.style.transform="";this.style.boxShadow="0 4px 15px #e8650a40"};
 
-  var btnSecondary = document.createElement("a");
-  btnSecondary.href = "docs-home/";
-  btnSecondary.textContent = "Docs Home";
-  btnSecondary.style.cssText = "display:inline-block;padding:0.7rem 2rem;border-radius:2rem;font-weight:600;text-decoration:none;font-family:Inter,-apple-system,system-ui,sans-serif;font-size:0.95rem;border:2px solid #e8650a80;color:#f0923a;transition:all 0.2s ease";
-  btnSecondary.onmouseenter = function(){this.style.background="#e8650a15";this.style.borderColor="#e8650a"};
-  btnSecondary.onmouseleave = function(){this.style.background="";this.style.borderColor="#e8650a80"};
-
   btnWrap.appendChild(btnPrimary);
-  btnWrap.appendChild(btnSecondary);
   overlay.appendChild(btnWrap);
 
   // Glow
