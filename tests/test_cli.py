@@ -2,7 +2,7 @@
 
 import pytest
 
-from genotools.cli import main
+from geno_tools.cli import main
 
 
 EXPECTED_COMMANDS = [
@@ -38,15 +38,15 @@ class TestCliHelp:
 
 class TestCliParsing:
     def test_ls_no_args(self, tmp_root, no_subprocess, monkeypatch):
-        monkeypatch.setattr("genotools.registry._cache", {})
+        monkeypatch.setattr("geno_tools.registry._cache", {})
         rc = main(["ls"])
         assert rc == 0
 
     def test_ls_available(self, monkeypatch, capsys):
-        monkeypatch.setattr("genotools.registry._cache", {
+        monkeypatch.setattr("geno_tools.registry._cache", {
             "geno-dev": "https://example.com/geno-dev.git",
         })
-        monkeypatch.setattr("genotools.discovery.candidates_by_name", lambda: {})
+        monkeypatch.setattr("geno_tools.discovery.candidates_by_name", lambda: {})
         rc = main(["ls", "--available"])
         assert rc == 0
         out = capsys.readouterr().out

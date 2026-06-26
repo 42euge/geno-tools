@@ -19,9 +19,9 @@ Agent-agnostic meta package manager for AI coding agents. Discovers, absorbs, ev
 
 ## Install
 
-geno-tools ships as a native plugin/extension on each supported coding CLI. Pick the snippet for the CLI you use — every path bootstraps `~/.geno/` from `config/defaults.yaml` and self-installs the `geno-tools` shell command onto PATH (via `pipx`, falling back to `pip install --user`) the first time the agent loads the plugin.
+geno-tools ships as a native plugin/extension on each supported coding CLI. Pick the snippet for the CLI you use — every path bootstraps `~/.geno/` from `geno_tools/config/defaults.yaml` and self-installs the `geno-tools` shell command onto PATH (via `pipx`, falling back to `pip install --user`) the first time the agent loads the plugin.
 
-The bootstrap lives at `scripts/bootstrap.sh`. CLIs that expose a startup hook for arbitrary commands (Claude Code, OpenCode) run it automatically. The others (Antigravity CLI, Codex, Cursor) need a one-time `bash <plugin-root>/scripts/bootstrap.sh` invocation, shown inline below.
+The bootstrap lives at `geno_tools/scripts/bootstrap.sh`. CLIs that expose a startup hook for arbitrary commands (Claude Code, OpenCode) run it automatically. The others (Antigravity CLI, Codex, Cursor) need a one-time `bash <plugin-root>/geno_tools/scripts/bootstrap.sh` invocation, shown inline below.
 
 ### Claude Code
 
@@ -31,7 +31,7 @@ The bootstrap lives at `scripts/bootstrap.sh`. CLIs that expose a startup hook f
 /plugin install geno-tools@geno-tools
 ```
 
-The first command registers this repo as a marketplace (reads `.claude-plugin/marketplace.json`); the second installs the plugin defined in `.claude-plugin/plugin.json`. The SessionStart hook in `hooks/hooks.json` then runs `scripts/bootstrap.sh` automatically — no separate pipx step required. Verify with `/plugin list`.
+The first command registers this repo as a marketplace (reads `.claude-plugin/marketplace.json`); the second installs the plugin defined in `.claude-plugin/plugin.json`. The SessionStart hook in `geno_tools/hooks/hooks.json` then runs `geno_tools/scripts/bootstrap.sh` automatically — no separate pipx step required. Verify with `/plugin list`.
 
 ### Codex CLI
 
@@ -40,7 +40,7 @@ The first command registers this repo as a marketplace (reads `.claude-plugin/ma
 /plugin marketplace add 42euge/geno-tools
 /plugins
 # in your shell, once the plugin is on disk:
-bash ~/.codex/plugins/cache/geno-tools/geno-tools/*/scripts/bootstrap.sh
+bash ~/.codex/plugins/cache/geno-tools/geno-tools/*/geno_tools/scripts/bootstrap.sh
 ```
 
 The marketplace catalog at `.agents/plugins/marketplace.json` exposes the plugin; pick `geno-tools` from the `/plugins` browser and toggle it on. (Plugins are cached at `~/.codex/plugins/cache/geno-tools/geno-tools/<version>/`.) Codex doesn't expose a portable startup hook for arbitrary commands, so run `bootstrap.sh` once — it's idempotent on later invocations.
@@ -49,7 +49,7 @@ The marketplace catalog at `.agents/plugins/marketplace.json` exposes the plugin
 
 ```bash
 agy plugin install https://github.com/42euge/geno-tools
-bash ~/.gemini/antigravity-cli/plugins/geno-tools/scripts/bootstrap.sh
+bash ~/.gemini/antigravity-cli/plugins/geno-tools/geno_tools/scripts/bootstrap.sh
 ```
 
 Antigravity stages the plugin under `~/.gemini/antigravity-cli/plugins/geno-tools/` and loads the bundled `skills/` directory. Run `bootstrap.sh` once to put `geno-tools` on PATH.
@@ -65,7 +65,7 @@ After install, the following skills appear as slash commands:
 ```
 
 To use the CLI directly: `geno-tools ls --available`, `geno-tools install geno-<name>`.
-If `geno-tools` isn't on PATH (because the bootstrap log shows pipx/pip is missing — see `~/.geno/bootstrap.log`), install pipx (`python3 -m pip install --user pipx`) and re-run `scripts/bootstrap.sh` from the plugin directory.
+If `geno-tools` isn't on PATH (because the bootstrap log shows pipx/pip is missing — see `~/.geno/bootstrap.log`), install pipx (`python3 -m pip install --user pipx`) and re-run `geno_tools/scripts/bootstrap.sh` from the plugin directory.
 
 ## Usage
 

@@ -108,16 +108,16 @@ class TestSkills:
 
 class TestHooks:
     def test_hooks_json_exists(self):
-        path = REPO_ROOT / "hooks" / "hooks.json"
-        assert path.exists(), "hooks/hooks.json missing"
+        path = REPO_ROOT / "geno_tools" / "hooks" / "hooks.json"
+        assert path.exists(), "geno_tools/hooks/hooks.json missing"
 
     def test_hooks_json_valid(self):
-        path = REPO_ROOT / "hooks" / "hooks.json"
+        path = REPO_ROOT / "geno_tools" / "hooks" / "hooks.json"
         data = json.loads(path.read_text())
         assert "hooks" in data
 
     def test_session_start_hook_script_exists(self):
-        path = REPO_ROOT / "hooks" / "hooks.json"
+        path = REPO_ROOT / "geno_tools" / "hooks" / "hooks.json"
         data = json.loads(path.read_text())
         for hook in data["hooks"].get("SessionStart", []):
             for h in hook.get("hooks", []):
@@ -129,17 +129,17 @@ class TestHooks:
 
 class TestConfigDefaults:
     def test_defaults_yaml_exists(self):
-        path = REPO_ROOT / "config" / "defaults.yaml"
+        path = REPO_ROOT / "geno_tools" / "config" / "defaults.yaml"
         assert path.exists()
 
     def test_defaults_yaml_valid(self):
-        path = REPO_ROOT / "config" / "defaults.yaml"
+        path = REPO_ROOT / "geno_tools" / "config" / "defaults.yaml"
         data = yaml.safe_load(path.read_text())
         assert "aliases" in data
         assert "discovery" in data
 
     def test_init_script_seeds_config(self):
-        script = REPO_ROOT / "scripts" / "init-geno-dir.sh"
+        script = REPO_ROOT / "geno_tools" / "scripts" / "init-geno-dir.sh"
         assert script.exists()
         text = script.read_text()
         assert "config.yaml" in text

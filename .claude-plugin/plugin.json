@@ -15,5 +15,6 @@
     "meta-cli",
     "geno-ecosystem"
   ],
-  "skills": "./skills"
+  "skills": "./skills",
+  "hooks": "./geno_tools/hooks/hooks.json"
 }

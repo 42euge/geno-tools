@@ -6,7 +6,7 @@ and generates the skill catalog + per-skill zoom-level pages for the
 geno-tools documentation hub.
 
 Usage:
-    python scripts/compile_skill_docs.py [--workspace DIR] [--install-dir DIR] [--output DIR]
+    python geno_tools/scripts/compile_skill_docs.py [--workspace DIR] [--install-dir DIR] [--output DIR]
 """
 
 from __future__ import annotations
