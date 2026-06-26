@@ -33,6 +33,13 @@ if [[ ! -e "${target_file}" && -f "${default_config}" ]]; then
   cp "${default_config}" "${target_file}"
 fi
 
+# Keep each plugin manifest's `skills` array pointed at every category dir, so
+# Claude Code's depth-1 plugin loader finds nested skills. Quiet + idempotent.
+gen_skills="${plugin_root}/geno_tools/scripts/gen_plugin_skills.py"
+if [[ -f "${gen_skills}" ]] && command -v python3 >/dev/null 2>&1; then
+  python3 "${gen_skills}" >>"${log_file}" 2>&1 || true
+fi
+
 if command -v geno-tools >/dev/null 2>&1; then
   exit 0
 fi

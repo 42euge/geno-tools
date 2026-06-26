@@ -1,7 +1,7 @@
 {
   "name": "geno-tools",
-  "description": "Meta-CLI for installing and managing geno-* skillsets — the geno ecosystem orchestrator",
-  "version": "0.1.0",
+  "description": "Meta-CLI for installing and managing geno-* skillsets \u2014 the geno ecosystem orchestrator",
+  "version": "0.3.0",
   "author": {
     "name": "42euge",
     "url": "https://github.com/42euge"
@@ -15,6 +15,13 @@
     "meta-cli",
     "geno-ecosystem"
   ],
-  "skills": "./skills",
+  "skills": [
+    "./skills",
+    "./skills/audit",
+    "./skills/author",
+    "./skills/manager",
+    "./skills/meta/ecosystem",
+    "./skills/meta/harness"
+  ],
   "hooks": "./geno_tools/hooks/hooks.json"
 }

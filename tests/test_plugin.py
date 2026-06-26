@@ -64,9 +64,14 @@ class TestPluginJson:
         assert skills_path, "plugin.json must declare a skills path"
 
     def test_skills_dir_exists(self, manifest):
-        skills_path = manifest.get("skills", "./skills")
-        skills_dir = REPO_ROOT / skills_path
-        assert skills_dir.is_dir(), f"skills dir {skills_dir} does not exist"
+        # `skills` may be a single path or an array of category dirs (each
+        # scanned one level deep by the plugin loader).
+        skills_paths = manifest.get("skills", "./skills")
+        if isinstance(skills_paths, str):
+            skills_paths = [skills_paths]
+        for skills_path in skills_paths:
+            skills_dir = REPO_ROOT / skills_path
+            assert skills_dir.is_dir(), f"skills dir {skills_dir} does not exist"
 
     def test_version_matches_marketplace(self, manifest):
         mp = json.loads((REPO_ROOT / ".claude-plugin" / "marketplace.json").read_text())
