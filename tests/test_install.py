@@ -15,7 +15,7 @@ from unittest.mock import MagicMock, call, patch
 
 import pytest
 
-from genotools import commands, paths
+from geno_tools import commands, paths
 
 
 # ── skill enumeration ─────────────────────────────────────────────────────
@@ -141,17 +141,17 @@ class TestUninstallSkillsViaNpx:
 
 class TestResolveSource:
     def test_registry_name(self, monkeypatch):
-        monkeypatch.setattr("genotools.registry._cache", {
+        monkeypatch.setattr("geno_tools.registry._cache", {
             "geno-dev": "https://github.com/42euge/geno-dev.git",
         })
-        monkeypatch.setattr("genotools.discovery.candidates_by_name", lambda: {})
+        monkeypatch.setattr("geno_tools.discovery.candidates_by_name", lambda: {})
         source, name = commands._resolve_source("geno-dev")
         assert source == "https://github.com/42euge/geno-dev.git"
         assert name == "geno-dev"
 
     def test_local_path(self, tmp_path, monkeypatch):
-        monkeypatch.setattr("genotools.registry._cache", {})
-        monkeypatch.setattr("genotools.discovery.candidates_by_name", lambda: {})
+        monkeypatch.setattr("geno_tools.registry._cache", {})
+        monkeypatch.setattr("geno_tools.discovery.candidates_by_name", lambda: {})
         local = tmp_path / "my-skillset"
         local.mkdir()
         source, name = commands._resolve_source(str(local))
@@ -159,31 +159,31 @@ class TestResolveSource:
         assert name is None
 
     def test_git_url(self, monkeypatch):
-        monkeypatch.setattr("genotools.registry._cache", {})
-        monkeypatch.setattr("genotools.discovery.candidates_by_name", lambda: {})
+        monkeypatch.setattr("geno_tools.registry._cache", {})
+        monkeypatch.setattr("geno_tools.discovery.candidates_by_name", lambda: {})
         url = "https://github.com/acme/acme-foo.git"
         source, name = commands._resolve_source(url)
         assert source == url
         assert name is None
 
     def test_ssh_url(self, monkeypatch):
-        monkeypatch.setattr("genotools.registry._cache", {})
-        monkeypatch.setattr("genotools.discovery.candidates_by_name", lambda: {})
+        monkeypatch.setattr("geno_tools.registry._cache", {})
+        monkeypatch.setattr("geno_tools.discovery.candidates_by_name", lambda: {})
         url = "git@github.com:acme/acme-foo.git"
         source, name = commands._resolve_source(url)
         assert source == url
 
     def test_discovered_source(self, monkeypatch):
-        monkeypatch.setattr("genotools.registry._cache", {})
-        monkeypatch.setattr("genotools.discovery.candidates_by_name",
+        monkeypatch.setattr("geno_tools.registry._cache", {})
+        monkeypatch.setattr("geno_tools.discovery.candidates_by_name",
                             lambda: {"geno-new": "https://github.com/42euge/geno-new.git"})
         source, name = commands._resolve_source("geno-new")
         assert "geno-new" in source
         assert name == "geno-new"
 
     def test_unknown_raises(self, monkeypatch):
-        monkeypatch.setattr("genotools.registry._cache", {})
-        monkeypatch.setattr("genotools.discovery.candidates_by_name", lambda: {})
+        monkeypatch.setattr("geno_tools.registry._cache", {})
+        monkeypatch.setattr("geno_tools.discovery.candidates_by_name", lambda: {})
         with pytest.raises(SystemExit, match="unknown skillset"):
             commands._resolve_source("totally-unknown")
 
@@ -224,10 +224,10 @@ class TestDependencyResolution:
         assert reqs == ["geno-b", "geno-c"]
 
     def test_circular_dependency_detected(self, tmp_root, monkeypatch, capsys):
-        monkeypatch.setattr("genotools.registry._cache", {
+        monkeypatch.setattr("geno_tools.registry._cache", {
             "geno-a": "https://example.com/geno-a.git",
         })
-        monkeypatch.setattr("genotools.discovery.candidates_by_name", lambda: {})
+        monkeypatch.setattr("geno_tools.discovery.candidates_by_name", lambda: {})
         installing = {"geno-a"}
         rc = commands._install_one("geno-a", installing=installing)
         assert rc == 1
@@ -236,7 +236,7 @@ class TestDependencyResolution:
     def test_deps_command_shows_tree(self, fake_skillset, monkeypatch, capsys):
         fake_skillset("geno-top", has_manifest=True, requires=["geno-child"])
         fake_skillset("geno-child")
-        from genotools.cli import main
+        from geno_tools.cli import main
         rc = main(["deps", "geno-top"])
         assert rc == 0
         out = capsys.readouterr().out
@@ -249,17 +249,17 @@ class TestDependencyResolution:
 
 class TestLs:
     def test_empty_install(self, tmp_root, capsys, monkeypatch):
-        monkeypatch.setattr("genotools.registry._cache", {})
-        from genotools.cli import main
+        monkeypatch.setattr("geno_tools.registry._cache", {})
+        from geno_tools.cli import main
         rc = main(["ls"])
         assert rc == 0
         assert "no skillsets" in capsys.readouterr().out
 
     def test_lists_installed(self, fake_skillset, capsys, monkeypatch):
-        monkeypatch.setattr("genotools.registry._cache", {})
+        monkeypatch.setattr("geno_tools.registry._cache", {})
         fake_skillset("geno-dev")
         fake_skillset("geno-agents")
-        from genotools.cli import main
+        from geno_tools.cli import main
         rc = main(["ls"])
         assert rc == 0
         out = capsys.readouterr().out
@@ -267,12 +267,12 @@ class TestLs:
         assert "geno-agents" in out
 
     def test_ls_available_shows_registry(self, monkeypatch, capsys):
-        monkeypatch.setattr("genotools.registry._cache", {
+        monkeypatch.setattr("geno_tools.registry._cache", {
             "geno-dev": "https://example.com/geno-dev.git",
             "geno-media": "https://example.com/geno-media.git",
         })
-        monkeypatch.setattr("genotools.discovery.candidates_by_name", lambda: {})
-        from genotools.cli import main
+        monkeypatch.setattr("geno_tools.discovery.candidates_by_name", lambda: {})
+        from geno_tools.cli import main
         rc = main(["ls", "--available"])
         assert rc == 0
         out = capsys.readouterr().out
@@ -287,9 +287,9 @@ class TestRemove:
     def test_remove_cleans_up(self, fake_skillset, monkeypatch):
         fake_skillset("geno-dev", sub_skills=["geno-dev-a"])
         monkeypatch.setattr("subprocess.run", lambda *a, **kw: None)
-        monkeypatch.setattr("genotools.commands.SYSTEM_BIN", Path("/nonexistent"))
+        monkeypatch.setattr("geno_tools.commands.SYSTEM_BIN", Path("/nonexistent"))
 
-        from genotools.cli import main
+        from geno_tools.cli import main
         rc = main(["remove", "geno-dev"])
         assert rc == 0
         assert not paths.skillset_root("geno-dev").exists()
@@ -302,15 +302,15 @@ class TestRemove:
         (venvs / "default").mkdir()
 
         monkeypatch.setattr("subprocess.run", lambda *a, **kw: None)
-        monkeypatch.setattr("genotools.commands.SYSTEM_BIN", Path("/nonexistent"))
+        monkeypatch.setattr("geno_tools.commands.SYSTEM_BIN", Path("/nonexistent"))
 
-        from genotools.cli import main
+        from geno_tools.cli import main
         rc = main(["remove", "geno-dev", "--keep-data"])
         assert rc == 0
         assert venvs.exists()
 
     def test_remove_nonexistent_fails(self, tmp_root, capsys):
-        from genotools.cli import main
+        from geno_tools.cli import main
         rc = main(["remove", "geno-nonexistent"])
         assert rc == 1
         assert "not installed" in capsys.readouterr().err
@@ -324,7 +324,7 @@ class TestBinSymlinks:
         fake_skillset("geno-dev", has_pyproject=True)
         bin_dir = tmp_path / "bin"
         bin_dir.mkdir()
-        monkeypatch.setattr("genotools.commands.SYSTEM_BIN", bin_dir)
+        monkeypatch.setattr("geno_tools.commands.SYSTEM_BIN", bin_dir)
 
         venv_bin = paths.skillset_venvs("geno-dev") / "default" / "bin"
         venv_bin.mkdir(parents=True)
@@ -338,7 +338,7 @@ class TestBinSymlinks:
         fake_skillset("geno-dev", has_pyproject=True)
         bin_dir = tmp_path / "bin"
         bin_dir.mkdir()
-        monkeypatch.setattr("genotools.commands.SYSTEM_BIN", bin_dir)
+        monkeypatch.setattr("geno_tools.commands.SYSTEM_BIN", bin_dir)
 
         venv_bin = paths.skillset_venvs("geno-dev") / "default" / "bin"
         venv_bin.mkdir(parents=True)

@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from genotools import discovery
+from geno_tools import discovery
 
 
 class TestProviders:
@@ -75,7 +75,7 @@ class TestGitHubProvider:
     def test_candidates_by_name_filters(self, monkeypatch):
         c1 = discovery.Candidate("geno-a", "url-a", "github:test", has_skill_md=True)
         c2 = discovery.Candidate("geno-b", "url-b", "github:test", has_skill_md=False)
-        monkeypatch.setattr("genotools.discovery.candidates", lambda: [c1, c2])
+        monkeypatch.setattr("geno_tools.discovery.candidates", lambda: [c1, c2])
         by_name = discovery.candidates_by_name()
         assert "geno-a" in by_name
         assert "geno-b" not in by_name

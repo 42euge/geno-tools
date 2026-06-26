@@ -12,7 +12,7 @@ from pathlib import Path
 
 import yaml
 
-from genotools import config, discovery, paths, registry
+from geno_tools import config, discovery, paths, registry
 
 SYSTEM_BIN = Path.home() / ".local" / "bin"
 
@@ -656,7 +656,7 @@ def _scan(args: argparse.Namespace) -> int:
 
 
 def _docs(args: argparse.Namespace) -> int:
-    from genotools.docs import compile_docs
+    from geno_tools.docs import compile_docs
 
     docs_dir = Path(args.docs_dir) if args.docs_dir else None
     if docs_dir is None:
