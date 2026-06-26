@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from genotools import registry
+from geno_tools import registry
 
 
 @pytest.fixture(autouse=True)

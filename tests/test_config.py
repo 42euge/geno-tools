@@ -2,7 +2,7 @@
 
 import yaml
 
-from genotools import config
+from geno_tools import config
 
 
 class TestEnsureDir:

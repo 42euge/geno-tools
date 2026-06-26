@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, call, patch
 
 import pytest
 
-from genotools import commands, paths
+from geno_tools import commands, paths
 
 
 # ── _update_one ──────────────────────────────────────────────────────────
@@ -254,7 +254,7 @@ class TestUpdateAll:
         monkeypatch.setattr("subprocess.check_output", fake_check_output)
         monkeypatch.setattr("subprocess.check_call", lambda cmd, **kw: None)
 
-        from genotools.cli import main
+        from geno_tools.cli import main
         rc = main(["update"])
         assert rc == 0
         out = capsys.readouterr().out
@@ -264,13 +264,13 @@ class TestUpdateAll:
 
     def test_excludes_bootstrap(self, tmp_root, monkeypatch, capsys):
         (tmp_root / "geno-bootstrap").mkdir()
-        from genotools.cli import main
+        from geno_tools.cli import main
         rc = main(["update"])
         assert rc == 0
         assert "no skillsets" in capsys.readouterr().out
 
     def test_empty_install(self, tmp_root, capsys):
-        from genotools.cli import main
+        from geno_tools.cli import main
         rc = main(["update"])
         assert rc == 0
         assert "no skillsets" in capsys.readouterr().out
@@ -294,14 +294,14 @@ class TestUpdateCli:
         monkeypatch.setattr("subprocess.check_output", fake_check_output)
         monkeypatch.setattr("subprocess.check_call", lambda cmd, **kw: None)
 
-        from genotools.cli import main
+        from geno_tools.cli import main
         rc = main(["update", "geno-dev"])
         assert rc == 0
         out = capsys.readouterr().out
         assert "geno-dev" in out
 
     def test_nonexistent_fails(self, tmp_root, capsys):
-        from genotools.cli import main
+        from geno_tools.cli import main
         rc = main(["update", "geno-nonexistent"])
         assert rc == 1
         assert "not installed" in capsys.readouterr().err
@@ -323,7 +323,7 @@ class TestUpdateCli:
         monkeypatch.setattr("subprocess.check_output", fake_check_output)
         monkeypatch.setattr("subprocess.check_call", lambda cmd, **kw: None)
 
-        from genotools.cli import main
+        from geno_tools.cli import main
         rc = main(["update", "dev"])
         assert rc == 0
         out = capsys.readouterr().out

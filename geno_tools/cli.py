@@ -1,7 +1,7 @@
 import argparse
 import sys
 
-from genotools import __version__
+from geno_tools import __version__
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -67,7 +67,7 @@ def main(argv: list[str] | None = None) -> int:
 
     args = parser.parse_args(argv)
 
-    from genotools import commands
+    from geno_tools import commands
     return commands.dispatch(args)
 
 
