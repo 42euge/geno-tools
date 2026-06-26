@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from genotools import paths
+from geno_tools import paths
 
 
 class TestNormalize:

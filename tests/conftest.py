@@ -15,9 +15,9 @@ def tmp_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """Redirect all geno-tools state to a temp directory."""
     root = tmp_path / ".geno-tools"
     root.mkdir()
-    monkeypatch.setattr("genotools.paths.ROOT", root)
-    monkeypatch.setattr("genotools.paths.STATE_HASH", root / ".state-hash")
-    monkeypatch.setattr("genotools.paths.BOOTSTRAP", root / "geno-bootstrap")
+    monkeypatch.setattr("geno_tools.paths.ROOT", root)
+    monkeypatch.setattr("geno_tools.paths.STATE_HASH", root / ".state-hash")
+    monkeypatch.setattr("geno_tools.paths.BOOTSTRAP", root / "geno-bootstrap")
     return root
 
 
@@ -26,8 +26,8 @@ def tmp_config(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """Redirect config dir to a temp directory."""
     cfg_dir = tmp_path / ".geno"
     cfg_dir.mkdir()
-    monkeypatch.setattr("genotools.config.CONFIG_DIR", cfg_dir)
-    monkeypatch.setattr("genotools.config.CONFIG_FILE", cfg_dir / "config.yaml")
+    monkeypatch.setattr("geno_tools.config.CONFIG_DIR", cfg_dir)
+    monkeypatch.setattr("geno_tools.config.CONFIG_FILE", cfg_dir / "config.yaml")
     return cfg_dir
 
 
@@ -113,6 +113,6 @@ def no_subprocess(monkeypatch: pytest.MonkeyPatch):
 @pytest.fixture()
 def no_registry_network(monkeypatch: pytest.MonkeyPatch):
     """Prevent registry from hitting the network; use fallback."""
-    monkeypatch.setattr("genotools.registry._cache", None)
+    monkeypatch.setattr("geno_tools.registry._cache", None)
     monkeypatch.setattr("subprocess.run",
                         lambda *a, **kw: type("R", (), {"returncode": 1, "stdout": "", "stderr": ""})())

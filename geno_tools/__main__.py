@@ -1,4 +1,4 @@
-from genotools.cli import main
+from geno_tools.cli import main
 
 if __name__ == "__main__":
     raise SystemExit(main())
