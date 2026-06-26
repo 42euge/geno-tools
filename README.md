@@ -2,7 +2,7 @@
 
 [![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://42euge.github.io/geno-tools/)
 
-Agent-agnostic meta package manager for AI coding agents. Discovers, absorbs, evaluates, and governs skills across Claude Code, Codex, Antigravity CLI, Cursor, and OpenCode.
+Agent-agnostic meta package manager for AI coding agents. Discovers, absorbs, evaluates, and governs skills across Claude Code, Codex, and Antigravity CLI.
 
 **Website:** <https://42euge.github.io/geno-tools>
 
@@ -53,24 +53,6 @@ bash ~/.gemini/antigravity-cli/plugins/geno-tools/scripts/bootstrap.sh
 ```
 
 Antigravity stages the plugin under `~/.gemini/antigravity-cli/plugins/geno-tools/` and loads the bundled `skills/` directory. Run `bootstrap.sh` once to put `geno-tools` on PATH.
-
-### Cursor
-
-Install via Cursor's plugin manager (it reads `.cursor-plugin/plugin.json`), or clone the repo into your Cursor plugins directory. Then run the bootstrap once from wherever the plugin landed:
-
-```bash
-bash <cursor-plugins-dir>/geno-tools/scripts/bootstrap.sh
-```
-
-### OpenCode
-
-Add to `opencode.json`:
-
-```json
-{ "plugins": ["geno-tools@git+https://github.com/42euge/geno-tools.git"] }
-```
-
-Then restart OpenCode — the bundled plugin in `.opencode/plugins/geno-tools.js` registers the skills path and spawns `scripts/bootstrap.sh` on startup, so the `geno-tools` CLI appears on PATH without any extra step.
 
 ### Verify
 
@@ -191,7 +173,7 @@ How it works in practice:
 1. **Pick your namespace**. Use your company slug as the prefix (`acme-`, `globex-`, etc.). All internal skillsets share that prefix the way public ones share `geno-`.
 2. **Host privately**. Put the repos in your own GitHub Enterprise / GitLab / Bitbucket / private mirror. geno-tools resolves any git URL — there is no central registry it has to call out to.
 3. **Run geno-tools internally**. Pin the upstream OSS release, fork it, or vendor it. The CLI is plain Python, has no telemetry, and the install flow only talks to the git remote you point it at.
-4. **Mix public and private freely**. A developer can run `geno-tools install geno-<name>` (public) alongside `geno-tools install git@github.acme.com:platform/acme-<name>.git` (private) on the same machine. They share `~/.geno-tools/`, the same venv strategy, and the same slash-command surface in Claude Code / Codex / Cursor / Antigravity CLI / OpenCode.
+4. **Mix public and private freely**. A developer can run `geno-tools install geno-<name>` (public) alongside `geno-tools install git@github.acme.com:platform/acme-<name>.git` (private) on the same machine. They share `~/.geno-tools/`, the same venv strategy, and the same slash-command surface in Claude Code / Codex / Antigravity CLI.
 
 The result: sensitive prompts, datasets, and domain knowledge stay inside the company boundary, while the runtime, the file format, and the multi-agent integrations are the same fast-moving open-source code everyone else uses. You inherit upstream improvements without giving up control of your skill content.
 
