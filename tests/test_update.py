@@ -67,7 +67,7 @@ class TestUpdateOne:
         assert result.status == "updated"
         assert result.old_rev == "old12345"
         assert result.new_rev == "new56789"
-        assert len(npx_calls) == 2  # umbrella + 1 sub-skill
+        assert len(npx_calls) == 1  # 1 sub-skill (umbrella root skipped)
 
     def test_dirty_worktree_skipped(self, fake_skillset, monkeypatch):
         fake_skillset("geno-dev")

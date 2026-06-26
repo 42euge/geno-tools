@@ -65,17 +65,19 @@ class TestEnumerateSkillDirs:
         dirs = commands._enumerate_skill_dirs("geno-dev")
         assert all(isinstance(d, Path) for d in dirs)
 
-    def test_umbrella_dir_is_active(self, fake_skillset, tmp_root):
+    def test_umbrella_dir_skipped_when_subs_exist(self, fake_skillset, tmp_root):
+        # When sub-skills exist, only the leaf dirs are returned — the umbrella
+        # root is skipped so npx registers leaves, not the whole tree.
         fake_skillset("geno-dev", sub_skills=["geno-dev-a"])
         dirs = commands._enumerate_skill_dirs("geno-dev")
         active = paths.skillset_active("geno-dev")
-        assert dirs[0] == active
+        assert active not in dirs
+        assert all("skills" in str(d) for d in dirs)
 
     def test_sub_skill_dirs_point_to_skills_subdir(self, fake_skillset, tmp_root):
         fake_skillset("geno-dev", sub_skills=["geno-dev-a", "geno-dev-b"])
         dirs = commands._enumerate_skill_dirs("geno-dev")
-        sub_dirs = dirs[1:]
-        for d in sub_dirs:
+        for d in dirs:
             assert "skills" in str(d)
             assert (d / "SKILL.md").exists()
 
@@ -97,10 +99,11 @@ class TestInstallSkillsViaNpx:
 
         commands._install_skills_via_npx("geno-dev")
 
-        assert len(calls) == 3  # umbrella + 2 sub-skills
+        assert len(calls) == 2  # 2 sub-skills (umbrella root skipped)
         for cmd in calls:
             assert cmd[0] == "npx"
             assert "--global" in cmd
+            assert "--full-depth" in cmd
             assert "--yes" in cmd
             # each call gets a distinct skill dir path
             assert "--skill" not in cmd  # no more --skill '*'
