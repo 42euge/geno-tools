@@ -21,3 +21,4 @@ site/
 
 # geno-audit temp clones
 .geno-audit/
+build/
