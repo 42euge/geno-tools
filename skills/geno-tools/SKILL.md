@@ -17,7 +17,7 @@ category directories (`skills/<category>/<name>/SKILL.md`) — see `SKILLS.md` f
 the nesting standard.
 
 ```!
-which geno-tools >/dev/null 2>&1 || echo "geno-tools CLI not on PATH. The plugin's SessionStart hook (Claude Code) runs geno_tools/scripts/bootstrap.sh automatically. On Antigravity CLI / Codex, run 'bash \$PLUGIN_ROOT/geno_tools/scripts/bootstrap.sh' once."
+which geno-tools >/dev/null 2>&1 || echo "geno-tools CLI not on PATH — run /geno-tools-setup to install it (or 'bash \$PLUGIN_ROOT/skills/setup/setup.sh')."
 ```
 
 ## Skills by category
