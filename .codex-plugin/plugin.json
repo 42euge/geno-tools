@@ -1,6 +1,6 @@
 {
   "name": "geno-tools",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "Meta-CLI for installing and managing geno-* skillsets",
   "author": {
     "name": "42euge"
@@ -14,7 +14,14 @@
     "meta-cli",
     "geno-ecosystem"
   ],
-  "skills": "./skills/",
+  "skills": [
+    "./skills",
+    "./skills/audit",
+    "./skills/author",
+    "./skills/manager",
+    "./skills/meta/ecosystem",
+    "./skills/meta/harness"
+  ],
   "interface": {
     "displayName": "geno-tools",
     "shortDescription": "Install and manage geno-* skillsets for any coding agent",

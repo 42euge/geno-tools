@@ -1,6 +1,6 @@
 {
   "name": "geno-tools",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Meta-CLI for installing and managing geno-* skillsets",
   "author": {
     "name": "42euge",
@@ -9,5 +9,12 @@
   "homepage": "https://42euge.github.io/geno-tools",
   "repository": "https://github.com/42euge/geno-tools",
   "license": "MIT",
-  "skills": "./skills"
+  "skills": [
+    "./skills",
+    "./skills/audit",
+    "./skills/author",
+    "./skills/manager",
+    "./skills/meta/ecosystem",
+    "./skills/meta/harness"
+  ]
 }
