@@ -276,6 +276,28 @@ class TestLs:
         assert "geno-dev" in out
         assert "geno-agents" in out
 
+    def test_ls_shows_version_and_check_hint(self, fake_skillset, capsys, monkeypatch):
+        monkeypatch.setattr("geno_tools.registry._cache", {})
+        root = fake_skillset("geno-dev")
+        (root / "main" / "genotools.yaml").write_text('version: "0.4.2"\n')
+        from geno_tools.cli import main
+        rc = main(["ls"])
+        assert rc == 0
+        out = capsys.readouterr().out
+        assert "geno-dev" in out
+        assert "0.4.2" in out          # version from genotools.yaml
+        assert "--check" in out        # hint shown without --check
+
+    def test_skillset_status_degrades_without_git(self, fake_skillset, monkeypatch):
+        # fixture has only a fake .git dir; status must not raise, commit "?".
+        monkeypatch.setattr("geno_tools.registry._cache", {})
+        root = fake_skillset("geno-dev")
+        (root / "main" / "genotools.yaml").write_text('version: "0.4.2"\n')
+        info = commands._skillset_status("geno-dev", check_remote=True)
+        assert info["variant"] == "main"
+        assert info["commit"] == "?"   # no real git history
+        assert info["version"] == "0.4.2"
+
     def test_ls_available_shows_registry(self, monkeypatch, capsys):
         monkeypatch.setattr("geno_tools.registry._cache", {
             "geno-dev": "https://example.com/geno-dev.git",
