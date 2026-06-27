@@ -24,7 +24,7 @@ which geno-tools >/dev/null 2>&1 || echo "geno-tools CLI not on PATH — run /ge
 
 | Category | Skills |
 |----------|--------|
-| **manager/** | `install` · `remove` · `ls` · `update` · `status` · `deps` · `doctor` |
+| **manager/** | `status` · `available` · `install` · `remove` · `update` · `deps` · `doctor` |
 | **audit/** | `run` — ecosystem compliance auditor |
 | **meta/harness/** | `fork` · `use` · `promote` — variant evaluate/evolve loop |
 | **meta/ecosystem/** | `discover` · `scan` · `onboarding` — find/absorb new skillsets |
@@ -32,12 +32,15 @@ which geno-tools >/dev/null 2>&1 || echo "geno-tools CLI not on PATH — run /ge
 
 ## CLI
 
-- `geno-tools ls [--available]` — list installed / registry skillsets
+- `geno-tools status` — installed skillsets: version, commit, drift vs main
+- `geno-tools available` — discoverable skillsets you can install
 - `geno-tools install <repo|url|path>` — clone, venv, register with all agents
 - `geno-tools remove <repo> [--keep-data]` — uninstall from all agents
 - `geno-tools update [repo]` — pull latest + re-register
 - `geno-tools deps <repo>` — dependency tree
 - `geno-tools discover | scan` — find / queue candidate skillsets
+
+(`geno-tools ls` / `ls --available` remain as deprecated aliases.)
 
 ## Source resolution
 
