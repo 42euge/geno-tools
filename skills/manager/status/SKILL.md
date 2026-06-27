@@ -1,23 +1,37 @@
 ---
 name: geno-tools-manager-status
 description: >-
-  Show install status of the geno ecosystem — version, commit, branch, and
-  freshness per installed skillset. Use when the user asks about ecosystem
-  status, versions, or whether skillsets are out of date.
-allowed-tools: "Bash(geno-tools ls *) Bash(git -C * status *) Bash(git -C * log *) Read(*)"
+  Show installed geno-* skillsets with version, commit, and drift vs remote
+  main. Use when the user asks what's installed, what version, or whether
+  skillsets are out of date. Replaces the old `geno-tools ls`.
+allowed-tools: "Bash(geno-tools status *) Bash(geno-tools ls *)"
+license: MIT
 metadata:
   author: 42euge
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
-# manager/status — ecosystem status
-
-Per installed skillset: declared version (`genotools.yaml`), active variant +
-commit, and drift vs the remote (in-sync / behind / ahead / diverged / dirty).
-This is exactly what `manager/ls --check` reports — run:
+# manager/status — installed skillsets at a glance
 
 ```
-geno-tools ls --check
+geno-tools status
 ```
 
-Surfaces which skillsets `geno-tools update` would advance.
+No flags — the daily view. Per installed skillset it shows the declared version
+(`genotools.yaml`), active `variant@commit`, and a drift state vs its remote
+main:
+
+```
+geno-tools
+── installed · 2 ───────────────────────────────
+  geno-loops  0.2.0  main@94eba89  ● in-sync
+  geno-notes  0.1.0  main@5f3fb1f  ▼ behind e84fa17
+```
+
+States: `● in-sync` · `▼ behind <sha>` · `▲ ahead` · `✗ diverged` · `✎ dirty`
+· `· offline`. Anything behind is summarized with a hint to run
+`geno-tools update`. Output is colorized on a terminal and plain ASCII when
+piped or under `NO_COLOR`.
+
+To browse what you *can* install, use `geno-tools available`. (`geno-tools ls`
+is a deprecated alias for `status`.)

@@ -276,7 +276,9 @@ class TestLs:
         assert "geno-dev" in out
         assert "geno-agents" in out
 
-    def test_ls_shows_version_and_check_hint(self, fake_skillset, capsys, monkeypatch):
+    def test_ls_shows_version(self, fake_skillset, capsys, monkeypatch):
+        # `ls` is now an alias for `status`: shows version, always checks drift
+        # (no --check hint — status always compares to remote).
         monkeypatch.setattr("geno_tools.registry._cache", {})
         root = fake_skillset("geno-dev")
         (root / "main" / "genotools.yaml").write_text('version: "0.4.2"\n')
@@ -286,7 +288,7 @@ class TestLs:
         out = capsys.readouterr().out
         assert "geno-dev" in out
         assert "0.4.2" in out          # version from genotools.yaml
-        assert "--check" in out        # hint shown without --check
+        assert "--check" not in out    # no flag hint; status always checks
 
     def test_skillset_status_degrades_without_git(self, fake_skillset, monkeypatch):
         # fixture has only a fake .git dir; status must not raise, commit "?".
@@ -310,6 +312,55 @@ class TestLs:
         out = capsys.readouterr().out
         assert "geno-dev" in out
         assert "geno-media" in out
+
+
+class TestStatusAndAvailable:
+    def test_status_shows_version(self, fake_skillset, capsys, monkeypatch):
+        root = fake_skillset("geno-dev")
+        (root / "main" / "genotools.yaml").write_text('version: "0.4.2"\n')
+        from geno_tools.cli import main
+        assert main(["status"]) == 0
+        out = capsys.readouterr().out
+        assert "geno-dev" in out
+        assert "0.4.2" in out
+
+    def test_status_empty(self, tmp_root, capsys):
+        from geno_tools.cli import main
+        assert main(["status"]) == 0
+        assert "no skillsets installed" in capsys.readouterr().out
+
+    def test_available_lists_and_marks_installed(self, fake_skillset, capsys, monkeypatch):
+        monkeypatch.setattr("geno_tools.registry._cache", {
+            "geno-dev": "https://example.com/geno-dev.git",
+            "geno-media": "https://example.com/geno-media.git",
+        })
+        fake_skillset("geno-dev")  # installed
+        from geno_tools.cli import main
+        assert main(["available"]) == 0
+        out = capsys.readouterr().out
+        assert "geno-dev" in out and "geno-media" in out
+        assert "installed" in out  # geno-dev marked
+
+    def test_available_empty_points_at_discover(self, tmp_root, capsys, monkeypatch):
+        monkeypatch.setattr("geno_tools.registry._cache", {})
+        from geno_tools.cli import main
+        assert main(["available"]) == 0
+        assert "discover" in capsys.readouterr().out
+
+    def test_ls_is_alias_for_status(self, fake_skillset, capsys):
+        fake_skillset("geno-dev")
+        from geno_tools.cli import main
+        assert main(["ls"]) == 0
+        assert "geno-dev" in capsys.readouterr().out
+
+    def test_output_is_plain_when_not_tty(self, fake_skillset, capsys):
+        # capsys captured stdout is not a TTY → no ANSI escapes, ASCII rule.
+        fake_skillset("geno-dev")
+        from geno_tools.cli import main
+        main(["status"])
+        out = capsys.readouterr().out
+        assert "\x1b[" not in out      # no ANSI color codes
+        assert "─" not in out          # ASCII dashes, not box-drawing
 
 
 # ── remove command ────────────────────────────────────────────────────────

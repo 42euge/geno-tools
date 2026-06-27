@@ -9,10 +9,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--version", action="version", version=f"geno-tools {__version__}")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
-    p_ls = sub.add_parser("ls", help="list installed skillsets with version + commit")
-    p_ls.add_argument("--available", action="store_true", help="list registry")
+    # status — installed skillsets, versions, and drift vs remote main
+    sub.add_parser("status", help="installed skillsets: version, commit, drift vs remote")
+    # available — discoverable skillsets from the registry cache
+    sub.add_parser("available", help="list discoverable skillsets you can install")
+    # ls — back-compat alias for status (supports the old --available/--check flags)
+    p_ls = sub.add_parser("ls", help="alias for status (deprecated)")
+    p_ls.add_argument("--available", action="store_true", help="alias for `available`")
     p_ls.add_argument("--check", action="store_true",
-                      help="check each installed skillset against its remote (network)")
+                      help="deprecated no-op (status always checks remote)")
 
     p_install = sub.add_parser("install", help="install a skillset")
     p_install.add_argument("name", help="full repo name (e.g. geno-<name>), git URL, or local path")
