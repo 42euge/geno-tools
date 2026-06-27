@@ -82,8 +82,10 @@ class TestPluginJson:
 class TestSkills:
     @pytest.fixture()
     def skill_dirs(self):
+        # Skills nest under category dirs (skills/<category>/<name>/SKILL.md,
+        # arbitrarily deep), so walk recursively, not just one level.
         skills_dir = REPO_ROOT / "skills"
-        return [d for d in skills_dir.iterdir() if d.is_dir() and (d / "SKILL.md").exists()]
+        return [p.parent for p in skills_dir.rglob("SKILL.md")]
 
     def test_at_least_one_skill(self, skill_dirs):
         assert len(skill_dirs) >= 1
@@ -97,14 +99,20 @@ class TestSkills:
             assert fm.get("name"), f"{skill_dir.name}: frontmatter missing 'name'"
             assert fm.get("description"), f"{skill_dir.name}: frontmatter missing 'description'"
 
-    def test_skill_dir_name_matches_frontmatter_name(self, skill_dirs):
+    def test_skill_name_mirrors_path(self, skill_dirs):
+        # Per the nesting standard (SKILLS.md): a leaf's frontmatter `name` is
+        # the fully-qualified path. The umbrella is exactly "geno-tools"; every
+        # nested leaf's name ends with "-<leaf-dir-name>".
         for skill_dir in skill_dirs:
             text = (skill_dir / "SKILL.md").read_text()
             end = text.index("---", 3)
-            fm = yaml.safe_load(text[3:end])
-            assert fm["name"] == skill_dir.name, (
-                f"dir name '{skill_dir.name}' != frontmatter name '{fm['name']}'"
-            )
+            name = yaml.safe_load(text[3:end])["name"]
+            if skill_dir.name == "geno-tools":
+                assert name == "geno-tools"
+            else:
+                assert name.endswith(f"-{skill_dir.name}"), (
+                    f"name '{name}' should end with '-{skill_dir.name}' (path-mirrored)"
+                )
 
     def test_umbrella_skill_exists(self, skill_dirs):
         names = {d.name for d in skill_dirs}
