@@ -64,10 +64,76 @@ def _ls(args: argparse.Namespace) -> int:
         return 0
 
     for full in installed:
-        active = paths.skillset_active(full)
-        target = active.readlink().name if active.is_symlink() else "?"
-        print(f"  {full:<24} active: {target}")
+        info = _skillset_status(full, check_remote=getattr(args, "check", False))
+        line = f"  {full:<22} {info['version']:<8} {info['variant']}@{info['commit']}"
+        if info["state"]:
+            line += f"  {info['state']}"
+        print(line)
+    if not getattr(args, "check", False):
+        print("  (use --check to compare against each remote main)")
     return 0
+
+
+def _skillset_status(full: str, *, check_remote: bool) -> dict:
+    """Version + active variant + short commit + (optionally) remote drift.
+
+    state is "" without --check; with --check it's one of: in-sync, behind,
+    ahead, diverged, dirty, or offline.
+    """
+    active = paths.skillset_active(full)
+    variant = active.readlink().name if active.is_symlink() else "?"
+    worktree = paths.skillset_worktree(full, variant)
+
+    version = str(_read_manifest(full).get("version", "?"))
+
+    def _git(*args) -> str:
+        try:
+            return subprocess.check_output(
+                ["git", "-C", str(worktree), *args],
+                text=True, stderr=subprocess.DEVNULL,
+            ).strip()
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            return ""
+
+    commit = _git("rev-parse", "--short", "HEAD") or "?"
+    state = ""
+
+    # `active -> <variant>` is always a symlink; dev mode is when the *worktree*
+    # itself is a symlink to a local checkout. Only skip the remote check then.
+    if check_remote and not worktree.is_symlink():
+        if _git("status", "--porcelain"):
+            state = "dirty"
+        else:
+            branch = _git("branch", "--show-current") or "main"
+            remote = ""
+            try:
+                out = subprocess.check_output(
+                    ["git", "-C", str(worktree), "ls-remote", "origin",
+                     f"refs/heads/{branch}"],
+                    text=True, stderr=subprocess.DEVNULL, timeout=10,
+                ).strip()
+                remote = out.split()[0] if out else ""
+            except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError):
+                state = "offline"
+            if remote:
+                local = _git("rev-parse", "HEAD")
+
+                def _ancestor(a: str, b: str) -> bool:
+                    return subprocess.call(
+                        ["git", "-C", str(worktree), "merge-base",
+                         "--is-ancestor", a, b],
+                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) == 0
+
+                if remote == local:
+                    state = "in-sync"
+                elif _ancestor(local, remote):
+                    state = f"behind ({remote[:7]})"
+                elif _ancestor(remote, local):
+                    state = "ahead"
+                else:
+                    state = "diverged"
+
+    return {"version": version, "variant": variant, "commit": commit, "state": state}
 
 
 # ── manifest ───────────────────────────────────────────────────────────────
