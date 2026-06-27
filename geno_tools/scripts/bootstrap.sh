@@ -33,6 +33,29 @@ if [[ ! -e "${target_file}" && -f "${default_config}" ]]; then
   cp "${default_config}" "${target_file}"
 fi
 
+# tt: one-time migrate legacy ~/.tt -> ~/.geno/tt (copy, not move — leave the
+# old tree as a safety net so the standalone tt keeps working in transition).
+if [[ -d "${HOME}/.tt" && ! -d "${HOME}/.geno/tt" ]]; then
+  cp -R "${HOME}/.tt" "${HOME}/.geno/tt" 2>>"${log_file}" || true
+fi
+
+# tt: install the interactive shell layer (the `tt` function + iTerm hooks).
+# Refresh a stable copy at ~/.geno/tt/init.sh each session (so plugin updates
+# propagate) and add one idempotent source line to the user's shell rc.
+tt_shell_src="${plugin_root}/geno_tools/shell/tt.sh"
+if [[ -f "${tt_shell_src}" ]]; then
+  mkdir -p "${HOME}/.geno/tt"
+  cp "${tt_shell_src}" "${HOME}/.geno/tt/init.sh" 2>>"${log_file}" || true
+  _tt_marker="# geno-tools tt shell layer"
+  for _rc in "${HOME}/.zshrc" "${HOME}/.bashrc"; do
+    [[ -f "${_rc}" ]] || continue
+    if ! grep -qF "${_tt_marker}" "${_rc}" 2>/dev/null; then
+      printf '\n%s\n[ -f "$HOME/.geno/tt/init.sh" ] && source "$HOME/.geno/tt/init.sh"\n' \
+        "${_tt_marker}" >> "${_rc}"
+    fi
+  done
+fi
+
 # Keep each plugin manifest's `skills` array pointed at every category dir, so
 # Claude Code's depth-1 plugin loader finds nested skills. Quiet + idempotent.
 gen_skills="${plugin_root}/geno_tools/scripts/gen_plugin_skills.py"
