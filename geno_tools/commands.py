@@ -17,9 +17,68 @@ from geno_tools import config, discovery, paths, registry
 SYSTEM_BIN = Path.home() / ".local" / "bin"
 
 
+# ── terminal formatting (zero-dep, TTY-aware) ────────────────────────────────
+
+def _is_tty() -> bool:
+    """Whether stdout is an interactive terminal (checked at call time, not
+    import time — pipx wrappers can make import-time checks unreliable).
+    Honors NO_COLOR (https://no-color.org)."""
+    import os
+    if os.environ.get("NO_COLOR"):
+        return False
+    return sys.stdout.isatty()
+
+
+def _c(code: str, s: str) -> str:
+    """Wrap s in an ANSI SGR code, but only when stdout is a TTY."""
+    return f"\033[{code}m{s}\033[0m" if _is_tty() else s
+
+
+def _bold(s): return _c("1", s)
+def _dim(s): return _c("2", s)
+def _green(s): return _c("32", s)
+def _yellow(s): return _c("33", s)
+def _red(s): return _c("31", s)
+def _cyan(s): return _c("36", s)
+
+
+def _rule(label: str = "", width: int = 48) -> str:
+    """A light horizontal rule, optionally with a label.
+
+    Uses box-drawing on a TTY, ASCII dashes otherwise (pipe/redirect safe).
+    """
+    dash = "─" if _is_tty() else "-"
+    if label:
+        head = f"{dash}{dash} {label} "
+        return _dim(head + dash * max(0, width - len(head)))
+    return _dim(dash * width)
+
+
+# State glyph (TTY) + ASCII fallback + color, for drift vs remote.
+_STATE_FMT = {
+    "in-sync":  ("●", "ok",  _green),
+    "ahead":    ("▲", "ahead", _cyan),
+    "dirty":    ("✎", "dirty", _yellow),
+    "diverged": ("✗", "diverged", _red),
+    "offline":  ("·", "offline", _dim),
+}
+
+
+def _fmt_state(state: str) -> str:
+    if state.startswith("behind"):
+        glyph = "▼" if _is_tty() else "<"
+        return _yellow(f"{glyph} {state}")
+    glyph, ascii_label, color = _STATE_FMT.get(state, ("", state, _dim))
+    g = (glyph + " ") if (_is_tty() and glyph) else ""
+    label = state if _is_tty() else ascii_label
+    return color(f"{g}{label}")
+
+
 def dispatch(args: argparse.Namespace) -> int:
     handlers = {
-        "ls": _ls,
+        "ls": _status,            # alias for status (back-compat)
+        "status": _status,
+        "available": _available,
         "install": _install,
         "dev": _dev,
         "fork": _fork,
@@ -36,60 +95,86 @@ def dispatch(args: argparse.Namespace) -> int:
     return handlers[args.cmd](args)
 
 
-# ── ls ──────────────────────────────────────────────────────────────────────
+# ── status / available ──────────────────────────────────────────────────────
 
-def _ls(args: argparse.Namespace) -> int:
-    if args.available:
-        repos = registry.available()
-        if not repos:
-            print("  no skillsets discovered yet.")
-            print("  run /geno-tools-meta-ecosystem-discover to find them,")
-            print("  or install directly by git URL: geno-tools install <url>")
-            return 0
-        for name, url in sorted(repos.items()):
-            print(f"  {name:<24} {url}")
-        return 0
-
+def _installed_skillsets() -> list[str]:
     if not paths.ROOT.exists():
-        print("no skillsets installed")
-        return 0
-
-    installed = sorted(
+        return []
+    return sorted(
         p.name for p in paths.ROOT.iterdir()
         if p.is_dir() and p.name.startswith("geno-")
         and p.name not in ("geno-bootstrap",)
     )
+
+
+def _status(args: argparse.Namespace) -> int:
+    """`geno-tools status` — installed skillsets, versions, drift vs remote.
+
+    Back-compat: `geno-tools ls --available` still routes to the registry list.
+    """
+    if getattr(args, "available", False):
+        return _available(args)
+
+    installed = _installed_skillsets()
+    print(_bold("geno-tools"))
     if not installed:
-        print("no skillsets installed")
+        print(_rule("installed"))
+        print(_dim("  no skillsets installed."))
+        print(_dim("  geno-tools available   # see what you can install"))
         return 0
 
-    for full in installed:
-        info = _skillset_status(full, check_remote=getattr(args, "check", False))
-        line = f"  {full:<22} {info['version']:<8} {info['variant']}@{info['commit']}"
-        if info["state"]:
-            line += f"  {info['state']}"
+    print(_rule(f"installed · {len(installed)}"))
+    rows = [_skillset_status(full, check_remote=True) for full in installed]
+    name_w = max(len(r["name"]) for r in rows)
+    ver_w = max(len(r["version"]) for r in rows)
+    for r in rows:
+        ref = _dim(f"{r['variant']}@{r['commit']}")
+        line = (f"  {_bold(r['name'].ljust(name_w))}  "
+                f"{r['version'].ljust(ver_w)}  {ref}")
+        if r["state"]:
+            line += f"  {_fmt_state(r['state'])}"
         print(line)
-    if not getattr(args, "check", False):
-        print("  (use --check to compare against each remote main)")
+    behind = [r for r in rows if r["state"].startswith("behind")]
+    if behind:
+        print()
+        print(_dim(f"  {len(behind)} behind remote — geno-tools update"))
+    return 0
+
+
+def _available(args: argparse.Namespace) -> int:
+    """`geno-tools available` — discoverable skillsets from the registry cache."""
+    repos = registry.available()
+    print(_bold("geno-tools"))
+    if not repos:
+        print(_rule("available"))
+        print(_dim("  no skillsets discovered yet."))
+        print(_dim("  run /geno-tools-meta-ecosystem-discover to find them,"))
+        print(_dim("  or install directly:  geno-tools install <git-url>"))
+        return 0
+    installed = set(_installed_skillsets())
+    print(_rule(f"available · {len(repos)}"))
+    name_w = max(len(n) for n in repos)
+    for name, url in sorted(repos.items()):
+        mark = _green("✓ installed") if name in installed else _dim(url)
+        print(f"  {_bold(name.ljust(name_w))}  {mark}")
     return 0
 
 
 def _skillset_status(full: str, *, check_remote: bool) -> dict:
-    """Version + active variant + short commit + (optionally) remote drift.
+    """version + active variant + short commit + (optionally) remote drift.
 
-    state is "" without --check; with --check it's one of: in-sync, behind,
-    ahead, diverged, dirty, or offline.
+    state (with check_remote): in-sync, behind <sha>, ahead, diverged, dirty,
+    or offline. Empty without check_remote.
     """
     active = paths.skillset_active(full)
     variant = active.readlink().name if active.is_symlink() else "?"
     worktree = paths.skillset_worktree(full, variant)
-
     version = str(_read_manifest(full).get("version", "?"))
 
-    def _git(*args) -> str:
+    def _git(*a) -> str:
         try:
             return subprocess.check_output(
-                ["git", "-C", str(worktree), *args],
+                ["git", "-C", str(worktree), *a],
                 text=True, stderr=subprocess.DEVNULL,
             ).strip()
         except (subprocess.CalledProcessError, FileNotFoundError):
@@ -99,13 +184,12 @@ def _skillset_status(full: str, *, check_remote: bool) -> dict:
     state = ""
 
     # `active -> <variant>` is always a symlink; dev mode is when the *worktree*
-    # itself is a symlink to a local checkout. Only skip the remote check then.
+    # itself is a symlink to a local checkout — only then skip the remote check.
     if check_remote and not worktree.is_symlink():
         if _git("status", "--porcelain"):
             state = "dirty"
         else:
             branch = _git("branch", "--show-current") or "main"
-            remote = ""
             try:
                 out = subprocess.check_output(
                     ["git", "-C", str(worktree), "ls-remote", "origin",
@@ -114,6 +198,7 @@ def _skillset_status(full: str, *, check_remote: bool) -> dict:
                 ).strip()
                 remote = out.split()[0] if out else ""
             except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError):
+                remote = ""
                 state = "offline"
             if remote:
                 local = _git("rev-parse", "HEAD")
@@ -127,13 +212,14 @@ def _skillset_status(full: str, *, check_remote: bool) -> dict:
                 if remote == local:
                     state = "in-sync"
                 elif _ancestor(local, remote):
-                    state = f"behind ({remote[:7]})"
+                    state = f"behind {remote[:7]}"
                 elif _ancestor(remote, local):
                     state = "ahead"
                 else:
                     state = "diverged"
 
-    return {"version": version, "variant": variant, "commit": commit, "state": state}
+    return {"name": full, "version": version, "variant": variant,
+            "commit": commit, "state": state}
 
 
 # ── manifest ───────────────────────────────────────────────────────────────
