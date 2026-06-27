@@ -12,6 +12,12 @@ metadata:
 
 # manager/status — ecosystem status
 
-Report, per installed skillset: declared version (`genotools.yaml`), current
-commit + branch, and whether the worktree is behind its remote. Surfaces which
-skillsets need `geno-tools update`.
+Per installed skillset: declared version (`genotools.yaml`), active variant +
+commit, and drift vs the remote (in-sync / behind / ahead / diverged / dirty).
+This is exactly what `manager/ls --check` reports — run:
+
+```
+geno-tools ls --check
+```
+
+Surfaces which skillsets `geno-tools update` would advance.
