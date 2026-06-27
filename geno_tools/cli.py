@@ -11,11 +11,9 @@ def main(argv: list[str] | None = None) -> int:
 
     # status — installed skillsets, versions, and drift vs remote main
     sub.add_parser("status", help="installed skillsets: version, commit, drift vs remote")
-    # available — discoverable skillsets from the registry cache
-    sub.add_parser("available", help="list discoverable skillsets you can install")
     # ls — back-compat alias for status (supports the old --available/--check flags)
     p_ls = sub.add_parser("ls", help="alias for status (deprecated)")
-    p_ls.add_argument("--available", action="store_true", help="alias for `available`")
+    p_ls.add_argument("--available", action="store_true", help="alias for `discover`")
     p_ls.add_argument("--check", action="store_true",
                       help="deprecated no-op (status always checks remote)")
 
@@ -56,9 +54,9 @@ def main(argv: list[str] | None = None) -> int:
 
     sub.add_parser("doctor", help="verify symlinks, worktrees, venvs")
 
-    p_disc = sub.add_parser("discover", help="list candidate skillsets from configured sources")
-    p_disc.add_argument("--dry-run", action="store_true",
-                        help="print candidates without installing (default behavior)")
+    p_disc = sub.add_parser("discover", help="find & list installable skillsets, by category")
+    p_disc.add_argument("--refresh", action="store_true",
+                        help="force a network refresh (otherwise auto-refreshes if >30min stale)")
 
     p_scan = sub.add_parser("scan", help="scan for new uninstalled skillsets and queue candidates")
     p_scan.add_argument("--namespace", help="filter by namespace prefix (e.g. 'geno', 'acme')")

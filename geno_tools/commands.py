@@ -78,7 +78,6 @@ def dispatch(args: argparse.Namespace) -> int:
     handlers = {
         "ls": _status,            # alias for status (back-compat)
         "status": _status,
-        "available": _available,
         "install": _install,
         "dev": _dev,
         "fork": _fork,
@@ -120,7 +119,7 @@ def _status(args: argparse.Namespace) -> int:
     if not installed:
         print(_rule("installed"))
         print(_dim("  no skillsets installed."))
-        print(_dim("  geno-tools available   # see what you can install"))
+        print(_dim("  geno-tools discover   # see what you can install"))
         return 0
 
     print(_rule(f"installed · {len(installed)}"))
@@ -142,21 +141,57 @@ def _status(args: argparse.Namespace) -> int:
 
 
 def _available(args: argparse.Namespace) -> int:
-    """`geno-tools available` — discoverable skillsets from the registry cache."""
-    repos = registry.available()
+    """Deprecated alias for `discover` (prints the grouped discoverable list)."""
+    return _discover(args)
+
+
+# Category print order: known geno-ecosystem buckets first, then any extras,
+# then Uncategorized last.
+_CATEGORY_ORDER = [
+    "Core Framework", "Developer Tools", "Workspaces & Data",
+    "Modalities & Capabilities", "Applied Research", "Interfaces & Comms",
+]
+
+
+def _discover(args: argparse.Namespace) -> int:
+    """`geno-tools discover` — find & list installable skillsets, by category.
+
+    Prints the cached list (instant); auto-refreshes via curl when the cache is
+    missing or stale (>30 min), or when --refresh is passed.
+    """
+    refresh = getattr(args, "refresh", False)
+    if refresh or registry.is_stale():
+        why = "forced" if refresh else ("missing" if registry.cache_age_seconds() is None else "stale")
+        print(_dim(f"  refreshing discovery cache ({why})…"))
+        try:
+            registry.discover_now()
+        except Exception as e:
+            print(_dim(f"  refresh failed ({e}); showing cached results"))
+
+    entries = registry.read_full()
     print(_bold("geno-tools"))
-    if not repos:
-        print(_rule("available"))
-        print(_dim("  no skillsets discovered yet."))
-        print(_dim("  run /geno-tools-meta-ecosystem-discover to find them,"))
+    if not entries:
+        print(_rule("discover"))
+        print(_dim("  no skillsets found (no network, empty cache)."))
+        print(_dim("  retry:  geno-tools discover --refresh"))
         print(_dim("  or install directly:  geno-tools install <git-url>"))
         return 0
+
     installed = set(_installed_skillsets())
-    print(_rule(f"available · {len(repos)}"))
-    name_w = max(len(n) for n in repos)
-    for name, url in sorted(repos.items()):
-        mark = _green("✓ installed") if name in installed else _dim(url)
-        print(f"  {_bold(name.ljust(name_w))}  {mark}")
+    by_cat: dict[str, list[str]] = {}
+    for name in entries:
+        by_cat.setdefault(entries[name].get("category", "Uncategorized"), []).append(name)
+    order = ([c for c in _CATEGORY_ORDER if c in by_cat]
+             + sorted(c for c in by_cat if c not in _CATEGORY_ORDER and c != "Uncategorized")
+             + (["Uncategorized"] if "Uncategorized" in by_cat else []))
+
+    print(_rule(f"discover · {len(entries)}"))
+    name_w = max(len(n) for n in entries)
+    for cat in order:
+        print(_cyan(f"  {cat}"))
+        for name in sorted(by_cat[cat]):
+            mark = _green("✓ installed") if name in installed else _dim(entries[name]["url"])
+            print(f"    {_bold(name.ljust(name_w))}  {mark}")
     return 0
 
 
@@ -810,23 +845,6 @@ def _print_update_summary(results: list[_UpdateResult]) -> None:
 
 def _doctor(_: argparse.Namespace) -> int:
     return _todo("doctor")
-
-
-def _discover(_: argparse.Namespace) -> int:
-    srcs = discovery.sources()
-    if not srcs:
-        print("no discovery sources configured (~/.geno/config.yaml: discovery.sources)")
-        return 0
-
-    found = discovery.candidates()
-    if not found:
-        print("no candidates found across configured sources")
-        return 0
-
-    for c in found:
-        marker = "" if c.has_skill_md else "  (no SKILL.md — skipped)"
-        print(f"  [{c.source}] {c.name:<32} {c.url}{marker}")
-    return 0
 
 
 def _scan(args: argparse.Namespace) -> int:
