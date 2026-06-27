@@ -300,12 +300,15 @@ class TestLs:
         assert info["commit"] == "?"   # no real git history
         assert info["version"] == "0.4.2"
 
-    def test_ls_available_shows_registry(self, monkeypatch, capsys):
-        monkeypatch.setattr("geno_tools.registry._cache", {
-            "geno-dev": "https://example.com/geno-dev.git",
-            "geno-media": "https://example.com/geno-media.git",
+    def test_ls_available_aliases_discover(self, monkeypatch, capsys):
+        # `ls --available` routes to discover; fresh cache so no network.
+        monkeypatch.setattr("geno_tools.registry.is_stale", lambda *a, **k: False)
+        monkeypatch.setattr("geno_tools.registry.read_full", lambda: {
+            "geno-dev": {"url": "https://example.com/geno-dev.git",
+                         "category": "Developer Tools"},
+            "geno-media": {"url": "https://example.com/geno-media.git",
+                           "category": "Applied Research"},
         })
-        monkeypatch.setattr("geno_tools.discovery.candidates_by_name", lambda: {})
         from geno_tools.cli import main
         rc = main(["ls", "--available"])
         assert rc == 0
@@ -329,22 +332,34 @@ class TestStatusAndAvailable:
         assert main(["status"]) == 0
         assert "no skillsets installed" in capsys.readouterr().out
 
-    def test_available_lists_and_marks_installed(self, fake_skillset, capsys, monkeypatch):
-        monkeypatch.setattr("geno_tools.registry._cache", {
-            "geno-dev": "https://example.com/geno-dev.git",
-            "geno-media": "https://example.com/geno-media.git",
+    def test_discover_groups_by_category(self, fake_skillset, capsys, monkeypatch):
+        # fresh cache → no network; read_full provides categorized entries.
+        monkeypatch.setattr("geno_tools.registry.is_stale", lambda *a, **k: False)
+        monkeypatch.setattr("geno_tools.registry.read_full", lambda: {
+            "geno-dev": {"url": "https://example.com/geno-dev.git",
+                         "category": "Developer Tools"},
+            "geno-media": {"url": "https://example.com/geno-media.git",
+                           "category": "Modalities & Capabilities"},
         })
         fake_skillset("geno-dev")  # installed
         from geno_tools.cli import main
-        assert main(["available"]) == 0
+        assert main(["discover"]) == 0
         out = capsys.readouterr().out
+        assert "Developer Tools" in out and "Modalities & Capabilities" in out
         assert "geno-dev" in out and "geno-media" in out
         assert "installed" in out  # geno-dev marked
 
-    def test_available_empty_points_at_discover(self, tmp_root, capsys, monkeypatch):
-        monkeypatch.setattr("geno_tools.registry._cache", {})
+    def test_discover_refreshes_when_stale(self, capsys, monkeypatch):
+        # stale cache → discover triggers a (mocked) network refresh.
+        called = {"n": 0}
+        monkeypatch.setattr("geno_tools.registry.is_stale", lambda *a, **k: True)
+        monkeypatch.setattr("geno_tools.registry.cache_age_seconds", lambda: None)
+        monkeypatch.setattr("geno_tools.registry.discover_now",
+                            lambda *a, **k: called.__setitem__("n", called["n"] + 1) or {})
+        monkeypatch.setattr("geno_tools.registry.read_full", lambda: {})
         from geno_tools.cli import main
-        assert main(["available"]) == 0
+        assert main(["discover"]) == 0
+        assert called["n"] == 1
         assert "discover" in capsys.readouterr().out
 
     def test_ls_is_alias_for_status(self, fake_skillset, capsys):
