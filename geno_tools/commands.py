@@ -40,12 +40,14 @@ def dispatch(args: argparse.Namespace) -> int:
 
 def _ls(args: argparse.Namespace) -> int:
     if args.available:
-        for name, url in registry.available().items():
+        repos = registry.available()
+        if not repos:
+            print("  no skillsets discovered yet.")
+            print("  run /geno-tools-meta-ecosystem-discover to find them,")
+            print("  or install directly by git URL: geno-tools install <url>")
+            return 0
+        for name, url in sorted(repos.items()):
             print(f"  {name:<24} {url}")
-        for name, url in discovery.candidates_by_name().items():
-            if name in registry.available():
-                continue
-            print(f"  {name:<24} {url}  (discovered)")
         return 0
 
     if not paths.ROOT.exists():
@@ -191,13 +193,11 @@ def _resolve_source(name_or_source: str) -> tuple[str, str | None]:
        or name_or_source.endswith(".git"):
         return name_or_source, None
 
-    discovered = discovery.candidates_by_name()
-    if name_or_source in discovered:
-        return discovered[name_or_source], name_or_source
-
     raise SystemExit(
-        f"unknown skillset: {name_or_source} "
-        f"(not in registry, not in discovery sources, not a path, not a git URL)"
+        f"unknown skillset: {name_or_source}\n"
+        f"  not in the discovery cache, not a local path, not a git URL.\n"
+        f"  run /geno-tools-meta-ecosystem-discover to refresh the cache,\n"
+        f"  or install directly: geno-tools install <git-url>"
     )
 
 

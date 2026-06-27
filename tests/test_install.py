@@ -176,13 +176,20 @@ class TestResolveSource:
         source, name = commands._resolve_source(url)
         assert source == url
 
-    def test_discovered_source(self, monkeypatch):
+    def test_unknown_name_points_at_discover_skill(self, monkeypatch):
+        # Not in the cache, not a path, not a URL → error names the discover skill.
         monkeypatch.setattr("geno_tools.registry._cache", {})
-        monkeypatch.setattr("geno_tools.discovery.candidates_by_name",
-                            lambda: {"geno-new": "https://github.com/42euge/geno-new.git"})
-        source, name = commands._resolve_source("geno-new")
-        assert "geno-new" in source
-        assert name == "geno-new"
+        with pytest.raises(SystemExit, match="discover"):
+            commands._resolve_source("geno-nonexistent")
+
+    def test_resolve_from_discovery_cache(self, monkeypatch):
+        # A name written to the registry cache resolves to its URL.
+        monkeypatch.setattr("geno_tools.registry._cache", {
+            "geno-loops": "https://github.com/42euge/geno-loops.git",
+        })
+        source, name = commands._resolve_source("geno-loops")
+        assert source == "https://github.com/42euge/geno-loops.git"
+        assert name == "geno-loops"
 
     def test_unknown_raises(self, monkeypatch):
         monkeypatch.setattr("geno_tools.registry._cache", {})
