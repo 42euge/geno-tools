@@ -1,24 +1,9 @@
-"""Config loading from ~/.geno/tt/config.toml (legacy fallback: ~/.tt/)."""
+"""Config loading from ~/.geno/tt/config.toml."""
 
 import tomllib
 from pathlib import Path
 
-
-def _tt_home() -> Path:
-    """Resolve tt's state dir: ~/.geno/tt, falling back to legacy ~/.tt.
-
-    Prefer the new home when it exists (or when there's no legacy dir at all);
-    use ~/.tt only when it's present and ~/.geno/tt hasn't been created yet.
-    bootstrap.sh migrates ~/.tt -> ~/.geno/tt on first run.
-    """
-    new = Path.home() / ".geno" / "tt"
-    old = Path.home() / ".tt"
-    if new.exists() or not old.exists():
-        return new
-    return old
-
-
-TT_HOME = _tt_home()
+TT_HOME = Path.home() / ".geno" / "tt"
 CONFIG_PATH = TT_HOME / "config.toml"
 SESSIONS_DIR = TT_HOME / "sessions"
 
