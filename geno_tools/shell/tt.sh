@@ -48,7 +48,7 @@ tti()  { tt repos -i "$@"; }
 
 # iTerm2 integration: CWD reporting + workspace tab colors by track.
 if [[ "$TERM_PROGRAM" == "iTerm.app" ]]; then
-    _tt_iterm2_report_cwd() { printf '\e]1337;CurrentDir=%s\a' "$PWD" }
+    _tt_iterm2_report_cwd() { printf '\e]1337;CurrentDir=%s\a' "$PWD"; }
 
     _tt_iterm2_set_tab_color() {
         printf '\e]6;1;bg;red;brightness;%d\a' "$1"
