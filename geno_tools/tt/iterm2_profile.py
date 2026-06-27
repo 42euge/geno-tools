@@ -117,7 +117,7 @@ def apply_profile(profile: dict):
 
 
 def cmd_profile_export():
-    """Export current profile to ~/.tt/iterm2-profile.json."""
+    """Export current profile to ~/.geno/tt/iterm2-profile.json."""
     if not PLIST.exists():
         print("iTerm2 plist not found.", file=sys.stderr)
         sys.exit(1)
@@ -133,7 +133,7 @@ def cmd_profile_export():
 
 
 def cmd_profile_apply():
-    """Apply saved profile from ~/.tt/iterm2-profile.json."""
+    """Apply saved profile from ~/.geno/tt/iterm2-profile.json."""
     if not PROFILE_PATH.exists():
         print(f"No saved profile at {PROFILE_PATH}", file=sys.stderr)
         print("Run 'tt profile export' first on your configured machine.", file=sys.stderr)

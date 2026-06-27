@@ -16,7 +16,7 @@ from .iterm2 import is_iterm2, should_use_control_mode, should_open_new_tab, emi
 
 
 def _detect_session_context() -> str | None:
-    """If pwd is inside ~/.tt/sessions/<name>, return <name>."""
+    """If pwd is inside ~/.geno/tt/sessions/<name>, return <name>."""
     cwd = Path.cwd()
     try:
         rel = cwd.relative_to(SESSIONS_DIR)
@@ -27,7 +27,7 @@ def _detect_session_context() -> str | None:
 
 
 def _ensure_session_dir(folder_name: str) -> str:
-    """Create ~/.tt/sessions/<folder_name>/ if it doesn't exist. Returns the path."""
+    """Create ~/.geno/tt/sessions/<folder_name>/ if it doesn't exist. Returns the path."""
     d = SESSIONS_DIR / folder_name
     d.mkdir(parents=True, exist_ok=True)
     return str(d)
@@ -1617,7 +1617,7 @@ def main(argv: list[str] | None = None) -> int:
         print("                       Add host, copy SSH key (one password prompt)")
         print("  tt default [alias]   Show or set the default host")
         print("  tt profile           Show iTerm2 profile summary")
-        print("  tt profile export    Save current iTerm2 profile to ~/.tt/")
+        print("  tt profile export    Save current iTerm2 profile to ~/.geno/tt/")
         print("  tt profile apply     Apply saved profile to iTerm2 (new machine setup)")
         print("  tt theme             List available color themes")
         print("  tt theme create <n>  Capture current appearance as a named theme")
