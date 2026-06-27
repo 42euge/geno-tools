@@ -21,7 +21,13 @@
     "./skills/author",
     "./skills/manager",
     "./skills/meta/ecosystem",
-    "./skills/meta/harness"
+    "./skills/meta/harness",
+    "./skills/tt/appearance",
+    "./skills/tt/hosts",
+    "./skills/tt/repos",
+    "./skills/tt/sessions",
+    "./skills/tt/workspaces",
+    "./skills/tt/worktrees"
   ],
   "hooks": "./geno_tools/hooks/hooks.json"
 }

@@ -11,12 +11,8 @@
 #
 # Everything else works without this file: just call `geno-tools tt …` directly.
 
-# Config home: prefer ~/.geno/tt, fall back to legacy ~/.tt.
-if [[ -f "${HOME}/.geno/tt/config.toml" ]]; then
-    _TT_CONFIG="${HOME}/.geno/tt/config.toml"
-else
-    _TT_CONFIG="${HOME}/.tt/config.toml"
-fi
+# Config home.
+_TT_CONFIG="${HOME}/.geno/tt/config.toml"
 
 _TT_PYTHON=python3
 for _v in python3.13 python3.12 python3.11; do

@@ -33,12 +33,6 @@ if [[ ! -e "${target_file}" && -f "${default_config}" ]]; then
   cp "${default_config}" "${target_file}"
 fi
 
-# tt: one-time migrate legacy ~/.tt -> ~/.geno/tt (copy, not move — leave the
-# old tree as a safety net so the standalone tt keeps working in transition).
-if [[ -d "${HOME}/.tt" && ! -d "${HOME}/.geno/tt" ]]; then
-  cp -R "${HOME}/.tt" "${HOME}/.geno/tt" 2>>"${log_file}" || true
-fi
-
 # tt: install the interactive shell layer (the `tt` function + iTerm hooks).
 # Refresh a stable copy at ~/.geno/tt/init.sh each session (so plugin updates
 # propagate) and add one idempotent source line to the user's shell rc.
