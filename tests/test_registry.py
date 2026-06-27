@@ -1,7 +1,11 @@
-"""Tests for registry resolution — names, fallback, backwards compat."""
+"""Tests for the registry — a discovery cache, no hardcoded list, no gh.
+
+The registry reads ~/.geno/registry.json (written by the discover skill). It
+ships no fallback data and never shells out. These tests point CACHE_FILE at a
+temp file and exercise read/write/resolve.
+"""
 
 import json
-from unittest.mock import MagicMock
 
 import pytest
 
@@ -9,80 +13,70 @@ from geno_tools import registry
 
 
 @pytest.fixture(autouse=True)
-def _reset_cache():
+def _temp_cache(tmp_path, monkeypatch):
+    """Point the registry cache at a temp file; reset the in-process cache."""
+    cache = tmp_path / "registry.json"
+    monkeypatch.setattr(registry, "CACHE_FILE", cache)
     registry._cache = None
-    yield
+    yield cache
     registry._cache = None
 
 
-class TestFallback:
-    def test_fallback_used_when_gh_unavailable(self, monkeypatch):
-        monkeypatch.setattr("subprocess.run",
-                            lambda *a, **kw: MagicMock(returncode=1, stdout="", stderr=""))
+def _seed(cache, mapping):
+    cache.write_text(json.dumps(mapping, indent=2))
+    registry._cache = None
+
+
+class TestEmptyRegistry:
+    def test_no_cache_is_empty(self):
+        # No discovery has run → empty, no hardcoded fallback.
+        assert registry.available() == {}
+
+    def test_resolve_returns_none_when_empty(self):
+        assert registry.resolve("geno-loops") is None
+        assert registry.resolve("loops") is None
+
+    def test_no_fallback_attribute(self):
+        # The hardcoded fallback dict is gone.
+        assert not hasattr(registry, "_FALLBACK")
+
+
+class TestCacheRoundTrip:
+    def test_write_then_available(self):
+        registry.write_cache({
+            "geno-loops": {"url": "https://github.com/42euge/geno-loops.git",
+                           "source": "github:42euge"},
+        })
         repos = registry.available()
-        assert "geno-agents" in repos
-        assert "geno-dev" in repos
+        assert repos == {"geno-loops": "https://github.com/42euge/geno-loops.git"}
 
-    def test_fallback_keys_have_geno_prefix(self, monkeypatch):
-        monkeypatch.setattr("subprocess.run",
-                            lambda *a, **kw: MagicMock(returncode=1))
-        for name in registry.available():
-            assert name.startswith("geno-"), f"fallback key {name!r} missing geno- prefix"
+    def test_accepts_plain_string_values(self, _temp_cache):
+        _seed(_temp_cache, {"geno-dev": "https://github.com/42euge/geno-dev.git"})
+        assert registry.available()["geno-dev"].endswith("geno-dev.git")
 
-    def test_fallback_values_are_git_urls(self, monkeypatch):
-        monkeypatch.setattr("subprocess.run",
-                            lambda *a, **kw: MagicMock(returncode=1))
-        for url in registry.available().values():
-            assert url.endswith(".git"), f"url {url!r} should end with .git"
-
-
-class TestDiscover:
-    def test_discover_parses_gh_output(self, monkeypatch):
-        fake_repos = [
-            {"name": "geno-dev", "url": "https://github.com/42euge/geno-dev"},
-            {"name": "geno-iso", "url": "https://github.com/42euge/geno-iso"},
-            {"name": "not-geno", "url": "https://github.com/42euge/not-geno"},
-            {"name": "geno-tools", "url": "https://github.com/42euge/geno-tools"},
-        ]
-        result = MagicMock(returncode=0, stdout=json.dumps(fake_repos))
-        monkeypatch.setattr("subprocess.run", lambda *a, **kw: result)
-
-        repos = registry.available()
-        assert "geno-dev" in repos
-        assert "geno-iso" in repos
-        assert "not-geno" not in repos
-        assert "geno-tools" not in repos  # EXCLUDE
-
-    def test_discover_appends_dot_git(self, monkeypatch):
-        fake = [{"name": "geno-dev", "url": "https://github.com/42euge/geno-dev"}]
-        result = MagicMock(returncode=0, stdout=json.dumps(fake))
-        monkeypatch.setattr("subprocess.run", lambda *a, **kw: result)
-
-        repos = registry.available()
-        assert repos["geno-dev"].endswith(".git")
+    def test_malformed_cache_is_empty(self, _temp_cache):
+        _temp_cache.write_text("{ not json")
+        registry._cache = None
+        assert registry.available() == {}
 
 
 class TestResolve:
-    def test_resolve_full_name(self, monkeypatch):
-        monkeypatch.setattr("subprocess.run",
-                            lambda *a, **kw: MagicMock(returncode=1))
-        url = registry.resolve("geno-agents")
-        assert url is not None
-        assert "geno-agents" in url
+    @pytest.fixture(autouse=True)
+    def _seeded(self):
+        registry.write_cache({
+            "geno-agents": {"url": "https://github.com/42euge/geno-agents.git"},
+            "geno-loops": {"url": "https://github.com/42euge/geno-loops.git"},
+        })
 
-    def test_resolve_bare_slug(self, monkeypatch):
-        monkeypatch.setattr("subprocess.run",
-                            lambda *a, **kw: MagicMock(returncode=1))
-        url = registry.resolve("agents")
-        assert url is not None
-        assert "geno-agents" in url
+    def test_resolve_full_name(self):
+        assert registry.resolve("geno-loops") == "https://github.com/42euge/geno-loops.git"
 
-    def test_resolve_unknown_returns_none(self, monkeypatch):
-        monkeypatch.setattr("subprocess.run",
-                            lambda *a, **kw: MagicMock(returncode=1))
+    def test_resolve_bare_slug(self):
+        # backwards-compat: bare slug resolves to geno-<slug>
+        assert registry.resolve("agents") == "https://github.com/42euge/geno-agents.git"
+
+    def test_resolve_unknown_full_returns_none(self):
         assert registry.resolve("geno-nonexistent") is None
 
-    def test_resolve_bare_unknown_returns_none(self, monkeypatch):
-        monkeypatch.setattr("subprocess.run",
-                            lambda *a, **kw: MagicMock(returncode=1))
+    def test_resolve_unknown_bare_returns_none(self):
         assert registry.resolve("nonexistent") is None
