@@ -41,8 +41,11 @@ def main(argv: list[str] | None = None) -> int:
     p_promote.add_argument("name")
     p_promote.add_argument("variant")
 
-    p_update = sub.add_parser("update", help="git pull on main worktree")
-    p_update.add_argument("name", nargs="?", help="omit to update all")
+    # update — update geno-tools ITSELF to the latest version
+    sub.add_parser("update", help="update geno-tools itself to the latest version")
+    # upgrade — upgrade installed skillset(s) to latest (git pull + re-register)
+    p_upgrade = sub.add_parser("upgrade", help="upgrade installed skillset(s) to latest")
+    p_upgrade.add_argument("name", nargs="?", help="skillset to upgrade; omit for all")
 
     p_rm = sub.add_parser("remove", help="uninstall a skillset")
     p_rm.add_argument("name")

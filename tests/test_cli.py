@@ -6,8 +6,8 @@ from geno_tools.cli import main
 
 
 EXPECTED_COMMANDS = [
-    "ls", "install", "dev", "fork", "use",
-    "promote", "update", "remove", "deps", "doctor", "discover",
+    "status", "ls", "install", "dev", "fork", "use",
+    "promote", "update", "upgrade", "remove", "deps", "doctor", "discover",
 ]
 
 
