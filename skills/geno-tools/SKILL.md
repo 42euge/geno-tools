@@ -7,7 +7,7 @@ description: >-
 allowed-tools: "Bash(geno-tools *) Bash(python3 -m geno_tools *)"
 metadata:
   author: 42euge
-  version: "0.4.0"
+  version: "0.5.0"
 ---
 
 # geno-tools — Skillset Manager
