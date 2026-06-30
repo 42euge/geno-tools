@@ -255,7 +255,7 @@ class TestUpdateAll:
         monkeypatch.setattr("subprocess.check_call", lambda cmd, **kw: None)
 
         from geno_tools.cli import main
-        rc = main(["update"])
+        rc = main(["upgrade"])
         assert rc == 0
         out = capsys.readouterr().out
         assert "geno-agents" in out
@@ -265,13 +265,42 @@ class TestUpdateAll:
     def test_excludes_bootstrap(self, tmp_root, monkeypatch, capsys):
         (tmp_root / "geno-bootstrap").mkdir()
         from geno_tools.cli import main
-        rc = main(["update"])
+        rc = main(["upgrade"])
         assert rc == 0
         assert "no skillsets" in capsys.readouterr().out
 
-    def test_empty_install(self, tmp_root, capsys):
+
+# ── update = self-update geno-tools ──────────────────────────────────────
+
+
+class TestSelfUpdate:
+    def test_reinstalls_cli_and_prints_reload(self, monkeypatch, capsys):
+        calls = []
+        monkeypatch.setattr("shutil.which", lambda x: "/usr/bin/pipx")
+        monkeypatch.setattr("subprocess.call",
+                            lambda cmd, **kw: calls.append(cmd) or 0)
         from geno_tools.cli import main
         rc = main(["update"])
+        assert rc == 0
+        # pipx reinstall from the GitHub URL happened
+        assert any(c[0] == "/usr/bin/pipx" and "install" in c
+                   and any("github.com/42euge/geno-tools" in a for a in c)
+                   for c in calls)
+        out = capsys.readouterr().out
+        # the one in-session step a CLI can't do is surfaced
+        assert "/reload-plugins" in out
+
+    def test_no_pipx_points_at_setup(self, monkeypatch, capsys):
+        monkeypatch.setattr("shutil.which", lambda x: None)
+        monkeypatch.setattr("geno_tools.commands._find_pipx", lambda: None)
+        from geno_tools.cli import main
+        rc = main(["update"])
+        assert rc == 1
+        assert "geno-tools-setup" in capsys.readouterr().out
+
+    def test_empty_install(self, tmp_root, capsys):
+        from geno_tools.cli import main
+        rc = main(["upgrade"])
         assert rc == 0
         assert "no skillsets" in capsys.readouterr().out
 
@@ -295,14 +324,14 @@ class TestUpdateCli:
         monkeypatch.setattr("subprocess.check_call", lambda cmd, **kw: None)
 
         from geno_tools.cli import main
-        rc = main(["update", "geno-dev"])
+        rc = main(["upgrade", "geno-dev"])
         assert rc == 0
         out = capsys.readouterr().out
         assert "geno-dev" in out
 
     def test_nonexistent_fails(self, tmp_root, capsys):
         from geno_tools.cli import main
-        rc = main(["update", "geno-nonexistent"])
+        rc = main(["upgrade", "geno-nonexistent"])
         assert rc == 1
         assert "not installed" in capsys.readouterr().err
 
@@ -324,7 +353,7 @@ class TestUpdateCli:
         monkeypatch.setattr("subprocess.check_call", lambda cmd, **kw: None)
 
         from geno_tools.cli import main
-        rc = main(["update", "dev"])
+        rc = main(["upgrade", "dev"])
         assert rc == 0
         out = capsys.readouterr().out
         assert "geno-dev" in out

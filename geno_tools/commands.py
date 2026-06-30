@@ -83,7 +83,8 @@ def dispatch(args: argparse.Namespace) -> int:
         "fork": _fork,
         "use": _use,
         "promote": _promote,
-        "update": _update,
+        "update": _self_update,   # update geno-tools itself
+        "upgrade": _upgrade,      # upgrade installed skillset(s) — was `update`
         "remove": _remove,
         "deps": _deps,
         "doctor": _doctor,
@@ -136,7 +137,7 @@ def _status(args: argparse.Namespace) -> int:
     behind = [r for r in rows if r["state"].startswith("behind")]
     if behind:
         print()
-        print(_dim(f"  {len(behind)} behind remote — geno-tools update"))
+        print(_dim(f"  {len(behind)} behind remote — geno-tools upgrade"))
     return 0
 
 
@@ -673,7 +674,65 @@ def _promote(args: argparse.Namespace) -> int:
     return _todo(f"promote {args.name} {args.variant}")
 
 
-def _update(args: argparse.Namespace) -> int:
+REPO_URL = "https://github.com/42euge/geno-tools.git"
+_CC_MARKETPLACE = Path.home() / ".claude" / "plugins" / "marketplaces" / "geno-tools"
+
+
+def _self_update(args: argparse.Namespace) -> int:
+    """`geno-tools update` — update geno-tools itself to the latest version.
+
+    Does the disk-level half a subprocess can do:
+      1. reinstall the `geno-tools` CLI from the latest published source (pipx);
+      2. refresh the Claude Code marketplace clone, if present.
+    The final plugin reload must happen inside the agent — we print that step,
+    since a CLI can't issue Claude Code's `/reload-plugins` slash command.
+    """
+    print(_bold("geno-tools update"))
+    print(_rule("self-update"))
+    ok = True
+
+    # 1. CLI binary → latest from GitHub (pipx preferred; never pip --user/PEP668)
+    pipx = shutil.which("pipx") or _find_pipx()
+    if pipx:
+        print(_dim(f"  reinstalling CLI via pipx from {REPO_URL} …"))
+        rc = subprocess.call([pipx, "install", "--force", f"git+{REPO_URL}"])
+        if rc == 0:
+            print(_green("  ✓ CLI updated"))
+        else:
+            ok = False
+            print(_red("  ✗ pipx install failed — run /geno-tools-setup"))
+    else:
+        ok = False
+        print(_yellow("  ! pipx not found — run /geno-tools-setup to install the CLI"))
+
+    # 2. Refresh the Claude Code marketplace clone (so /plugin install gets latest)
+    if (_CC_MARKETPLACE / ".git").exists():
+        print(_dim("  refreshing Claude Code marketplace clone …"))
+        rc = subprocess.call(
+            ["git", "-C", str(_CC_MARKETPLACE), "pull", "--quiet", "--ff-only"],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        print(_green("  ✓ marketplace refreshed") if rc == 0
+              else _yellow("  ! marketplace refresh skipped (diverged?)"))
+
+    # 3. The one step a subprocess can't do — tell the user.
+    print()
+    print(_dim("  to load the new plugin in Claude Code, run:"))
+    print("    /plugin install geno-tools@geno-tools")
+    print("    /reload-plugins")
+    print(_dim("  (Codex/Antigravity: re-run the plugin install for your agent)"))
+    return 0 if ok else 1
+
+
+def _find_pipx() -> str | None:
+    """Locate pipx even when it's off a non-interactive PATH (macOS Python bin)."""
+    for p in [Path.home() / ".local" / "bin" / "pipx",
+              *Path.home().glob("Library/Python/*/bin/pipx")]:
+        if p.exists():
+            return str(p)
+    return None
+
+
+def _upgrade(args: argparse.Namespace) -> int:
     if args.name:
         full = paths.normalize(args.name)
         if not paths.skillset_root(full).exists():
