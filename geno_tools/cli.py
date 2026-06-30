@@ -5,21 +5,9 @@ from geno_tools import __version__
 
 
 def main(argv: list[str] | None = None) -> int:
-    argv = list(sys.argv[1:]) if argv is None else list(argv)
-
-    # tt — vendored terminal/session + workspace manager. Intercept before
-    # argparse so tt's full grammar (leading flags like -H/-t, --help, bare
-    # attach targets) passes through untouched to tt's own dispatch. The `tt`
-    # subparser below exists only so `geno-tools --help` lists it.
-    if argv and argv[0] == "tt":
-        from geno_tools.tt.cli import main as tt_main
-        return tt_main(argv[1:]) or 0
-
     parser = argparse.ArgumentParser(prog="geno-tools")
     parser.add_argument("--version", action="version", version=f"geno-tools {__version__}")
     sub = parser.add_subparsers(dest="cmd", required=True)
-    sub.add_parser("tt", add_help=False,
-                   help="terminal/session + workspace manager (inv, new-project, wt, …)")
 
     # status — installed skillsets, versions, and drift vs remote main
     sub.add_parser("status", help="installed skillsets: version, commit, drift vs remote")
