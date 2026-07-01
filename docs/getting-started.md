@@ -110,5 +110,14 @@ geno-tools
   geno-notes  0.1.0  main@5f3fb1f  ▼ behind e84fa17
 ```
 
-Update what's behind with `geno-tools update` (one skillset, or all). Remove one
-with `geno-tools remove <name>`.
+Upgrade what's behind with `geno-tools upgrade` (one skillset, or all). Remove
+one with `geno-tools remove <name>`.
+
+To update **geno-tools itself** to the latest version:
+
+```bash
+geno-tools update
+```
+
+It reinstalls the CLI and refreshes the plugin, then prints the one in-session
+step to finish (`/plugin install geno-tools@geno-tools` + `/reload-plugins`).
