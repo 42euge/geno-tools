@@ -7,7 +7,7 @@ description: >-
 allowed-tools: "Bash(geno-tools *) Bash(python3 -m geno_tools *)"
 metadata:
   author: 42euge
-  version: "0.4.0"
+  version: "0.5.0"
 ---
 
 # geno-tools — Skillset Manager
@@ -24,7 +24,7 @@ which geno-tools >/dev/null 2>&1 || echo "geno-tools CLI not on PATH — run /ge
 
 | Category | Skills |
 |----------|--------|
-| **manager/** | `status` · `discover` · `install` · `remove` · `update` · `deps` · `doctor` |
+| **manager/** | `status` · `discover` · `install` · `remove` · `upgrade` · `update` · `deps` · `doctor` |
 | **audit/** | `run` — ecosystem compliance auditor |
 | **meta/harness/** | `fork` · `use` · `promote` — variant evaluate/evolve loop |
 | **meta/ecosystem/** | `discover` · `scan` · `onboarding` — find/absorb new skillsets |
@@ -36,7 +36,8 @@ which geno-tools >/dev/null 2>&1 || echo "geno-tools CLI not on PATH — run /ge
 - `geno-tools discover [--refresh]` — installable skillsets, grouped by category
 - `geno-tools install <repo|url|path>` — clone, venv, register with all agents
 - `geno-tools remove <repo> [--keep-data]` — uninstall from all agents
-- `geno-tools update [repo]` — pull latest + re-register
+- `geno-tools upgrade [repo]` — upgrade installed skillset(s): pull latest + re-register
+- `geno-tools update` — update geno-tools **itself** to the latest version
 - `geno-tools deps <repo>` — dependency tree
 
 (`geno-tools ls` = `status`; `ls --available` = `discover`, deprecated aliases.)
