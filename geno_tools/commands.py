@@ -675,17 +675,60 @@ def _promote(args: argparse.Namespace) -> int:
 
 
 REPO_URL = "https://github.com/42euge/geno-tools.git"
-_CC_MARKETPLACE = Path.home() / ".claude" / "plugins" / "marketplaces" / "geno-tools"
+REPO_SLUG = "42euge/geno-tools"
+REPO_HTTPS = "https://github.com/42euge/geno-tools"
+
+# Each supported agent's headless plugin refresh, keyed by the CLI binary we
+# probe on PATH. `steps` run in order; every step is best-effort (a failing
+# step is reported but never aborts the chain — an "already added" marketplace
+# must not stop the reinstall). `reload` is the one thing no subprocess can do:
+# reload the *currently-running* session. None = nothing to reload out-of-band.
+_AGENT_PLUGIN_STEPS = [
+    {
+        "name": "Claude Code",
+        "bin": "claude",
+        # remove→add→install is the proven dance: forces a fresh marketplace
+        # snapshot (Claude has no `marketplace update`), then reinstalls latest.
+        "steps": [
+            ["plugin", "marketplace", "remove", "geno-tools"],
+            ["plugin", "marketplace", "add", REPO_SLUG],
+            ["plugin", "install", "geno-tools@geno-tools"],
+        ],
+        "reload": "/reload-plugins  (or restart the session)",
+    },
+    {
+        "name": "Codex",
+        "bin": "codex",
+        # add (no-op if present) → upgrade refreshes the git snapshot → add
+        # installs the refreshed plugin from that marketplace.
+        "steps": [
+            ["plugin", "marketplace", "add", REPO_SLUG],
+            ["plugin", "marketplace", "upgrade"],
+            ["plugin", "add", "geno-tools@geno-tools"],
+        ],
+        "reload": "restart Codex to pick up the reinstalled plugin",
+    },
+    {
+        "name": "Antigravity",
+        "bin": "agy",
+        "steps": [
+            ["plugin", "install", REPO_HTTPS],
+        ],
+        "reload": None,
+    },
+]
 
 
 def _self_update(args: argparse.Namespace) -> int:
     """`geno-tools update` — update geno-tools itself to the latest version.
 
-    Does the disk-level half a subprocess can do:
-      1. reinstall the `geno-tools` CLI from the latest published source (pipx);
-      2. refresh the Claude Code marketplace clone, if present.
-    The final plugin reload must happen inside the agent — we print that step,
-    since a CLI can't issue Claude Code's `/reload-plugins` slash command.
+    Fully headless where the agent CLIs allow it:
+      1. reinstall the `geno-tools` CLI from the latest source (pipx);
+      2. for every supported agent found on PATH (Claude Code, Codex,
+         Antigravity), run its real plugin marketplace-refresh + reinstall
+         commands — no slash commands, no "open the agent and type" step.
+    The only thing a subprocess cannot do is reload an *already-running*
+    session, so we print that single per-agent step at the end.
     """
     print(_bold("geno-tools update"))
     print(_rule("self-update"))
@@ -705,22 +748,45 @@ def _self_update(args: argparse.Namespace) -> int:
         ok = False
         print(_yellow("  ! pipx not found — run /geno-tools-setup to install the CLI"))
 
-    # 2. Refresh the Claude Code marketplace clone (so /plugin install gets latest)
-    if (_CC_MARKETPLACE / ".git").exists():
-        print(_dim("  refreshing Claude Code marketplace clone …"))
-        rc = subprocess.call(
-            ["git", "-C", str(_CC_MARKETPLACE), "pull", "--quiet", "--ff-only"],
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        print(_green("  ✓ marketplace refreshed") if rc == 0
-              else _yellow("  ! marketplace refresh skipped (diverged?)"))
+    # 2. Reinstall the plugin in every agent present on this machine.
+    reloads = _reinstall_plugin_for_agents()
 
-    # 3. The one step a subprocess can't do — tell the user.
-    print()
-    print(_dim("  to load the new plugin in Claude Code, run:"))
-    print("    /plugin install geno-tools@geno-tools")
-    print("    /reload-plugins")
-    print(_dim("  (Codex/Antigravity: re-run the plugin install for your agent)"))
+    # 3. The one step a subprocess can't do — reload the running session.
+    if reloads:
+        print()
+        print(_dim("  to finish in a running session:"))
+        for name, how in reloads:
+            print(f"    {name}: {how}")
     return 0 if ok else 1
+
+
+def _reinstall_plugin_for_agents() -> list[tuple[str, str]]:
+    """Reinstall the geno-tools plugin in each supported agent found on PATH.
+
+    Returns the list of (agent name, reload instruction) for agents that were
+    (re)installed and still need an in-session reload.
+    """
+    reloads: list[tuple[str, str]] = []
+    for agent in _AGENT_PLUGIN_STEPS:
+        binary = shutil.which(agent["bin"])
+        if not binary:
+            continue
+        print(_dim(f"  reinstalling plugin for {agent['name']} …"))
+        # Every step is best-effort; the last step is the actual install and
+        # decides whether we consider this agent successfully refreshed.
+        last_rc = 0
+        for step in agent["steps"]:
+            last_rc = subprocess.call(
+                [binary, *step],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if last_rc == 0:
+            print(_green(f"  ✓ {agent['name']} plugin reinstalled"))
+            if agent["reload"]:
+                reloads.append((agent["name"], agent["reload"]))
+        else:
+            print(_yellow(f"  ! {agent['name']} reinstall reported an error "
+                          f"(rc={last_rc}) — try it by hand"))
+    return reloads
 
 
 def _find_pipx() -> str | None:

@@ -119,5 +119,9 @@ To update **geno-tools itself** to the latest version:
 geno-tools update
 ```
 
-It reinstalls the CLI and refreshes the plugin, then prints the one in-session
-step to finish (`/plugin install geno-tools@geno-tools` + `/reload-plugins`).
+It reinstalls the CLI **and** reinstalls the plugin in every supported agent it
+finds on your PATH (Claude Code, Codex, Antigravity) using each agent's own
+headless plugin commands — no slash-command typing required. The only step it
+can't do for you is reloading a session that's already open, so it prints that
+one line to finish (e.g. `/reload-plugins` in Claude Code). New sessions pick up
+the update automatically.

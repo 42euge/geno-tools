@@ -298,6 +298,43 @@ class TestSelfUpdate:
         assert rc == 1
         assert "geno-tools-setup" in capsys.readouterr().out
 
+    def test_reinstalls_plugin_only_for_agents_on_path(self, monkeypatch, capsys):
+        """Only agents whose CLI is on PATH get their real plugin commands run."""
+        # claude + codex present, agy (Antigravity) absent.
+        present = {"pipx": "/usr/bin/pipx",
+                   "claude": "/usr/bin/claude", "codex": "/usr/bin/codex"}
+        monkeypatch.setattr("shutil.which", lambda x: present.get(x))
+        calls = []
+        monkeypatch.setattr("subprocess.call",
+                            lambda cmd, **kw: calls.append(cmd) or 0)
+        from geno_tools.cli import main
+        rc = main(["update"])
+        assert rc == 0
+        # Claude's install ran through its own binary…
+        assert ["/usr/bin/claude", "plugin", "install",
+                "geno-tools@geno-tools"] in calls
+        # …Codex's did too…
+        assert ["/usr/bin/codex", "plugin", "add",
+                "geno-tools@geno-tools"] in calls
+        # …but Antigravity was never invoked (not on PATH).
+        assert not any(c[0].endswith("agy") for c in calls)
+        out = capsys.readouterr().out
+        assert "Claude Code" in out and "Codex" in out
+
+    def test_install_failure_reported_not_fatal(self, monkeypatch, capsys):
+        """A failing agent reinstall is surfaced but doesn't crash update."""
+        present = {"pipx": "/usr/bin/pipx", "claude": "/usr/bin/claude"}
+        monkeypatch.setattr("shutil.which", lambda x: present.get(x))
+
+        def fake_call(cmd, **kw):
+            return 0 if cmd[0] == "/usr/bin/pipx" else 1  # agent steps fail
+
+        monkeypatch.setattr("subprocess.call", fake_call)
+        from geno_tools.cli import main
+        rc = main(["update"])
+        assert rc == 0  # pipx succeeded → overall ok
+        assert "try it by hand" in capsys.readouterr().out
+
     def test_empty_install(self, tmp_root, capsys):
         from geno_tools.cli import main
         rc = main(["upgrade"])
