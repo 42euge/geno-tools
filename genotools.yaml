@@ -1,5 +1,5 @@
 name: geno-tools
-version: "0.5.0"
+version: "0.6.0"
 description: Installer and meta-CLI for geno-* skillsets
 requires:
   - geno-dev
