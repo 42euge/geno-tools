@@ -4,11 +4,11 @@ description: >-
   Audit a geno-ecosystem repo for compliance with skillset conventions.
   Use when user says /geno-tools-audit-run, wants to check if a repo is a valid
   geno-* skillset, or needs to verify ecosystem compliance before publishing.
-allowed-tools: "Bash(find *) Bash(ls *) Bash(cat *) Bash(grep *) Bash(git *) Bash(python3 -c *) Read(*)"
+allowed-tools: "Bash(geno-tools audit *) Bash(find *) Bash(ls *) Bash(cat *) Bash(grep *) Bash(git *) Bash(python3 -c *) Read(*) Edit(*)"
 license: MIT
 metadata:
   author: 42euge
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # audit/run — Ecosystem Compliance Auditor
@@ -16,6 +16,24 @@ metadata:
 Validates that a `geno-{name}` repo meets the conventions required for installation and management by `geno-tools`.
 
 The audit runs checks in three tiers: **required** (FAIL), **recommended** (WARN), and **optional** (INFO). A repo must pass all required checks to be installable via `geno-tools install`.
+
+## Run it
+
+Don't hand-run finds/greps/version-compares — that's exactly where a manual audit
+drifts. **Delegate the mechanical checks to the deterministic backing:**
+
+```
+geno-tools audit [path]     # default: cwd
+```
+
+It prints one line per check tagged `FAIL` / `WARN` / `INFO` / `OK`, then a verdict
+(exit 1 if any FAIL). That command is the durable, reproducible half of this skill.
+
+**Your job as the skill:** run it, report the results clearly, and — when the user
+wants — *fix* the failures. The reference below explains what each check means and
+how to remediate (e.g. bump the mismatched version, add the missing pointer file,
+split a monolithic CLI into sub-skills). The reference is for **fixing**; the command
+is for **checking**.
 
 ---
 

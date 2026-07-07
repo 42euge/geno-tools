@@ -91,8 +91,37 @@ def dispatch(args: argparse.Namespace) -> int:
         "discover": _discover,
         "scan": _scan,
         "docs": _docs,
+        "audit": _audit,
     }
     return handlers[args.cmd](args)
+
+
+def _audit(args: argparse.Namespace) -> int:
+    """`geno-tools audit [path]` — check a repo against ecosystem conventions."""
+    from pathlib import Path
+
+    from geno_tools import audit as auditmod
+
+    target = getattr(args, "path", None) or "."
+    results = auditmod.audit(target)
+    root = Path(target).resolve()
+    order = {"FAIL": 0, "WARN": 1, "INFO": 2, "OK": 3}
+    results.sort(key=lambda r: order.get(r[0], 9))
+    tag = {"FAIL": _red("FAIL"), "WARN": _yellow("WARN"),
+           "INFO": _dim("INFO"), "OK": _green(" OK ")}
+    print(_bold(f"audit · {root.name}") + _dim(f"  ({root})"))
+    for level, check, detail in results:
+        print(f"  [{tag[level]}] {check}" + (_dim(f"  {detail}") if detail else ""))
+    fails = sum(1 for r in results if r[0] == "FAIL")
+    warns = sum(1 for r in results if r[0] == "WARN")
+    print(_rule())
+    if fails:
+        print(f"  {_red(f'{fails} FAIL')}"
+              + (_yellow(f" · {warns} WARN") if warns else "")
+              + _dim("  — required checks must pass to be installable"))
+    else:
+        print(f"  {_green('compliant')}" + (_yellow(f" · {warns} WARN") if warns else ""))
+    return 1 if fails else 0
 
 
 # ── status / available ──────────────────────────────────────────────────────
