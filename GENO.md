@@ -13,6 +13,7 @@ the full lifecycle of skills across all supported coding agents.
 | geno-tools-manager-discover | manager | /geno-tools-manager-discover |
 | geno-tools-manager-install | manager | /geno-tools-manager-install |
 | geno-tools-manager-remove | manager | /geno-tools-manager-remove |
+| geno-tools-manager-upgrade | manager | /geno-tools-manager-upgrade |
 | geno-tools-manager-update | manager | /geno-tools-manager-update |
 | geno-tools-manager-deps | manager | /geno-tools-manager-deps |
 | geno-tools-manager-doctor | manager | /geno-tools-manager-doctor |
@@ -44,7 +45,7 @@ geno-tools/
 ├── skills/                    # skill definitions (nested category tree)
 │   ├── geno-tools/SKILL.md    #   umbrella skill
 │   ├── setup/SKILL.md         #   bootstrap / PATH setup
-│   ├── manager/               #   install, remove, update, status, discover, deps, doctor
+│   ├── manager/               #   install, remove, upgrade, update, status, discover, deps, doctor
 │   ├── audit/                 #   ecosystem compliance auditor
 │   ├── meta/harness/          #   fork / use / promote variant loop
 │   ├── meta/ecosystem/        #   discover / scan / onboarding
