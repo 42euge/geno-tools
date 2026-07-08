@@ -57,6 +57,10 @@ def main(argv: list[str] | None = None) -> int:
 
     sub.add_parser("doctor", help="verify symlinks, worktrees, venvs")
 
+    # durability layer for the audit/run skill — deterministic checks the skill delegates to
+    p_audit = sub.add_parser("audit", help="check a repo for ecosystem compliance (backs the audit skill)")
+    p_audit.add_argument("path", nargs="?", default=".", help="repo path (default: cwd)")
+
     p_disc = sub.add_parser("discover", help="find & list installable skillsets, by category")
     p_disc.add_argument("--refresh", action="store_true",
                         help="force a network refresh (otherwise auto-refreshes if >30min stale)")
