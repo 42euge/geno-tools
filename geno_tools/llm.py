@@ -1,19 +1,103 @@
 """OpenAI-compatible LLM client for the geno ecosystem.
 
-Zero extra dependencies — uses only stdlib urllib.request + json.
+Zero extra dependencies — uses only stdlib urllib.request + json + sqlite3.
 Used by `geno-tools llm probe` (benchmark) and `geno-tools llm suggest`
 (dot-notation tab name suggestion).
+
+Probe history is stored in ~/.geno/llm.db (SQLite). Rankings are derived
+from the stored runs (EMA of ttft, total, tok/sec) so they stabilise over
+repeated probes instead of bouncing on network noise.
 """
 
 from __future__ import annotations
 
 import json
+import sqlite3
 import time
 import urllib.error
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Iterator
+
+DB_PATH = Path.home() / ".geno" / "llm.db"
+
+
+# ---- SQLite history store --------------------------------------------------
+
+def _db() -> sqlite3.Connection:
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    con = sqlite3.connect(DB_PATH)
+    con.execute("""
+        CREATE TABLE IF NOT EXISTS probe_runs (
+            id        INTEGER PRIMARY KEY AUTOINCREMENT,
+            ts        INTEGER NOT NULL,          -- unix timestamp
+            model     TEXT    NOT NULL,
+            endpoint  TEXT    NOT NULL,
+            ttft_ms   INTEGER,
+            total_ms  INTEGER,
+            tok_per_sec REAL,
+            samples   INTEGER,
+            ok        INTEGER NOT NULL DEFAULT 1,
+            error     TEXT
+        )
+    """)
+    con.execute("CREATE INDEX IF NOT EXISTS idx_model ON probe_runs(model, endpoint, ts)")
+    con.commit()
+    return con
+
+
+def save_run(result: dict, endpoint: str) -> None:
+    """Persist one probe result to the history DB."""
+    with _db() as con:
+        con.execute(
+            "INSERT INTO probe_runs (ts,model,endpoint,ttft_ms,total_ms,tok_per_sec,samples,ok,error) "
+            "VALUES (?,?,?,?,?,?,?,?,?)",
+            (int(time.time()), result["model"], endpoint,
+             result.get("ttft_ms"), result.get("total_ms"),
+             result.get("tok_per_sec"), result.get("samples", 0),
+             1 if result.get("ok") else 0, result.get("error", "")),
+        )
+
+
+def load_rankings(endpoint: str, limit_per_model: int = 10) -> list[dict]:
+    """Return EMA-averaged rankings from the last N runs per model.
+
+    Sorted by avg_ttft_ms ascending (fastest first). Only includes models
+    that had at least one successful run against this endpoint.
+    """
+    with _db() as con:
+        rows = con.execute("""
+            SELECT model,
+                   AVG(ttft_ms)     AS avg_ttft_ms,
+                   AVG(total_ms)    AS avg_total_ms,
+                   AVG(tok_per_sec) AS avg_tok_per_sec,
+                   SUM(samples)     AS total_samples,
+                   COUNT(*)         AS runs,
+                   MAX(ts)          AS last_seen
+            FROM (
+                SELECT model, ttft_ms, total_ms, tok_per_sec, samples, ts
+                FROM probe_runs
+                WHERE endpoint = ? AND ok = 1
+                ORDER BY ts DESC
+                LIMIT ?
+            )
+            GROUP BY model
+            ORDER BY avg_ttft_ms ASC
+        """, (endpoint, limit_per_model * 200)).fetchall()
+    return [
+        {
+            "model": r[0],
+            "ttft_ms": round(r[1]) if r[1] is not None else 9999999,
+            "total_ms": round(r[2]) if r[2] is not None else 9999999,
+            "tok_per_sec": round(r[3], 1) if r[3] else 0.0,
+            "total_samples": r[4] or 0,
+            "runs": r[5],
+            "last_seen": r[6],
+            "ok": True,
+        }
+        for r in rows
+    ]
 
 
 # Prompt used when probing latency — short, fast to respond.
@@ -72,10 +156,11 @@ def discover_models(endpoint: str, token: str, timeout: int = 10) -> list[str]:
 
 
 def probe_model(endpoint: str, token: str, model: str,
-                timeout: int = 10) -> dict:
-    """Fire a minimal chat completion and measure latency.
+                samples: int = 3, timeout: int = 10) -> dict:
+    """Fire N chat completions and return averaged latency + tok/sec.
 
-    Returns: {model, ttft_ms, total_ms, ok, error}
+    Returns: {model, ttft_ms, total_ms, tok_per_sec, samples, ok, error}
+    tok_per_sec is output-tokens / total_seconds, averaged across samples.
     """
     url = endpoint.rstrip("/") + "/chat/completions"
     payload = {
@@ -83,33 +168,54 @@ def probe_model(endpoint: str, token: str, model: str,
         "messages": [{"role": "user", "content": _PROBE_PROMPT}],
         "max_tokens": 8,
     }
-    try:
-        _, ttft, total = _post(url, token, payload, timeout)
-        return {
-            "model": model,
-            "ttft_ms": round(ttft * 1000),
-            "total_ms": round(total * 1000),
-            "ok": True,
-            "error": "",
-        }
-    except Exception as e:  # noqa: BLE001
+    ttfts, totals, tps_list = [], [], []
+    last_err = ""
+    for _ in range(samples):
+        try:
+            resp, ttft, total = _post(url, token, payload, timeout)
+            ttfts.append(ttft)
+            totals.append(total)
+            # tok/sec: completion tokens / total elapsed
+            usage = resp.get("usage") or {}
+            completion_tokens = usage.get("completion_tokens", 0)
+            if completion_tokens and total > 0:
+                tps_list.append(completion_tokens / total)
+        except Exception as e:  # noqa: BLE001
+            last_err = str(e)[:120]
+
+    if not ttfts:
         return {"model": model, "ttft_ms": 9999999, "total_ms": 9999999,
-                "ok": False, "error": str(e)[:120]}
+                "tok_per_sec": 0.0, "samples": 0, "ok": False, "error": last_err}
+
+    return {
+        "model": model,
+        "ttft_ms": round(sum(ttfts) / len(ttfts) * 1000),
+        "total_ms": round(sum(totals) / len(totals) * 1000),
+        "tok_per_sec": round(sum(tps_list) / len(tps_list), 1) if tps_list else 0.0,
+        "samples": len(ttfts),
+        "ok": True,
+        "error": "",
+    }
 
 
-def probe_all(endpoint: str, token: str,
-              concurrency: int = 8, timeout: int = 10) -> list[dict]:
-    """Discover all models on the endpoint and benchmark each in parallel.
+def probe_all(endpoint: str, token: str, concurrency: int = 8,
+              timeout: int = 10, samples: int = 3) -> list[dict]:
+    """Discover all models, benchmark each in parallel (N samples each).
 
+    Each result is persisted to ~/.geno/llm.db. Rankings returned here
+    are the fresh raw averages from this run; call load_rankings() to get
+    the historical EMA-averaged view across all runs.
     Returns list sorted by ttft_ms ascending (fastest first).
     """
     models = discover_models(endpoint, token, timeout)
     results = []
     with ThreadPoolExecutor(max_workers=min(concurrency, len(models) or 1)) as pool:
-        futures = {pool.submit(probe_model, endpoint, token, m, timeout): m
+        futures = {pool.submit(probe_model, endpoint, token, m, samples, timeout): m
                    for m in models}
         for fut in as_completed(futures):
-            results.append(fut.result())
+            r = fut.result()
+            save_run(r, endpoint)
+            results.append(r)
     results.sort(key=lambda r: r["ttft_ms"])
     return results
 
