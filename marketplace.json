@@ -8,7 +8,7 @@
       "name": "geno-tools",
       "source": {
         "source": "local",
-        "path": ".codex-plugin"
+        "path": "./plugins/geno-tools"
       },
       "policy": {
         "installation": "AVAILABLE"
