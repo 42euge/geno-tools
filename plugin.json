@@ -13,6 +13,8 @@
     "./skills",
     "./skills/audit",
     "./skills/author",
+    "./skills/config",
+    "./skills/llm",
     "./skills/manager",
     "./skills/meta/ecosystem",
     "./skills/meta/harness"
