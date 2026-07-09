@@ -96,6 +96,7 @@ def dispatch(args: argparse.Namespace) -> int:
                   else _config_set,
         "llm": _llm,
         "workspace": _workspace,
+        "install-agent": _install_agent,
     }
     return handlers[args.cmd](args)
 
@@ -1224,4 +1225,81 @@ def _workspace_create(args: argparse.Namespace) -> int:
     print(f"Created {out_path}")
     if not paths_arg:
         print("  Tip: add folders with VS Code's 'Add Folder to Workspace…' or edit the JSON directly.")
+    return 0
+
+
+# ── install-agent ────────────────────────────────────────────────────────────
+
+_AGENT_TARGETS = {
+    "claude-code":  ("~/.claude",              "plugin.json"),
+    "codex":        ("~/.codex",               "plugin.json"),
+    "antigravity":  ("~/.antigravity",         "plugin.json"),
+}
+
+
+def _install_agent(args: argparse.Namespace) -> int:
+    """`geno-tools install-agent <agent> [-m manifest] [--dry-run] [--list]`
+
+    Writes a skill manifest into a coding agent's config directory so the agent
+    discovers all installed geno-* skillsets.
+    """
+    import json as _json
+
+    if getattr(args, "list_agents", False):
+        print(f"{'AGENT':<16}  CONFIG DIR")
+        print(f"{'-----':<16}  ----------")
+        for name, (cfg, _) in sorted(_AGENT_TARGETS.items()):
+            resolved = str(Path(cfg).expanduser())
+            exists = " ✓" if Path(resolved).exists() else ""
+            print(f"{name:<16}  {resolved}{exists}")
+        return 0
+
+    agent = getattr(args, "agent", None)
+    if not agent:
+        print("Usage: geno-tools install-agent <agent> [options]", file=sys.stderr)
+        print("       geno-tools install-agent --list", file=sys.stderr)
+        return 1
+
+    if agent not in _AGENT_TARGETS:
+        print(f"Unknown agent {agent!r}. Known: {', '.join(sorted(_AGENT_TARGETS))}", file=sys.stderr)
+        return 1
+
+    cfg_dir_raw, plugin_file = _AGENT_TARGETS[agent]
+    cfg_dir = Path(cfg_dir_raw).expanduser()
+    dest = cfg_dir / plugin_file
+
+    manifest_path = getattr(args, "manifest", None)
+    if manifest_path:
+        manifest = _json.loads(Path(manifest_path).read_text())
+    else:
+        skill_dirs = []
+        if paths.ROOT.exists():
+            for entry in sorted(paths.ROOT.iterdir()):
+                if not entry.is_dir():
+                    continue
+                active_skills = entry / "active" / "skills"
+                if active_skills.exists():
+                    skill_dirs.append(str(active_skills))
+        manifest = {
+            "name": "geno",
+            "version": "0.1.0",
+            "description": "Geno ecosystem — agentic workspace orchestration",
+            "repository": "https://github.com/42euge/geno-tools",
+            "skills": skill_dirs,
+        }
+
+    out = _json.dumps(manifest, indent=2) + "\n"
+    print(f"agent:    {agent}")
+    print(f"config:   {cfg_dir}")
+    print(f"manifest: {dest}")
+    print(f"skills:   {len(manifest.get('skills', []))} entries")
+
+    if getattr(args, "dry_run", False):
+        print("\n[dry-run] would write:")
+        print(out)
+        return 0
+
+    cfg_dir.mkdir(parents=True, exist_ok=True)
+    dest.write_text(out)
+    print(f"\n✓ installed geno skills into {dest}")
     return 0
