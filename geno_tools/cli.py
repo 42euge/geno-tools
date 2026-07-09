@@ -108,6 +108,18 @@ def main(argv: list[str] | None = None) -> int:
     p_ws_create.add_argument("paths", nargs="*", help="folders to include")
     p_ws_create.add_argument("--output", default=".", help="output directory (default: cwd)")
 
+    # install-agent — register geno skills into a coding agent's config dir
+    p_ia = sub.add_parser("install-agent",
+                          help="register geno skills into a coding agent (claude-code, codex, …)")
+    p_ia.add_argument("agent", nargs="?", default=None,
+                      help="agent name: claude-code | codex | antigravity")
+    p_ia.add_argument("-m", "--manifest", default=None,
+                      help="path to a custom skill manifest JSON")
+    p_ia.add_argument("--dry-run", action="store_true",
+                      help="print what would be written without writing anything")
+    p_ia.add_argument("--list", dest="list_agents", action="store_true",
+                      help="list supported agents and their config directories")
+
     args = parser.parse_args(argv)
 
     from geno_tools import commands
