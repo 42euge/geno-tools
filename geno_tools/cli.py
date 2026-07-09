@@ -77,6 +77,37 @@ def main(argv: list[str] | None = None) -> int:
     p_docs.add_argument("--dry-run", action="store_true",
                         help="print without writing files")
 
+    # config — read/write ~/.geno/config.yaml (and settings.json for secrets)
+    p_cfg = sub.add_parser("config", help="show or set geno ecosystem config values")
+    cfg_sub = p_cfg.add_subparsers(dest="config_cmd")
+    cfg_sub.add_parser("show", help="print current config (token redacted)")
+    p_cfg_set = cfg_sub.add_parser("set", help="set a config key (dot-path, e.g. llm.endpoint)")
+    p_cfg_set.add_argument("key", help="dot-path key (e.g. llm.endpoint, llm.token, llm.model)")
+    p_cfg_set.add_argument("value", help="value to set")
+
+    # llm — LLM endpoint management and smart features
+    p_llm = sub.add_parser("llm", help="LLM endpoint management (probe, suggest)")
+    llm_sub = p_llm.add_subparsers(dest="llm_cmd")
+    llm_sub.add_parser("probe", help="discover and benchmark all models on the configured endpoint")
+    p_llm_suggest = llm_sub.add_parser("suggest", help="suggest a dot-notation tab name from context")
+    p_llm_suggest.add_argument("--cwd", default="", help="working directory")
+    p_llm_suggest.add_argument("--job", default="", help="running job/process name")
+    p_llm_suggest.add_argument("--title", default="", help="raw tab title")
+    p_llm_suggest.add_argument("--model", default="", help="override model (default: top ranked)")
+
+    # workspace — find, open, and create VS Code workspace files
+    p_ws = sub.add_parser("workspace", help="manage VS Code .code-workspace files")
+    ws_sub = p_ws.add_subparsers(dest="ws_cmd")
+    p_ws_ls = ws_sub.add_parser("ls", help="list all .code-workspace files under ~/code")
+    p_ws_ls.add_argument("--root", default=None, help="search root (default: ~/code)")
+    p_ws_open = ws_sub.add_parser("open", help="open a workspace in VS Code")
+    p_ws_open.add_argument("target", help="workspace name, index from ls, or path")
+    p_ws_open.add_argument("--root", default=None, help="search root (default: ~/code)")
+    p_ws_create = ws_sub.add_parser("create", help="create a new .code-workspace file")
+    p_ws_create.add_argument("name", help="workspace name (becomes <name>.code-workspace)")
+    p_ws_create.add_argument("paths", nargs="*", help="folders to include")
+    p_ws_create.add_argument("--output", default=".", help="output directory (default: cwd)")
+
     args = parser.parse_args(argv)
 
     from geno_tools import commands
