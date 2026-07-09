@@ -1231,10 +1231,9 @@ def _workspace_create(args: argparse.Namespace) -> int:
 # ── install-agent ────────────────────────────────────────────────────────────
 
 _AGENT_TARGETS = {
-    "claude-code": ("~/.claude",              "plugin.json"),
-    "codex":       ("~/.codex",               "plugin.json"),
-    "cursor":      ("~/.cursor",              "geno-plugin.json"),
-    "windsurf":    ("~/.codeium/windsurf",    "geno-plugin.json"),
+    "claude-code":  ("~/.claude",              "plugin.json"),
+    "codex":        ("~/.codex",               "plugin.json"),
+    "antigravity":  ("~/.antigravity",         "plugin.json"),
 }
 
 

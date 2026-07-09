@@ -112,7 +112,7 @@ def main(argv: list[str] | None = None) -> int:
     p_ia = sub.add_parser("install-agent",
                           help="register geno skills into a coding agent (claude-code, codex, …)")
     p_ia.add_argument("agent", nargs="?", default=None,
-                      help="agent name: claude-code | codex | cursor | windsurf")
+                      help="agent name: claude-code | codex | antigravity")
     p_ia.add_argument("-m", "--manifest", default=None,
                       help="path to a custom skill manifest JSON")
     p_ia.add_argument("--dry-run", action="store_true",

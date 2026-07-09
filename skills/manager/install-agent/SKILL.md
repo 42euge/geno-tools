@@ -2,7 +2,7 @@
 name: geno-tools-manager-install-agent
 description: >-
   Register the geno ecosystem skill manifest into a coding agent (claude-code,
-  codex, cursor, windsurf) so the agent discovers and can invoke geno skills.
+  codex, antigravity) so the agent discovers and can invoke geno skills.
   Supports custom manifests via -m flag.
 allowed-tools: "Bash(geno-tools install-agent *)"
 metadata:
@@ -40,8 +40,7 @@ geno-tools install-agent claude-code -m ~/my-skill-manifest.json
 |---|---|---|
 | `claude-code` | `~/.claude/` | `plugin.json` |
 | `codex` | `~/.codex/` | `plugin.json` |
-| `cursor` | `~/.cursor/` | `geno-plugin.json` |
-| `windsurf` | `~/.codeium/windsurf/` | `geno-plugin.json` |
+| `antigravity` | `~/.antigravity/` | `plugin.json` |
 
 ## How it works
 
