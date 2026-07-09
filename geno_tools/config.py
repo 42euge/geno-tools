@@ -143,10 +143,13 @@ def set_config(key: str, value: str) -> None:
         if p not in cur or not isinstance(cur[p], dict):
             cur[p] = {}
         cur = cur[p]
-    # Coerce to int/float/bool where sensible
-    try:
-        v: object = int(value)
-    except ValueError:
+    # Coerce to int/float/bool where sensible — skip if already a non-string type
+    if not isinstance(value, str):
+        v: object = value
+    else:
+      try:
+        v = int(value)
+      except ValueError:
         try:
             v = float(value)
         except ValueError:
