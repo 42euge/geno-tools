@@ -92,6 +92,10 @@ def dispatch(args: argparse.Namespace) -> int:
         "scan": _scan,
         "docs": _docs,
         "audit": _audit,
+        "config": _config_show if getattr(args, "config_cmd", None) == "show"
+                  else _config_set,
+        "llm": _llm,
+        "workspace": _workspace,
     }
     return handlers[args.cmd](args)
 
@@ -979,3 +983,245 @@ def _docs(args: argparse.Namespace) -> int:
 def _todo(msg: str) -> int:
     print(f"[not yet implemented] {msg}", file=sys.stderr)
     return 2
+
+
+# ── config subcommand ─────────────────────────────────────────────────────────
+
+def _config_show(args: argparse.Namespace) -> int:
+    """`geno-tools config show` — print current config, redacting secrets."""
+    import json as _json
+    from geno_tools import config as cfg
+    data = cfg.load()
+    # Redact token
+    if "llm" in data:
+        data = {**data, "llm": {**data["llm"], "token": "***" if cfg.get_llm().get("token") else ""}}
+    print(yaml.safe_dump(data, sort_keys=False).rstrip())
+    settings = cfg._SETTINGS_FILE
+    if settings.exists():
+        print(f"\n# token set in {settings}: yes")
+    else:
+        print(f"\n# token not yet set — run: geno-tools config set llm.token <token>")
+    return 0
+
+
+def _config_set(args: argparse.Namespace) -> int:
+    """`geno-tools config set <key> <value>` — set a config value."""
+    from geno_tools import config as cfg
+    cfg.set_config(args.key, args.value)
+    dest = "~/.geno/settings.json" if args.key in ("llm.token",) else "~/.geno/config.yaml"
+    if _is_tty():
+        print(f"set {args.key} in {dest}")
+    return 0
+
+
+# ── llm subcommand ────────────────────────────────────────────────────────────
+
+def _llm(args: argparse.Namespace) -> int:
+    """`geno-tools llm <sub>` dispatcher."""
+    sub = getattr(args, "llm_cmd", None) or "probe"
+    if sub == "probe":
+        return _llm_probe(args)
+    if sub == "suggest":
+        return _llm_suggest(args)
+    print(f"Unknown llm subcommand '{sub}'. Use: probe, suggest", file=sys.stderr)
+    return 1
+
+
+def _llm_probe(args: argparse.Namespace) -> int:
+    """`geno-tools llm probe` — discover models on the LiteLLM endpoint and benchmark them."""
+    from geno_tools import config as cfg, llm as gllm
+    lc = cfg.get_llm()
+    endpoint = lc.get("endpoint", "").strip()
+    token = lc.get("token", "")
+    timeout = int(lc.get("timeout", 10))
+
+    if not endpoint:
+        print("No LLM endpoint configured. Run:\n  geno-tools config set llm.endpoint <url>",
+              file=sys.stderr)
+        return 1
+
+    bold = _bold if _is_tty() else lambda s: s
+    dim = _dim if _is_tty() else lambda s: s
+    green = _green if _is_tty() else lambda s: s
+    red = _red if _is_tty() else lambda s: s
+
+    print(f"Discovering models at {endpoint} …")
+    try:
+        models = gllm.discover_models(endpoint, token, timeout)
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+    print(f"Found {len(models)} model(s). Probing (this may take a moment)…\n")
+
+    results = gllm.probe_all(endpoint, token, concurrency=8, timeout=timeout)
+
+    # Print ranked table
+    w = max((len(r["model"]) for r in results), default=10)
+    print(f"{'#':<3}  {'MODEL':<{w}}  {'TTFT':>7}  {'TOTAL':>7}  STATUS")
+    print("-" * (w + 28))
+    for i, r in enumerate(results, 1):
+        status = green("ok") if r["ok"] else red(r["error"][:40])
+        ttft = f"{r['ttft_ms']}ms" if r["ok"] else "—"
+        total = f"{r['total_ms']}ms" if r["ok"] else "—"
+        print(f"{i:<3}  {r['model']:<{w}}  {ttft:>7}  {total:>7}  {status}")
+
+    # Persist rankings to config.yaml
+    ok_results = [r for r in results if r["ok"]]
+    rankings = [{"model": r["model"], "ttft_ms": r["ttft_ms"]} for r in ok_results]
+    cfg.set_config("llm.model_rankings", rankings)  # type: ignore[arg-type]
+
+    # Persist top model if none configured
+    if not lc.get("model") and ok_results:
+        top = ok_results[0]["model"]
+        cfg.set_config("llm.model", top)
+        print(f"\n{bold('Top model saved')}: {top}")
+
+    print(f"\nRankings written to ~/.geno/config.yaml")
+    return 0
+
+
+def _llm_suggest(args: argparse.Namespace) -> int:
+    """`geno-tools llm suggest --cwd ... --job ... --title ...`
+    Print a suggested dot-notation tab name to stdout."""
+    from geno_tools import config as cfg, llm as gllm
+    lc = cfg.get_llm()
+    endpoint = lc.get("endpoint", "").strip()
+    token = lc.get("token", "")
+    timeout = int(lc.get("timeout", 10))
+
+    # Pick model: explicit flag > configured > top ranking
+    model = getattr(args, "model", None) or lc.get("model", "")
+    if not model:
+        rankings = lc.get("model_rankings") or []
+        if rankings:
+            model = rankings[0].get("model", "")
+    if not model:
+        print("", end="")  # no suggestion — caller falls back to manual input
+        return 0
+    if not endpoint:
+        print("", end="")
+        return 0
+
+    name = gllm.suggest_name(
+        endpoint, token, model,
+        cwd=getattr(args, "cwd", "") or "",
+        job=getattr(args, "job", "") or "",
+        title=getattr(args, "title", "") or "",
+        timeout=timeout,
+    )
+    print(name, end="")
+    return 0
+
+
+# ---------------------------------------------------------------------------
+# VS Code workspace management
+# ---------------------------------------------------------------------------
+
+def _workspace(args: argparse.Namespace) -> int:
+    """`geno-tools workspace <sub>` — find, open, and create .code-workspace files."""
+    sub = getattr(args, "ws_cmd", None) or "ls"
+    if sub == "ls":
+        return _workspace_ls(args)
+    if sub == "open":
+        return _workspace_open(args)
+    if sub == "create":
+        return _workspace_create(args)
+    print(f"Unknown workspace subcommand '{sub}'. Use: ls, open, create", file=sys.stderr)
+    return 1
+
+
+def _find_workspaces(root: Path | None = None) -> list[Path]:
+    """Recursively find all *.code-workspace files under root (default ~/code)."""
+    import glob
+    search_root = root or (Path.home() / "code")
+    if not search_root.exists():
+        return []
+    return sorted(Path(p) for p in glob.glob(
+        str(search_root / "**" / "*.code-workspace"), recursive=True
+    ))
+
+
+def _workspace_ls(args: argparse.Namespace) -> int:
+    root = Path(args.root).expanduser() if getattr(args, "root", None) else None
+    workspaces = _find_workspaces(root)
+    if not workspaces:
+        print("No .code-workspace files found.")
+        return 0
+    bold = _bold if _is_tty() else lambda s: s
+    dim = _dim if _is_tty() else lambda s: s
+    home = Path.home()
+    for i, ws in enumerate(workspaces, 1):
+        try:
+            display = "~/" + str(ws.relative_to(home))
+        except ValueError:
+            display = str(ws)
+        print(f"  {i:<3} {bold(ws.stem):<40} {dim(display)}")
+    print(f"\n{len(workspaces)} workspace(s). Open with: geno-tools workspace open <name|index>")
+    return 0
+
+
+def _workspace_open(args: argparse.Namespace) -> int:
+    import shutil, subprocess as _sp
+    target = getattr(args, "target", None)
+    if not target:
+        print("Usage: geno-tools workspace open <name|path|index>", file=sys.stderr)
+        return 1
+
+    root = Path(getattr(args, "root", None) or "").expanduser() or None
+    workspaces = _find_workspaces(root)
+
+    # Resolve: exact path, then index, then name match
+    ws_path: Path | None = None
+    p = Path(target).expanduser()
+    if p.suffix == ".code-workspace" and p.exists():
+        ws_path = p
+    elif target.isdigit():
+        idx = int(target) - 1
+        if 0 <= idx < len(workspaces):
+            ws_path = workspaces[idx]
+    else:
+        matches = [w for w in workspaces
+                   if w.stem.lower() == target.lower()
+                   or target.lower() in w.stem.lower()]
+        if len(matches) == 1:
+            ws_path = matches[0]
+        elif len(matches) > 1:
+            print(f"Ambiguous: {len(matches)} workspaces match '{target}':")
+            for m in matches:
+                print(f"  {m}")
+            return 1
+
+    if not ws_path:
+        print(f"No workspace found matching '{target}'. Run: geno-tools workspace ls",
+              file=sys.stderr)
+        return 1
+
+    code_bin = shutil.which("code") or shutil.which("code-insiders")
+    if not code_bin:
+        print("'code' not found on PATH. Install VS Code and run: Shell Command: Install 'code' command in PATH",
+              file=sys.stderr)
+        return 1
+
+    print(f"Opening {ws_path.name} …")
+    _sp.Popen([code_bin, str(ws_path)])
+    return 0
+
+
+def _workspace_create(args: argparse.Namespace) -> int:
+    import json as _json
+    name = getattr(args, "name", None)
+    paths_arg = getattr(args, "paths", None) or []
+    if not name:
+        print("Usage: geno-tools workspace create <name> [path ...]", file=sys.stderr)
+        return 1
+
+    out_dir = Path(getattr(args, "output", None) or ".").expanduser()
+    out_path = out_dir / f"{name}.code-workspace"
+
+    folders = [{"path": str(Path(p).expanduser())} for p in paths_arg] if paths_arg else []
+    workspace = {"folders": folders, "settings": {}}
+    out_path.write_text(_json.dumps(workspace, indent=2) + "\n")
+    print(f"Created {out_path}")
+    if not paths_arg:
+        print("  Tip: add folders with VS Code's 'Add Folder to Workspace…' or edit the JSON directly.")
+    return 0
