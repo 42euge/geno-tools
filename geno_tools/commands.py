@@ -1248,28 +1248,60 @@ def _workspace_create(args: argparse.Namespace) -> int:
 
 # ── install-agent ────────────────────────────────────────────────────────────
 
-_AGENT_TARGETS = {
-    "claude-code":  ("~/.claude",              "plugin.json"),
-    "codex":        ("~/.codex",               "plugin.json"),
-    "antigravity":  ("~/.antigravity",         "plugin.json"),
+# Agents with a native plugin CLI — use the CLI to add marketplace + install.
+# Format: agent_name → (marketplace_add_cmd, plugin_install_cmd, plugin_update_cmd)
+_AGENT_CLI = {
+    "claude-code": (
+        ["claude", "plugin", "marketplace", "add", "42euge/geno-tools"],
+        ["claude", "plugin", "install", "geno-tools@geno-tools"],
+        ["claude", "plugin", "update",  "geno-tools@geno-tools"],
+    ),
+    "codex": (
+        ["codex", "plugin", "marketplace", "add", "42euge/geno-tools"],
+        ["codex", "plugin", "add",    "geno-tools@geno-tools"],
+        ["codex", "plugin", "upgrade", "geno-tools"],   # codex uses upgrade for marketplace refresh
+    ),
 }
+
+_AGENT_TARGETS = {
+    "claude-code":  ("~/.claude",    "plugin.json"),
+    "codex":        ("~/.codex",     "plugin.json"),
+    "antigravity":  ("~/.antigravity", "plugin.json"),
+}
+
+
+def _run_agent_cli(cmds: list[list[str]], dry_run: bool) -> int:
+    """Run a sequence of agent CLI commands, printing each before running."""
+    for argv in cmds:
+        print(f"  $ {' '.join(argv)}")
+        if dry_run:
+            continue
+        r = subprocess.run(argv, capture_output=False)
+        if r.returncode != 0:
+            return r.returncode
+    return 0
 
 
 def _install_agent(args: argparse.Namespace) -> int:
     """`geno-tools install-agent <agent> [-m manifest] [--dry-run] [--list]`
 
-    Writes a skill manifest into a coding agent's config directory so the agent
-    discovers all installed geno-* skillsets.
+    For agents with a native plugin CLI (claude-code, codex), uses the CLI to:
+      1. Add the geno-tools marketplace
+      2. Install (or reinstall) the geno-tools plugin
+
+    For other agents, falls back to writing a plugin.json manifest file.
     """
     import json as _json
 
     if getattr(args, "list_agents", False):
-        print(f"{'AGENT':<16}  CONFIG DIR")
-        print(f"{'-----':<16}  ----------")
-        for name, (cfg, _) in sorted(_AGENT_TARGETS.items()):
+        print(f"{'AGENT':<16}  METHOD       CONFIG DIR")
+        print(f"{'-----':<16}  ------       ----------")
+        for name in sorted(_AGENT_TARGETS):
+            cfg, _ = _AGENT_TARGETS[name]
             resolved = str(Path(cfg).expanduser())
             exists = " ✓" if Path(resolved).exists() else ""
-            print(f"{name:<16}  {resolved}{exists}")
+            method = "CLI" if name in _AGENT_CLI else "file"
+            print(f"{name:<16}  {method:<12} {resolved}{exists}")
         return 0
 
     agent = getattr(args, "agent", None)
@@ -1281,6 +1313,39 @@ def _install_agent(args: argparse.Namespace) -> int:
     if agent not in _AGENT_TARGETS:
         print(f"Unknown agent {agent!r}. Known: {', '.join(sorted(_AGENT_TARGETS))}", file=sys.stderr)
         return 1
+
+    dry_run = getattr(args, "dry_run", False)
+
+    # ── CLI path (claude-code, codex) ──────────────────────────────────────
+    if agent in _AGENT_CLI and not getattr(args, "manifest", None):
+        mkt_add, plugin_install, plugin_update = _AGENT_CLI[agent]
+        agent_bin = mkt_add[0]
+        if not shutil.which(agent_bin):
+            print(f"  {agent_bin} not found on PATH — install {agent} first.", file=sys.stderr)
+            return 1
+        print(f"Installing geno into {agent} via native plugin CLI:")
+        print(f"  step 1/2  add marketplace")
+        rc = _run_agent_cli([mkt_add], dry_run)
+        if rc != 0:
+            return rc
+        print(f"  step 2/2  install plugin")
+        # Try install; if already installed, update instead
+        if not dry_run:
+            r = subprocess.run(plugin_install, capture_output=True, text=True)
+            print(f"  $ {' '.join(plugin_install)}")
+            if r.returncode != 0 and "already installed" in (r.stdout + r.stderr):
+                print(f"  already installed — updating…")
+                subprocess.run(plugin_update)
+            elif r.returncode != 0:
+                print(r.stderr.strip(), file=sys.stderr)
+                return r.returncode
+            else:
+                print((r.stdout or r.stderr).strip())
+        else:
+            print(f"  $ {' '.join(plugin_install)}")
+            print(f"  $ {' '.join(plugin_update)}  (if already installed)")
+        print(f"\n✓ geno installed into {agent}")
+        return 0
 
     cfg_dir_raw, plugin_file = _AGENT_TARGETS[agent]
     cfg_dir = Path(cfg_dir_raw).expanduser()
