@@ -34,6 +34,16 @@ discovery:
     #   prefix: acme-
     #   auth_env: ACME_GITLAB_TOKEN
 
+# LLM: OpenAI-compatible endpoint for intelligent features (tab naming, etc.)
+# Token goes in ~/.geno/settings.json — never put it here.
+# Run `geno-tools llm probe` to discover models and benchmark them.
+llm:
+  endpoint: ""                        # e.g. http://litellm.local:4000
+  model: ""                           # preferred model; blank = top probe result
+  timeout: 10                         # per-request timeout (seconds)
+  settings_file: "~/.geno/settings.json"
+  model_rankings: []                  # populated by `geno-tools llm probe`
+
 # Observability: skill trace and health system configuration.
 observability:
   health_threshold: 0.7      # success rate below this flags needs_retro

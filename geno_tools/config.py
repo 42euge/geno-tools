@@ -21,9 +21,18 @@ _DEFAULTS = {
             {"kind": "github", "org": "42euge"},
         ],
     },
+    "llm": {
+        "endpoint": "",
+        "model": "",
+        "timeout": 10,
+        "settings_file": "~/.geno/settings.json",
+        "model_rankings": [],
+    },
     "mode": "user",
     "autonomy": 1,
 }
+
+_SETTINGS_FILE = Path.home() / ".geno" / "settings.json"
 
 
 def ensure_dir() -> Path:
@@ -81,3 +90,71 @@ def get_autonomy() -> int:
     if env in ("0", "1", "2"):
         return int(env)
     return int(load().get("autonomy", 1))
+
+
+def get_llm() -> dict:
+    """Return merged llm config + token from settings.json.
+
+    The token lives in ~/.geno/settings.json so config.yaml can be
+    committed to version control without leaking credentials.
+    """
+    import json as _json
+    cfg = {**_DEFAULTS["llm"], **load().get("llm", {})}
+    settings_path = Path(cfg.get("settings_file", "~/.geno/settings.json")).expanduser()
+    token = ""
+    if settings_path.exists():
+        try:
+            token = _json.loads(settings_path.read_text()).get("llm", {}).get("token", "")
+        except Exception:  # noqa: BLE001
+            pass
+    return {**cfg, "token": token}
+
+
+def set_config(key: str, value: str) -> None:
+    """Set a dot-path key in config.yaml. Token keys are routed to settings.json."""
+    import json as _json
+    # Token is secret — route to settings.json
+    if key in ("llm.token",):
+        _SETTINGS_FILE.parent.mkdir(parents=True, exist_ok=True)
+        data: dict = {}
+        if _SETTINGS_FILE.exists():
+            try:
+                data = _json.loads(_SETTINGS_FILE.read_text())
+            except Exception:  # noqa: BLE001
+                pass
+        # Upsert nested key
+        parts = key.split(".")
+        cur = data
+        for p in parts[:-1]:
+            cur = cur.setdefault(p, {})
+        cur[parts[-1]] = value
+        _SETTINGS_FILE.write_text(_json.dumps(data, indent=2) + "\n")
+        return
+
+    # Everything else goes in config.yaml
+    ensure_dir()
+    try:
+        data = yaml.safe_load(CONFIG_FILE.read_text()) or {}
+    except Exception:
+        data = {}
+    parts = key.split(".")
+    cur = data
+    for p in parts[:-1]:
+        if p not in cur or not isinstance(cur[p], dict):
+            cur[p] = {}
+        cur = cur[p]
+    # Coerce to int/float/bool where sensible
+    try:
+        v: object = int(value)
+    except ValueError:
+        try:
+            v = float(value)
+        except ValueError:
+            if value.lower() in ("true", "yes"):
+                v = True
+            elif value.lower() in ("false", "no"):
+                v = False
+            else:
+                v = value
+    cur[parts[-1]] = v
+    CONFIG_FILE.write_text(yaml.safe_dump(data, sort_keys=False))
