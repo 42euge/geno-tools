@@ -1029,12 +1029,14 @@ def _llm(args: argparse.Namespace) -> int:
 
 
 def _llm_probe(args: argparse.Namespace) -> int:
-    """`geno-tools llm probe` — discover models on the LiteLLM endpoint and benchmark them."""
+    """`geno-tools llm probe [--samples N] [--history]` — benchmark all models."""
     from geno_tools import config as cfg, llm as gllm
     lc = cfg.get_llm()
     endpoint = lc.get("endpoint", "").strip()
     token = lc.get("token", "")
     timeout = int(lc.get("timeout", 10))
+    samples = getattr(args, "samples", 3) or 3
+    history_only = getattr(args, "history", False)
 
     if not endpoint:
         print("No LLM endpoint configured. Run:\n  geno-tools config set llm.endpoint <url>",
@@ -1045,6 +1047,22 @@ def _llm_probe(args: argparse.Namespace) -> int:
     dim = _dim if _is_tty() else lambda s: s
     green = _green if _is_tty() else lambda s: s
     red = _red if _is_tty() else lambda s: s
+    yellow = _yellow if _is_tty() else lambda s: s
+
+    if history_only:
+        # Show the averaged historical rankings from the DB without running new probes
+        rankings = gllm.load_rankings(endpoint)
+        if not rankings:
+            print(dim("No probe history yet. Run: geno-tools llm probe"))
+            return 0
+        w = max(len(r["model"]) for r in rankings)
+        print(bold(f"Historical rankings ({len(rankings)} models) — {endpoint}"))
+        print(f"{'#':<3}  {'MODEL':<{w}}  {'AVG TTFT':>9}  {'AVG TOT':>8}  {'TOK/S':>6}  {'RUNS':>4}")
+        print("-" * (w + 40))
+        for i, r in enumerate(rankings, 1):
+            tps = f"{r['tok_per_sec']:.1f}" if r["tok_per_sec"] else "—"
+            print(f"{i:<3}  {r['model']:<{w}}  {r['ttft_ms']:>7}ms  {r['total_ms']:>6}ms  {tps:>6}  {r['runs']:>4}")
+        return 0
 
     print(f"Discovering models at {endpoint} …")
     try:
@@ -1052,32 +1070,32 @@ def _llm_probe(args: argparse.Namespace) -> int:
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
         return 1
-    print(f"Found {len(models)} model(s). Probing (this may take a moment)…\n")
+    print(f"Found {len(models)} model(s). Probing {samples} sample(s) each — results saved to ~/.geno/llm.db …\n")
 
-    results = gllm.probe_all(endpoint, token, concurrency=8, timeout=timeout)
+    results = gllm.probe_all(endpoint, token, concurrency=8, timeout=timeout, samples=samples)
 
-    # Print ranked table
-    w = max((len(r["model"]) for r in results), default=10)
-    print(f"{'#':<3}  {'MODEL':<{w}}  {'TTFT':>7}  {'TOTAL':>7}  STATUS")
-    print("-" * (w + 28))
-    for i, r in enumerate(results, 1):
-        status = green("ok") if r["ok"] else red(r["error"][:40])
-        ttft = f"{r['ttft_ms']}ms" if r["ok"] else "—"
-        total = f"{r['total_ms']}ms" if r["ok"] else "—"
-        print(f"{i:<3}  {r['model']:<{w}}  {ttft:>7}  {total:>7}  {status}")
-
-    # Persist rankings to config.yaml
+    # Print this-run table
     ok_results = [r for r in results if r["ok"]]
-    rankings = [{"model": r["model"], "ttft_ms": r["ttft_ms"]} for r in ok_results]
-    cfg.set_config("llm.model_rankings", rankings)  # type: ignore[arg-type]
+    w = max((len(r["model"]) for r in results), default=10)
+    print(f"{'#':<3}  {'MODEL':<{w}}  {'TTFT':>7}  {'TOTAL':>7}  {'TOK/S':>6}  {'S':>2}  STATUS")
+    print("-" * (w + 42))
+    for i, r in enumerate(results, 1):
+        if r["ok"]:
+            tps = f"{r['tok_per_sec']:.1f}" if r["tok_per_sec"] else "—"
+            print(f"{i:<3}  {r['model']:<{w}}  {r['ttft_ms']:>5}ms  {r['total_ms']:>5}ms"
+                  f"  {tps:>6}  {r['samples']:>2}  {green('ok')}")
+        else:
+            print(f"{i:<3}  {r['model']:<{w}}  {'—':>7}  {'—':>7}  {'—':>6}  {'0':>2}  {red(r['error'][:35])}")
 
-    # Persist top model if none configured
-    if not lc.get("model") and ok_results:
-        top = ok_results[0]["model"]
+    # Update config.yaml top model from DB-averaged rankings (more stable)
+    db_rankings = gllm.load_rankings(endpoint)
+    if db_rankings:
+        top = db_rankings[0]["model"]
         cfg.set_config("llm.model", top)
-        print(f"\n{bold('Top model saved')}: {top}")
+        print(f"\n{bold('Top model')} (DB average): {top}")
 
-    print(f"\nRankings written to ~/.geno/config.yaml")
+    print(dim(f"\nRun history saved to ~/.geno/llm.db  ({len(ok_results)}/{len(results)} ok)"))
+    print(dim("View historical rankings: geno-tools llm probe --history"))
     return 0
 
 

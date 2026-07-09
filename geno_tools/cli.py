@@ -88,7 +88,11 @@ def main(argv: list[str] | None = None) -> int:
     # llm — LLM endpoint management and smart features
     p_llm = sub.add_parser("llm", help="LLM endpoint management (probe, suggest)")
     llm_sub = p_llm.add_subparsers(dest="llm_cmd")
-    llm_sub.add_parser("probe", help="discover and benchmark all models on the configured endpoint")
+    p_probe = llm_sub.add_parser("probe", help="discover and benchmark all models on the configured endpoint")
+    p_probe.add_argument("--samples", type=int, default=3,
+                         help="probe runs per model for averaging (default: 3)")
+    p_probe.add_argument("--history", action="store_true",
+                         help="show DB-averaged historical rankings without running new probes")
     p_llm_suggest = llm_sub.add_parser("suggest", help="suggest a dot-notation tab name from context")
     p_llm_suggest.add_argument("--cwd", default="", help="working directory")
     p_llm_suggest.add_argument("--job", default="", help="running job/process name")
