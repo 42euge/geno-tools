@@ -14,28 +14,16 @@
     "meta-cli",
     "geno-ecosystem"
   ],
-  "skills": [
-    "./skills",
-    "./skills/audit",
-    "./skills/author",
-    "./skills/config",
-    "./skills/llm",
-    "./skills/manager",
-    "./skills/meta/ecosystem",
-    "./skills/meta/harness"
-  ],
+  "skills": "./skills",
   "interface": {
     "displayName": "geno-tools",
     "shortDescription": "Install and manage geno-* skillsets for any coding agent",
     "category": "Coding",
-    "capabilities": [
-      "Interactive",
-      "Read",
-      "Write"
-    ],
+    "capabilities": [],
     "defaultPrompt": [
       "Install a geno skillset",
       "List available skillsets"
-    ]
+    ],
+    "developerName": "42euge"
   }
 }
