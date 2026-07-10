@@ -17,7 +17,12 @@ the full lifecycle of skills across all supported coding agents.
 | geno-tools-manager-update | manager | /geno-tools-manager-update |
 | geno-tools-manager-deps | manager | /geno-tools-manager-deps |
 | geno-tools-manager-doctor | manager | /geno-tools-manager-doctor |
+| geno-tools-manager-install-agent | manager | /geno-tools-manager-install-agent |
 | geno-tools-audit-run | audit | /geno-tools-audit-run |
+| geno-tools-config-set | config | /geno-tools-config-set |
+| geno-tools-config-show | config | /geno-tools-config-show |
+| geno-tools-llm-probe | llm | /geno-tools-llm-probe |
+| geno-tools-llm-suggest | llm | /geno-tools-llm-suggest |
 | geno-tools-meta-harness-fork | meta/harness | /geno-tools-meta-harness-fork |
 | geno-tools-meta-harness-use | meta/harness | /geno-tools-meta-harness-use |
 | geno-tools-meta-harness-promote | meta/harness | /geno-tools-meta-harness-promote |
@@ -45,8 +50,10 @@ geno-tools/
 ├── skills/                    # skill definitions (nested category tree)
 │   ├── geno-tools/SKILL.md    #   umbrella skill
 │   ├── setup/SKILL.md         #   bootstrap / PATH setup
-│   ├── manager/               #   install, remove, upgrade, update, status, discover, deps, doctor
+│   ├── manager/               #   install, remove, upgrade, update, status, discover, deps, doctor, install-agent
 │   ├── audit/                 #   ecosystem compliance auditor
+│   ├── config/                #   set / show — config key management
+│   ├── llm/                   #   probe / suggest — LLM endpoint discovery and naming
 │   ├── meta/harness/          #   fork / use / promote variant loop
 │   ├── meta/ecosystem/        #   discover / scan / onboarding
 │   └── author/                #   scaffold skill and repo

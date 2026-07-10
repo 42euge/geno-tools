@@ -24,8 +24,10 @@ which geno-tools >/dev/null 2>&1 || echo "geno-tools CLI not on PATH — run /ge
 
 | Category | Skills |
 |----------|--------|
-| **manager/** | `status` · `discover` · `install` · `remove` · `upgrade` · `update` · `deps` · `doctor` |
+| **manager/** | `status` · `discover` · `install` · `install-agent` · `remove` · `upgrade` · `update` · `deps` · `doctor` |
 | **audit/** | `run` — ecosystem compliance auditor |
+| **config/** | `set` · `show` — read/write config keys in `~/.geno/config.yaml` |
+| **llm/** | `probe` · `suggest` — LLM endpoint discovery and workspace naming |
 | **meta/harness/** | `fork` · `use` · `promote` — variant evaluate/evolve loop |
 | **meta/ecosystem/** | `discover` · `scan` · `onboarding` — find/absorb new skillsets |
 | **author/** | `skill` · `repo` — scaffold a skill / a whole skillset repo |
