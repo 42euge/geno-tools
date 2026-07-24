@@ -1,57 +1,67 @@
 # Getting Started
 
 `geno-tools` is the meta package manager for the geno-* skill ecosystem. You
-install it once as a plugin in your coding agent; it then discovers, installs,
-and manages every other skillset.
+install it once; it then discovers, installs, and manages every other
+skillset across all of your coding agents.
 
 Supported agents: **Claude Code**, **Codex**, **Antigravity CLI**.
 
-## 1. Install the plugin
+## 1. Install the CLI
 
-=== "Claude Code"
-
-    Inside a Claude Code session:
-
-    ```text
-    /plugin marketplace add 42euge/geno-tools
-    /plugin install geno-tools@geno-tools
-    /reload-plugins
-    ```
-
-    Verify with `/plugin list` — you should see `geno-tools` enabled.
-
-=== "Codex"
-
-    ```text
-    /plugin marketplace add 42euge/geno-tools
-    /plugins        # pick "geno-tools", enable it
-    ```
-
-=== "Antigravity CLI"
-
-    ```bash
-    agy plugin install https://github.com/42euge/geno-tools
-    ```
-
-## 2. Install the CLI
-
-The plugin tries to put the `geno-tools` command on your PATH automatically, but
-that can fail silently (e.g. when `pipx` isn't found). Run the setup skill to do
-it loudly and reliably:
-
-```text
-/geno-tools-setup
+```bash
+brew install 42euge/geno/geno-tools
 ```
 
-It installs the CLI via `pipx` (installing `pipx` itself if missing) and reports
-the result. Then confirm:
+This installs the `geno-tools` command and nothing else. It does not touch
+any coding agent. Verify:
 
 ```bash
 geno-tools --version
 ```
 
-If it's still not found, the skill prints the exact PATH fix; details land in
-`~/.geno/bootstrap.log`.
+All state the CLI creates from here on (config, installed skillsets, venvs,
+traces) lives in one directory: `~/.geno/`. Upgrades are plain
+`brew upgrade geno-tools`.
+
+## 2. Register with your coding agents
+
+The CLI is useful once your agents know about it. `install-agent` scans your
+machine, shows which agents it found, and lets you pick where to register:
+
+```console
+$ geno-tools install-agent
+AGENT             METHOD       CONFIG DIR
+-----             ------       ----------
+antigravity       file         ~/.antigravity
+claude-code       CLI          ~/.claude ✓
+codex             CLI          ~/.codex ✓
+
+? register geno-tools with:  (space toggles · enter applies)
+  ▸ [x] claude-code
+    [ ] codex
+
+Installing geno into claude-code via native plugin CLI:
+  step 1/2  add marketplace
+  $ claude plugin marketplace add 42euge/geno-tools
+  step 2/2  install plugin
+  $ claude plugin install geno-tools@geno-tools
+
+✓ geno installed into claude-code
+```
+
+Registration installs the plugin and slash commands into the selected agent,
+so `/geno-tools-…` works in your next session there.
+
+If you already know the target, skip the picker and name it:
+
+```bash
+geno-tools install-agent claude-code     # one agent
+geno-tools install-agent --all           # every agent detected
+geno-tools install-agent --rm codex      # unregister from one
+```
+
+Registration is per-agent and reversible. Skillsets you install later
+register into the same set of agents automatically.
 
 ## 3. Discover skillsets
 
@@ -83,12 +93,13 @@ forces a fresh scan.
 geno-tools install geno-loops
 ```
 
-Clones it, sets up an isolated venv, registers its skills with every agent, and
-pulls in any dependencies automatically. Its skills then appear as slash
-commands (e.g. `/geno-loops-...`).
+Audits it, clones it, sets up an isolated venv, registers its skills with
+every agent you enabled in step 2, and pulls in any dependencies
+automatically. Its skills then appear as slash commands (e.g.
+`/geno-loops-...`).
 
-You can also install directly by git URL — useful for private repos discovery
-won't see:
+You can also install directly by git URL, which is useful for private repos
+discovery won't see:
 
 ```bash
 geno-tools install https://github.com/42euge/geno-loops.git
@@ -113,11 +124,8 @@ geno-tools
 Upgrade what's behind with `geno-tools upgrade` (one skillset, or all). Remove
 one with `geno-tools remove <name>`.
 
-To update **geno-tools itself** to the latest version:
+To update **geno-tools itself**:
 
 ```bash
-geno-tools update
+brew upgrade geno-tools
 ```
-
-It reinstalls the CLI and refreshes the plugin, then prints the one in-session
-step to finish (`/plugin install geno-tools@geno-tools` + `/reload-plugins`).
