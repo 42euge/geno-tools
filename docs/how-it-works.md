@@ -18,14 +18,16 @@ Everything geno-tools does is one loop around a skillset:
    absorb
 ```
 
+Each stage has its own page:
+
 | Stage | What happens | Command |
 |-------|--------------|---------|
-| **Discover** | Find candidate skillsets in the public registry, your org's GitHub/GitLab/Bitbucket/Gitea, or any git URL. External skill systems are [absorbed](absorption.md) into the same format. | `geno-tools discover`, `geno-tools absorb` |
-| **Audit** | Every onboarding path runs the [compliance and trust gate](trust-and-audit.md): conventions, dependency hygiene, prompt-injection scan, declared filesystem/network boundaries. FAILs block by default. | `geno-tools audit` (implicit in `install`) |
-| **Install** | Clone into `~/.geno/skillsets/<name>/`, build per-skillset venvs, register skills with every agent (Claude Code, Codex, Antigravity CLI) in one shot. | `geno-tools install` |
-| **Observe** | Skill traces accumulate into per-skill health cards; unhealthy skills land in the retro queue. | `geno-trace health` |
-| **Evolve** | Fork a variant in an isolated worktree, switch to it, compare its health against main, promote the winner. The [meta-harness](meta-harness.md). | `geno-tools fork / use / promote` |
-| **Govern** | Keep everything current, verified, and reproducible. | `geno-tools upgrade`, `doctor`, `status` |
+| **[Discover](discover.md)** | Find candidate skillsets in the curated registry, your org's GitHub/GitLab/Bitbucket/Gitea, the open skills ecosystem (`npx skills` format), or any git URL. | `geno-tools discover` |
+| **[Audit](trust-and-audit.md)** | Untrusted sources (external URLs, ecosystem refs, absorbed packs) pass the full trust gate; trusted ones get a fast conventions check. Results cache per commit. | `geno-tools audit` (implicit in `install`) |
+| **[Install](install.md)** | Clone into `~/.geno/skillsets/<name>/`, build per-skillset venvs, register skills with every agent (Claude Code, Codex, Antigravity CLI) in one shot. External skill systems are [absorbed](absorption.md) into the same format. | `geno-tools install`, `geno-tools absorb` |
+| **[Observe](observe.md)** | Skill traces accumulate into per-skill health cards; unhealthy skills land in the retro queue. | `geno-trace health` |
+| **[Evolve](meta-harness.md)** | Fork a variant in an isolated worktree, switch to it, compare its health against main, promote the winner. | `geno-tools fork / use / promote` |
+| **[Govern](control-surface.md)** | Keep everything current, verified, and reproducible. | `geno-tools upgrade`, `doctor`, `status` |
 
 ## A day with geno-tools
 
@@ -34,6 +36,7 @@ You hear about a skillset a colleague built:
 ```console
 $ geno-tools install git@github.acme.com:platform/acme-incident-response.git
 installing acme-incident-response from git@github.acme.com:platform/acme-incident-response.git
+  trust: git URL (untrusted) — full audit
   audit: compliant · 1 WARN
   creating venv: ~/.geno/skillsets/acme-incident-response/venvs/main
   installing 6 skill(s) via npx skills (all agents, global)

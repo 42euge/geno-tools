@@ -6,7 +6,7 @@ geno-tools makes that trust explicit and configurable: every path a skillset
 can take onto your machine runs through the same gate, and you set the
 policy for what the gate does.
 
-## Two tiers of checks
+## Three tiers of checks
 
 ### Conventions tier: is it a well-formed skillset?
 
@@ -49,15 +49,79 @@ declaration is materialized into each agent's permission system at install
 time: in Claude Code, as `allowed-tools` constraints on the generated
 skills. Undeclared = unavailable.
 
-## Where the gate runs
+### Rubric tier: is it performing?
 
-The gate covers every onboarding path:
+The first two tiers read code. The rubric tier judges behavior: each
+skillset carries a rubric that scores it against evidence from your own
+traces, so the gate also catches the skillset that is well-formed and safe
+but bad at its job.
+
+A rubric lives at `~/.geno/rubrics/<skillset>.yaml` and holds two kinds of
+criteria:
+
+```yaml
+criteria:
+  - id: success-rate
+    kind: metric              # computed from trace data
+    metric: success
+    min: 0.75
+  - id: latency
+    kind: metric
+    metric: avg_duration_s
+    max: 90
+  - id: thrashing
+    kind: metric              # retry loops and repeated tool calls per session
+    metric: retries_per_trace
+    max: 2
+  - id: asks-before-destructive
+    kind: judged              # an agent scores sampled traces against the prompt
+    prompt: "Did the skill confirm before deleting or overwriting user files?"
+    source: human-review      # seeded from your retro note, 2026-07-12
+```
+
+**Metric criteria** are computed directly from trace data: success rate,
+latency, retries, token cost. **Judged criteria** are natural-language
+checks that an agent scores against sampled traces. Judged criteria start
+from human review; verdicts you leave in retros seed the rubric, and the
+agent may propose new criteria from failure patterns it notices. A proposal
+stays `proposed` until you accept it, and only accepted criteria gate
+anything.
+
+The rubric tier needs evidence, so it works differently from the static
+tiers:
+
+| Path | Rubric behavior |
+|------|-----------------|
+| first install | No evidence yet; the tier is skipped and a baseline starts accumulating |
+| `geno-tools upgrade` | The new version's traces are scored against the rubric; regression past a `min`/`max` bound warns or blocks, per policy |
+| `geno-tools promote` | The variant must beat main on the rubric, not just on raw success rate ([meta-harness](meta-harness.md)) |
+
+Because it scores your own observed traces rather than the author's code,
+the rubric tier applies to every installed skillset regardless of trust
+level.
+
+## Trust levels
+
+The gate's depth scales with where the code comes from. Auditing your own
+packages on every install is noise; auditing other people's is the point.
+
+| Trust | Applies to | What runs |
+|-------|-----------|-----------|
+| trusted | The curated registry and sources you configure (your org, your namespaces) | Conventions tier only |
+| untrusted | Arbitrary git URLs, skills-ecosystem refs, absorbed packs | Conventions + full trust tier |
+
+Audit results cache per commit SHA. A repo audited once is never re-audited
+until its content changes, so repeat installs and unchanged upgrades skip
+the gate entirely.
+
+## Where the gate runs
 
 | Path | Gate behavior |
 |------|--------------|
-| `geno-tools install <name-or-url>` | Full audit before anything is registered; FAIL → quarantine |
-| `geno-tools upgrade` | Re-audits the diff: new deps, changed prompts, widened boundaries. An upgrade can't gain network access unnoticed. |
-| `geno-tools absorb` | Converted output is audited like any repo ([details](absorption.md)) |
+| `geno-tools install <registry-name>` | Trusted: conventions check, no deep scan |
+| `geno-tools install <url>` / `skills:<ref>` | Untrusted: full audit before anything is registered; FAIL → quarantine |
+| `geno-tools upgrade` | Re-audits the diff only: new deps, changed prompts, widened boundaries. An upgrade can't gain network access unnoticed. |
+| `geno-tools absorb` | Untrusted by definition; converted output gets the strictest scan ([details](absorption.md)) |
 | `geno-tools dev` | Audits but never blocks (it's your checkout); trust findings print as warnings |
 
 A gated failure looks like:
@@ -88,11 +152,14 @@ policy:
   gate: block          # block: FAIL stops install (default)
                        # warn:  print and continue
                        # off:   conventions tier only
-  per_source:
-    "github:42euge": trust      # skip deep scans for sources you own;
-                                # the gate itself still runs
+  trust:
+    registry: trusted           # the curated geno registry
+    "github:42euge": trusted    # sources you own
+    default: untrusted          # everything else: URLs, skills refs, absorbed
   pin_updates: false   # true: `upgrade` moves only to commits that pass audit,
                        # recording the audited SHA — reproducible fleets
+  rubric: warn         # warn (default) | block — what a rubric regression
+                       # does on upgrade and promote
 ```
 
 Escape hatches are always available and always loud: `--no-audit` on any
@@ -105,7 +172,9 @@ show a `⚠ unaudited` marker until a later audit passes, and
 - Static scanning catches patterns, not intent. The trust tier raises the
   bar; true isolation is geno-iso's job (containerized sessions), and the
   two compose.
-- `per_source: trust` is about *your* threat model. geno-tools ships with
-  nothing trusted by default, including its own registry.
+- The `trust:` map is *your* threat model. The defaults trust only the
+  curated registry and sources you configured yourself; every outside URL
+  and ecosystem ref starts untrusted. Set `registry: untrusted` to gate
+  everything.
 - Zero telemetry holds: audits run locally, reports stay on disk, and no
   result is ever uploaded.
