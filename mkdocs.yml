@@ -46,6 +46,15 @@ theme:
 nav:
   - Home: index.md
   - Getting Started: getting-started.md
+  - How It Works: how-it-works.md
+  - Lifecycle:
+      - Discover: discover.md
+      - Install: install.md
+      - Observe: observe.md
+      - Meta-Harness: meta-harness.md
+      - Trust & Audit: trust-and-audit.md
+      - Absorption: absorption.md
+  - Control Surface: control-surface.md
 extra_css:
   - stylesheets/extra.css
 

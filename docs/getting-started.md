@@ -1,57 +1,49 @@
 # Getting Started
 
-`geno-tools` is the meta package manager for the geno-* skill ecosystem. You
-install it once as a plugin in your coding agent; it then discovers, installs,
-and manages every other skillset.
-
 Supported agents: **Claude Code**, **Codex**, **Antigravity CLI**.
 
-## 1. Install the plugin
+## 1. Install the CLI
 
-=== "Claude Code"
-
-    Inside a Claude Code session:
-
-    ```text
-    /plugin marketplace add 42euge/geno-tools
-    /plugin install geno-tools@geno-tools
-    /reload-plugins
-    ```
-
-    Verify with `/plugin list` — you should see `geno-tools` enabled.
-
-=== "Codex"
-
-    ```text
-    /plugin marketplace add 42euge/geno-tools
-    /plugins        # pick "geno-tools", enable it
-    ```
-
-=== "Antigravity CLI"
-
-    ```bash
-    agy plugin install https://github.com/42euge/geno-tools
-    ```
-
-## 2. Install the CLI
-
-The plugin tries to put the `geno-tools` command on your PATH automatically, but
-that can fail silently (e.g. when `pipx` isn't found). Run the setup skill to do
-it loudly and reliably:
-
-```text
-/geno-tools-setup
+```bash
+brew install 42euge/geno/geno-tools
 ```
 
-It installs the CLI via `pipx` (installing `pipx` itself if missing) and reports
-the result. Then confirm:
+CLI only; no agent is touched. All state lives in `~/.geno/`.
 
 ```bash
 geno-tools --version
 ```
 
-If it's still not found, the skill prints the exact PATH fix; details land in
-`~/.geno/bootstrap.log`.
+## 2. Register with your agents
+
+```console
+$ geno-tools install-agent
+AGENT             METHOD       CONFIG DIR
+-----             ------       ----------
+antigravity       file         ~/.antigravity
+claude-code       CLI          ~/.claude ✓
+codex             CLI          ~/.codex ✓
+
+? register geno-tools with:  (space toggles · enter applies)
+  ▸ [x] claude-code
+    [ ] codex
+
+Installing geno into claude-code via native plugin CLI:
+  step 1/2  add marketplace
+  $ claude plugin marketplace add 42euge/geno-tools
+  step 2/2  install plugin
+  $ claude plugin install geno-tools@geno-tools
+
+✓ geno installed into claude-code
+```
+
+Or skip the picker:
+
+```bash
+geno-tools install-agent claude-code     # one agent
+geno-tools install-agent --all           # every agent detected
+geno-tools install-agent --rm codex      # unregister from one
+```
 
 ## 3. Discover skillsets
 
@@ -59,11 +51,9 @@ If it's still not found, the skill prints the exact PATH fix; details land in
 geno-tools discover
 ```
 
-Lists everything installable, grouped by category, with `✓ installed` markers:
-
 ```
 geno-tools
-── discover · 19 ────────────────────────────────
+── discover · 19 ───────────────────────────────
   Core Framework
     geno-audit     https://github.com/42euge/geno-audit.git
     geno-iso       https://github.com/42euge/geno-iso.git
@@ -73,35 +63,22 @@ geno-tools
   ...
 ```
 
-Discovery uses the public GitHub API (no auth). The list is cached and
-auto-refreshes when older than 30 minutes; `geno-tools discover --refresh`
-forces a fresh scan.
-
 ## 4. Install a skillset
 
 ```bash
-geno-tools install geno-loops
+geno-tools install geno-loops                              # from the registry
+geno-tools install https://github.com/42euge/geno-loops.git  # any git URL
 ```
 
-Clones it, sets up an isolated venv, registers its skills with every agent, and
-pulls in any dependencies automatically. Its skills then appear as slash
-commands (e.g. `/geno-loops-...`).
+Clones, creates a venv, registers skills with your agents, resolves
+dependencies. Untrusted sources (external URLs) are audited first. Skills
+appear as `/geno-loops-…` slash commands.
 
-You can also install directly by git URL — useful for private repos discovery
-won't see:
-
-```bash
-geno-tools install https://github.com/42euge/geno-loops.git
-```
-
-## 5. Check what you have
+## 5. Status
 
 ```bash
 geno-tools status
 ```
-
-Shows each installed skillset's version, commit, and whether it's behind its
-remote:
 
 ```
 geno-tools
@@ -110,14 +87,8 @@ geno-tools
   geno-notes  0.1.0  main@5f3fb1f  ▼ behind e84fa17
 ```
 
-Upgrade what's behind with `geno-tools upgrade` (one skillset, or all). Remove
-one with `geno-tools remove <name>`.
-
-To update **geno-tools itself** to the latest version:
-
 ```bash
-geno-tools update
+geno-tools upgrade            # update skillsets
+geno-tools remove <name>      # uninstall one
+brew upgrade geno-tools       # update geno-tools itself
 ```
-
-It reinstalls the CLI and refreshes the plugin, then prints the one in-session
-step to finish (`/plugin install geno-tools@geno-tools` + `/reload-plugins`).
