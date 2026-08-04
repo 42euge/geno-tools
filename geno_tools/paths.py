@@ -27,6 +27,12 @@ HEALTH_DIR = GENO_DIR / "health"
 DISCOVERY_DIR = GENO_DIR / "discovery"
 DATASETS_DIR = GENO_DIR / "datasets"
 ISO_DIR = GENO_DIR / "iso"
+PROFILES_DIR = GENO_DIR / "profiles"
+
+
+def iso_dockerfiles() -> Path:
+    """Where geno-iso syncs its Dockerfiles for `docker build`."""
+    return ISO_DIR / "dockerfiles"
 
 
 def normalize(name: str) -> str:

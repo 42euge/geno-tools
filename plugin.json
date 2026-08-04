@@ -1,6 +1,6 @@
 {
   "name": "geno-tools",
-  "version": "0.4.0",
+  "version": "0.7.0",
   "description": "Meta-CLI for installing and managing geno-* skillsets",
   "author": {
     "name": "42euge",
@@ -14,6 +14,7 @@
     "./skills/audit",
     "./skills/author",
     "./skills/config",
+    "./skills/iso",
     "./skills/llm",
     "./skills/manager",
     "./skills/meta/ecosystem",

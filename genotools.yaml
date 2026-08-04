@@ -1,6 +1,14 @@
 name: geno-tools
-version: "0.6.0"
-description: Installer and meta-CLI for geno-* skillsets
+version: "0.7.0"
+description: >-
+  Unified geno control plane: resolve · scope · launch. Resolves skillset
+  bundles (skills at pinned variants, deps, MCP catalogs) and launches them in
+  isolated containers. Skill registration is delegated to `npx skills`.
 requires:
   - geno-dev
   - geno-mine
+venv:
+  name: geno-tools
+  deps:
+    - pyyaml>=6.0
+    - click>=8.0
