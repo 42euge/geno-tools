@@ -44,6 +44,26 @@ llm:
   settings_file: "~/.geno/settings.json"
   model_rankings: []                  # populated by `geno-tools llm probe`
 
+# Profiles: named skills+MCP bundles that scope one launched session.
+# Each profile is a standalone file at ~/.geno/profiles/<name>.yaml with:
+#   agents:  [claude-code, codex, ...]   # which CLIs it may target
+#   skills:  [{name: geno-x, variant: exp}, ...]
+#   mcp:     [core, gitlab]              # catalog names (see mcp_catalogs)
+#   autonomy: 0                          # optional per-profile override
+# Built-in bundles (bare/base/standard/full) are seeded automatically.
+profiles:
+  default: ""                # profile used by `launch` when --profile omitted
+
+# MCP catalog sources: pluggable providers resolving catalog names to concrete
+# MCP server specs. Mirrors `discovery.sources`. The public repo ships generic
+# providers only; a private catalog (e.g. bluegt) self-registers via a
+# discovered provider module dropped in an installed skillset's active/ dir.
+mcp_catalogs:
+  sources: []
+    # - kind: file
+    #   path: ~/.geno/mcp-catalog.yaml
+    # - kind: bluegt        # provided by the private bluegt-platform skillset
+
 # Observability: skill trace and health system configuration.
 observability:
   health_threshold: 0.7      # success rate below this flags needs_retro

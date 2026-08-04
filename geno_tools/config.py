@@ -28,6 +28,18 @@ _DEFAULTS = {
         "settings_file": "~/.geno/settings.json",
         "model_rankings": [],
     },
+    # Profiles: named skills+MCP bundles live as standalone files in
+    # ~/.geno/profiles/*.yaml. This block holds profile-system settings only.
+    "profiles": {
+        "default": "",
+    },
+    # MCP catalog sources: pluggable providers that resolve catalog names
+    # (e.g. "core") to concrete MCP server specs. Mirrors discovery.sources.
+    # The public repo ships generic providers only; private catalogs (e.g.
+    # bluegt) self-register via a discovered provider module.
+    "mcp_catalogs": {
+        "sources": [],
+    },
     "mode": "user",
     "autonomy": 1,
 }

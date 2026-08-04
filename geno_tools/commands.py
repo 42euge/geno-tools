@@ -97,6 +97,8 @@ def dispatch(args: argparse.Namespace) -> int:
         "llm": _llm,
         "workspace": _workspace,
         "install-agent": _install_agent,
+        "profile": _profile,
+        "resolve": _resolve_cmd,
     }
     return handlers[args.cmd](args)
 
@@ -856,6 +858,103 @@ def _create_variant_venv(full: str, variant: str, worktree: Path) -> dict[str, s
     print("  installing package (editable)")
     subprocess.check_call([str(pip), "install", "--quiet", "-e", str(worktree)])
     return scripts
+
+
+# ── profiles ─────────────────────────────────────────────────────────────────
+
+def _profile(args: argparse.Namespace) -> int:
+    sub = getattr(args, "profile_cmd", None)
+    if sub == "list":
+        return _profile_list(args)
+    if sub == "show":
+        return _profile_show(args)
+    if sub == "create":
+        return _profile_create(args)
+    # Default: list
+    return _profile_list(args)
+
+
+def _profile_list(args: argparse.Namespace) -> int:
+    from geno_tools import profiles as prof
+    from geno_tools.iso import profiles as builtin
+    names = prof.list_profiles()
+    if not names:
+        print("no profiles")
+        return 0
+    print(_bold("profiles"))
+    print(_rule())
+    for name in names:
+        tag = _dim(" (built-in)") if (
+            name in builtin.NAMES and not prof.profile_path(name).exists()
+        ) else ""
+        print(f"  {name}{tag}")
+    return 0
+
+
+def _profile_show(args: argparse.Namespace) -> int:
+    from geno_tools import profiles as prof
+    try:
+        resolved = prof.resolve(args.name)
+    except prof.ProfileError as e:
+        print(str(e), file=sys.stderr)
+        return 1
+    print(_bold(f"profile · {args.name}"))
+    print(_rule())
+    print(f"  agents   {', '.join(resolved['agents'])}")
+    if resolved["autonomy"] is not None:
+        print(f"  autonomy {resolved['autonomy']}")
+    print("  skills")
+    for s in resolved["skills"]:
+        mark = "" if s["worktree_exists"] else _yellow(" [worktree missing]")
+        pin = f"@{s['variant']}" if s["variant"] != "main" else ""
+        print(f"    {s['name']}{pin}{mark}")
+    if resolved["missing"]:
+        print(_yellow(f"  missing (not installed): {', '.join(resolved['missing'])}"))
+    if resolved["mcp"]:
+        print(f"  mcp      {', '.join(resolved['mcp'])}")
+    return 0
+
+
+def _profile_create(args: argparse.Namespace) -> int:
+    from geno_tools import profiles as prof
+    path = prof.profile_path(args.name)
+    if path.exists():
+        print(f"profile already exists: {path}", file=sys.stderr)
+        return 1
+    path.parent.mkdir(parents=True, exist_ok=True)
+    agents = args.agent or ["claude-code"]
+    body = {
+        "agents": agents,
+        "skills": [],
+        "mcp": [],
+    }
+    path.write_text(yaml.safe_dump(body, sort_keys=False))
+    print(f"created profile: {path}")
+    print("  edit it to add skills (with optional @variant) and mcp catalogs")
+    return 0
+
+
+def _resolve_cmd(args: argparse.Namespace) -> int:
+    """`geno-tools resolve <profile>` — emit the resolved plan as JSON.
+
+    The inspection seam over the profile resolver: shows exactly which
+    worktree paths + MCP catalog names a profile lowers to. Used by `launch`
+    and for debugging.
+    """
+    import json
+    from geno_tools import profiles as prof
+    try:
+        resolved = prof.resolve(args.name)
+    except prof.ProfileError as e:
+        print(str(e), file=sys.stderr)
+        return 1
+    # Paths → strings for JSON.
+    out = dict(resolved)
+    out["skills"] = [
+        {**s, "worktree": str(s["worktree"])} for s in resolved["skills"]
+    ]
+    print(json.dumps(out, indent=2))
+    return 0
 
 
 REPO_URL = "https://github.com/42euge/geno-tools.git"

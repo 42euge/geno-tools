@@ -112,6 +112,21 @@ def main(argv: list[str] | None = None) -> int:
     p_ws_create.add_argument("paths", nargs="*", help="folders to include")
     p_ws_create.add_argument("--output", default=".", help="output directory (default: cwd)")
 
+    # profile — manage named skills+MCP bundles (~/.geno/profiles/*.yaml)
+    p_prof = sub.add_parser("profile", help="manage profiles (named skills+MCP bundles)")
+    prof_sub = p_prof.add_subparsers(dest="profile_cmd")
+    prof_sub.add_parser("list", help="list available profiles (built-in + on-disk)")
+    p_prof_show = prof_sub.add_parser("show", help="show a profile's resolved skills/MCP")
+    p_prof_show.add_argument("name")
+    p_prof_create = prof_sub.add_parser("create", help="scaffold a new profile YAML")
+    p_prof_create.add_argument("name")
+    p_prof_create.add_argument("--agent", action="append", default=[],
+                               help="agent this profile may target (repeatable)")
+
+    # resolve — emit a profile's resolved plan as JSON (inspection seam)
+    p_resolve = sub.add_parser("resolve", help="emit a profile's resolved plan as JSON")
+    p_resolve.add_argument("name", help="profile name")
+
     # install-agent — register geno skills into a coding agent's config dir
     p_ia = sub.add_parser("install-agent",
                           help="register geno skills into a coding agent (claude-code, codex, …)")
