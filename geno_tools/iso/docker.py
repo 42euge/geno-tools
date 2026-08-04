@@ -146,8 +146,16 @@ def create_container(
     agent: str = DEFAULT_AGENT,
     seed_history: bool = False,
     profile_dockerfile: str | None = None,
+    mounts: list[tuple[str, str]] | None = None,
 ) -> subprocess.CompletedProcess:
-    """Create a persistent container that stays alive for exec."""
+    """Create a persistent container that stays alive for exec.
+
+    ``mounts`` is a list of ``(host_path, container_path)`` bind mounts added
+    on top of the workspace mount. ``geno-tools launch`` uses this to mount a
+    profile's pinned variant worktrees into the container's skills path, so a
+    local (possibly unpushed) variant is what the session sees — instead of
+    network-installing skills at main.
+    """
     full = _full_name(name)
     workspace = workspace.resolve()
 
@@ -160,12 +168,17 @@ def create_container(
         subprocess.run(["docker", "start", full], capture_output=True)
         return subprocess.CompletedProcess([], 0)
 
+    mount_args: list[str] = []
+    for host, dest in (mounts or []):
+        mount_args += ["-v", f"{Path(host).resolve()}:{dest}"]
+
     result = subprocess.run(
         [
             "docker", "run", "-d",
             "--name", full,
             "--env-file", str(env_file),
             "-v", f"{workspace}:/home/agent/workspace",
+            *mount_args,
             "-w", "/home/agent/workspace",
             "--entrypoint", "tail",
             image_latest(agent, profile_dockerfile),
@@ -313,14 +326,23 @@ def run_ephemeral(
     env_file: Path,
     agent: str = DEFAULT_AGENT,
     claude_args: list[str] | None = None,
+    mounts: list[tuple[str, str]] | None = None,
 ) -> subprocess.CompletedProcess:
-    """Run agent CLI in a one-shot container that is removed on exit."""
+    """Run agent CLI in a one-shot container that is removed on exit.
+
+    ``mounts`` — extra ``(host_path, container_path)`` bind mounts (see
+    ``create_container``); ``launch`` uses these for variant worktrees.
+    """
     workspace = workspace.resolve()
     tty = ["-it"] if sys.stdin.isatty() else ["-i"]
+    mount_args: list[str] = []
+    for host, dest in (mounts or []):
+        mount_args += ["-v", f"{Path(host).resolve()}:{dest}"]
     cmd = [
         "docker", "run", *tty, "--rm",
         "--env-file", str(env_file),
         "-v", f"{workspace}:/home/agent/workspace",
+        *mount_args,
         "-w", "/home/agent/workspace",
         image_latest(agent),
     ]
