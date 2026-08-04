@@ -10,6 +10,24 @@ def _default_env_path() -> Path:
     return docker.DOCKERFILES_DIR / ".env"
 
 
+def _mounts_from_env() -> list[tuple[str, str]] | None:
+    """Parse GENO_ISO_MOUNTS (JSON [[host, container], ...]) if present.
+
+    Set by `geno-tools launch` to bind-mount pinned variant worktrees into the
+    container. Malformed values are ignored (launch is the only writer).
+    """
+    import json
+    import os
+    raw = os.environ.get("GENO_ISO_MOUNTS", "")
+    if not raw:
+        return None
+    try:
+        pairs = json.loads(raw)
+        return [(str(h), str(c)) for h, c in pairs] or None
+    except (json.JSONDecodeError, ValueError, TypeError):
+        return None
+
+
 def _pick_one(running_only: bool = True) -> str:
     """Auto-select a container when name is omitted."""
     containers = docker.list_containers()
@@ -80,12 +98,17 @@ def run(name, workspace, agent, profile, ephemeral, version, seed_history, skill
     env_path = _default_env_path()
     credentials.ensure_fresh(env_path)
 
+    # GENO_ISO_MOUNTS: JSON list of [host, container] pairs, set by
+    # `geno-tools launch` to bind-mount pinned variant worktrees. Optional.
+    extra_mounts = _mounts_from_env()
+
     if ephemeral:
         result = docker.run_ephemeral(
             workspace=ws,
             env_file=env_path,
             agent=agent,
             claude_args=list(agent_args) if agent_args else None,
+            mounts=extra_mounts,
         )
         raise SystemExit(result.returncode)
 
@@ -93,6 +116,7 @@ def run(name, workspace, agent, profile, ephemeral, version, seed_history, skill
         name=name, workspace=ws, env_file=env_path,
         agent=agent, seed_history=seed_history,
         profile_dockerfile=profile_df,
+        mounts=extra_mounts,
     )
     if result.returncode != 0:
         raise SystemExit(result.returncode)

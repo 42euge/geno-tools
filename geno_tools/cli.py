@@ -127,6 +127,18 @@ def main(argv: list[str] | None = None) -> int:
     p_resolve = sub.add_parser("resolve", help="emit a profile's resolved plan as JSON")
     p_resolve.add_argument("name", help="profile name")
 
+    # launch — run a CLI in a geno-iso container scoped to a profile
+    p_launch = sub.add_parser(
+        "launch", help="launch a CLI in an isolated container scoped to a profile")
+    p_launch.add_argument("agent", help="agent CLI: claude-code | codex | ...")
+    p_launch.add_argument("--profile", "-p", required=True, help="profile name")
+    p_launch.add_argument("workspace", nargs="?", default=".",
+                          help="workspace dir to mount (default: cwd)")
+    p_launch.add_argument("--rm", dest="ephemeral", action="store_true",
+                          help="one-shot: run and remove the container on exit")
+    p_launch.add_argument("--dry-run", action="store_true",
+                          help="print the resolved geno-iso invocation without running it")
+
     # install-agent — register geno skills into a coding agent's config dir
     p_ia = sub.add_parser("install-agent",
                           help="register geno skills into a coding agent (claude-code, codex, …)")
