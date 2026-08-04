@@ -19,6 +19,7 @@
     "./skills/audit",
     "./skills/author",
     "./skills/config",
+    "./skills/iso",
     "./skills/llm",
     "./skills/manager",
     "./skills/meta/ecosystem",
