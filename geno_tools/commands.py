@@ -99,6 +99,7 @@ def dispatch(args: argparse.Namespace) -> int:
         "install-agent": _install_agent,
         "profile": _profile,
         "resolve": _resolve_cmd,
+        "launch": _launch,
     }
     return handlers[args.cmd](args)
 
@@ -955,6 +956,127 @@ def _resolve_cmd(args: argparse.Namespace) -> int:
     ]
     print(json.dumps(out, indent=2))
     return 0
+
+
+# ── launch ───────────────────────────────────────────────────────────────────
+
+# geno-tools/npx agent name  ->  geno-iso `--agent` value
+_LAUNCH_AGENT_MAP = {
+    "claude-code": "claude",
+    "codex": "codex",
+    "gemini-cli": "gemini",
+}
+
+
+def _launch(args: argparse.Namespace) -> int:
+    """Launch a CLI in a geno-iso container scoped to a profile.
+
+    Composes the whole stack: resolve the profile -> generate an .mcp.json from
+    the resolved MCP catalog specs -> run `geno-iso` with each pinned variant
+    worktree bind-mounted into the container's skills path. Hard-requires the
+    geno-iso container runtime (no host fallback).
+    """
+    import json
+    import shutil as _shutil
+    import tempfile
+
+    from geno_tools import mcp
+    from geno_tools import profiles as prof
+
+    agent = args.agent
+    if agent not in prof.KNOWN_AGENTS:
+        print(f"unknown agent: {agent}\n  known: {', '.join(prof.KNOWN_AGENTS)}",
+              file=sys.stderr)
+        return 1
+    iso_agent = _LAUNCH_AGENT_MAP.get(agent)
+    if iso_agent is None:
+        print(f"agent '{agent}' is not yet supported by launch "
+              f"(container images exist for: {', '.join(_LAUNCH_AGENT_MAP)})",
+              file=sys.stderr)
+        return 1
+
+    # Hard-require geno-iso (no host fallback, per design).
+    if not _shutil.which("geno-iso"):
+        print("geno-iso not found on PATH — launch requires the container "
+              "runtime.\n  install it: geno-tools install geno-iso "
+              "(or pipx install this package)", file=sys.stderr)
+        return 1
+
+    try:
+        resolved = prof.resolve(args.profile)
+    except prof.ProfileError as e:
+        print(str(e), file=sys.stderr)
+        return 1
+
+    if agent not in resolved["agents"]:
+        print(f"profile '{args.profile}' does not target agent '{agent}'\n"
+              f"  it targets: {', '.join(resolved['agents'])}", file=sys.stderr)
+        return 1
+
+    if resolved["missing"]:
+        print(f"profile references skillsets that are not installed: "
+              f"{', '.join(resolved['missing'])}\n"
+              f"  install them first: "
+              f"{'; '.join('geno-tools install ' + m for m in resolved['missing'])}",
+              file=sys.stderr)
+        return 1
+
+    # Build variant bind-mounts: each skill's variant worktree -> the agent's
+    # in-container skills dir, under a per-skillset subdir.
+    mounts: list[tuple[str, str]] = []
+    for s in resolved["skills"]:
+        if not s["worktree_exists"]:
+            print(f"variant worktree missing for {s['name']}@{s['variant']}\n"
+                  f"  fork it: geno-tools fork {s['name']} {s['variant']}",
+                  file=sys.stderr)
+            return 1
+        # Container skills path for claude: /home/agent/.claude/skills/<name>
+        dest = f"/home/agent/.claude/skills/{s['name']}"
+        mounts.append((str(s["worktree"] / "skills"), dest))
+
+    # Resolve MCP catalog names -> concrete specs -> a .mcp.json for the run.
+    mcp_config_path = None
+    if resolved["mcp"]:
+        try:
+            specs = mcp.resolve_mcp(resolved["mcp"])
+        except KeyError as e:
+            print(str(e), file=sys.stderr)
+            return 1
+        tmp = Path(tempfile.mkdtemp(prefix="geno-launch-")) / ".mcp.json"
+        mcp.write_mcp_config(specs, tmp)
+        mcp_config_path = str(tmp)
+
+    # Build the geno-iso invocation. Skills come via bind-mounts (not -s
+    # network install), so the container profile stays `bare`.
+    cmd = ["geno-iso", "run", "--agent", iso_agent, "--profile", "bare"]
+    if args.ephemeral:
+        cmd.append("--rm")
+    cmd.append(args.workspace)
+    if mcp_config_path:
+        cmd += ["--mcp-config", mcp_config_path]
+
+    # NOTE: variant bind-mounts are passed to geno-iso via the GENO_ISO_MOUNTS
+    # env var (consumed by the run command); this avoids widening the public
+    # `geno-iso run` flag surface for a geno-tools-internal concern.
+    env_mounts = json.dumps(mounts)
+
+    print(_bold(f"launch · {args.profile} → {agent}"))
+    print(_rule())
+    print(f"  container agent  {iso_agent}")
+    print(f"  workspace        {args.workspace}")
+    for host, dest in mounts:
+        print(f"  mount            {host} -> {dest}")
+    if mcp_config_path:
+        print(f"  mcp servers      {', '.join(resolved['mcp'])}")
+    print(f"  $ {' '.join(cmd)}")
+
+    if args.dry_run:
+        print(_dim("  (dry-run — not launching)"))
+        return 0
+
+    import os as _os
+    env = {**_os.environ, "GENO_ISO_MOUNTS": env_mounts}
+    return subprocess.call(cmd, env=env)
 
 
 REPO_URL = "https://github.com/42euge/geno-tools.git"
