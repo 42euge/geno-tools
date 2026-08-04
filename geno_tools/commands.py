@@ -558,15 +558,16 @@ def _remove_bin_symlinks(full: str) -> None:
 
 # ── npx skills ──────────────────────────────────────────────────────────────
 
-def _install_skills_via_npx(full: str) -> None:
+def _install_skills_via_npx(full: str, agent: str = "*") -> None:
     skill_dirs = _enumerate_skill_dirs(full)
     if not skill_dirs:
         return
-    print(f"  installing {len(skill_dirs)} skill(s) via npx skills (all agents, global)")
+    scope = "all agents" if agent == "*" else agent
+    print(f"  installing {len(skill_dirs)} skill(s) via npx skills ({scope}, global)")
     for skill_dir in skill_dirs:
         subprocess.check_call([
             "npx", "--yes", "skills", "add", str(skill_dir),
-            "--agent", "*", "--global", "--full-depth", "--yes",
+            "--agent", agent, "--global", "--full-depth", "--yes",
         ])
 
 
@@ -697,15 +698,164 @@ def _dev(args: argparse.Namespace) -> int:
 
 
 def _fork(args: argparse.Namespace) -> int:
-    return _todo(f"fork {args.name} {args.variant}")
+    """Create a variant worktree off main: a git worktree on a new branch.
+
+    Does NOT flip the active symlink — use `geno-tools use <name>@<variant>`
+    to activate it. With --isolated-venv, builds a fresh per-variant venv so
+    the variant's deps don't clobber the shared main venv.
+    """
+    full = paths.normalize(args.name)
+    variant = args.variant
+    if variant == "main":
+        print("cannot fork the reserved variant name 'main'", file=sys.stderr)
+        return 1
+    if not paths.skillset_root(full).exists():
+        print(f"not installed: {full}", file=sys.stderr)
+        return 1
+
+    worktree = paths.skillset_worktree(full, variant)
+    if worktree.exists():
+        print(f"variant already exists: {full}@{variant}", file=sys.stderr)
+        return 1
+
+    bare = paths.skillset_git(full)
+    base = _detect_default_branch(bare)
+    worktree.parent.mkdir(parents=True, exist_ok=True)
+    print(f"forking {full}@{variant} off {base}")
+    subprocess.check_call([
+        "git", "-C", str(bare), "worktree", "add", "-b", variant,
+        str(worktree), base,
+    ])
+
+    if args.isolated_venv:
+        _create_variant_venv(full, variant, worktree)
+
+    print(f"forked {full}@{variant} at {worktree}")
+    print(f"  activate with: geno-tools use {full}@{variant}")
+    return 0
 
 
 def _use(args: argparse.Namespace) -> int:
-    return _todo(f"use {args.spec}")
+    """Select a variant by repointing the `active` symlink + re-registering.
+
+    `<name>@<variant>` — flips ~/.geno-tools/geno-<name>/active to the variant
+    worktree, then re-runs npx skills registration so the active variant's
+    skills surface. --here (cwd-only override) is not yet implemented.
+    """
+    if "@" not in args.spec:
+        print("spec must be <name>@<variant> (e.g. geno-foo@exp-1)",
+              file=sys.stderr)
+        return 1
+    name, variant = args.spec.rsplit("@", 1)
+    full = paths.normalize(name)
+
+    if args.here:
+        return _todo(f"use --here {args.spec}: cwd-only override")
+
+    if not paths.skillset_root(full).exists():
+        print(f"not installed: {full}", file=sys.stderr)
+        return 1
+
+    target = paths.skillset_worktree(full, variant)
+    if not target.exists():
+        print(f"no such variant: {full}@{variant}\n"
+              f"  fork it first: geno-tools fork {full} {variant}",
+              file=sys.stderr)
+        return 1
+
+    active = paths.skillset_active(full)
+    # active is a symlink relative to the skillset root: "main" or
+    # ".worktrees/<variant>". Mirror how _install_one seeds it.
+    rel = "main" if variant == "main" else str(Path(".worktrees") / variant)
+    if active.is_symlink() or active.exists():
+        active.unlink()
+    active.symlink_to(rel)
+    print(f"active: {full} -> {rel}")
+
+    _install_skills_via_npx(full)
+    print(f"using {full}@{variant}")
+    return 0
 
 
 def _promote(args: argparse.Namespace) -> int:
-    return _todo(f"promote {args.name} {args.variant}")
+    """Merge a variant branch into main (fast-forward only; no upstream push).
+
+    If the active symlink pointed at the promoted variant, flips it back to
+    main and re-registers so the merged main is what's live.
+    """
+    full = paths.normalize(args.name)
+    variant = args.variant
+    if variant == "main":
+        print("cannot promote 'main' into itself", file=sys.stderr)
+        return 1
+    if not paths.skillset_root(full).exists():
+        print(f"not installed: {full}", file=sys.stderr)
+        return 1
+
+    variant_wt = paths.skillset_worktree(full, variant)
+    if not variant_wt.exists():
+        print(f"no such variant: {full}@{variant}", file=sys.stderr)
+        return 1
+
+    # Guard: the variant worktree must be clean before merging.
+    dirty = subprocess.check_output(
+        ["git", "-C", str(variant_wt), "status", "--porcelain"], text=True
+    ).strip()
+    if dirty:
+        print(f"variant {full}@{variant} has uncommitted changes; "
+              f"commit or discard before promoting", file=sys.stderr)
+        return 1
+
+    main_wt = paths.skillset_worktree(full, "main")
+    print(f"promoting {full}@{variant} -> main (ff-only)")
+    rc = subprocess.call(
+        ["git", "-C", str(main_wt), "merge", "--ff-only", variant]
+    )
+    if rc != 0:
+        print(f"  ff-only merge failed: main has diverged from {variant}",
+              file=sys.stderr)
+        return 1
+
+    # If active pointed at the promoted variant, flip back to main.
+    active = paths.skillset_active(full)
+    try:
+        current = active.readlink()
+    except OSError:
+        current = None
+    if current is not None and Path(current).name == variant:
+        active.unlink()
+        active.symlink_to("main")
+        print(f"active: {full} -> main")
+        _install_skills_via_npx(full)
+
+    print(f"promoted {full}@{variant} into main")
+    return 0
+
+
+def _create_variant_venv(full: str, variant: str, worktree: Path) -> dict[str, str]:
+    """Build a per-variant venv under venvs/<variant>/ (isolated fork deps)."""
+    pyproject = worktree / "pyproject.toml"
+    if not pyproject.exists():
+        return {}
+    data = tomllib.loads(pyproject.read_text())
+    project = data.get("project", {})
+    if not project:
+        return {}
+    deps = project.get("dependencies", []) or []
+    scripts = project.get("scripts", {}) or {}
+
+    venv_dir = paths.skillset_venvs(full) / variant
+    venv_dir.parent.mkdir(parents=True, exist_ok=True)
+    print(f"  creating isolated venv: {venv_dir}")
+    subprocess.check_call([sys.executable, "-m", "venv", str(venv_dir)])
+    pip = venv_dir / "bin" / "pip"
+    subprocess.check_call([str(pip), "install", "--quiet", "--upgrade", "pip"])
+    if deps:
+        print(f"  installing deps: {', '.join(deps)}")
+        subprocess.check_call([str(pip), "install", "--quiet", *deps])
+    print("  installing package (editable)")
+    subprocess.check_call([str(pip), "install", "--quiet", "-e", str(worktree)])
+    return scripts
 
 
 REPO_URL = "https://github.com/42euge/geno-tools.git"
