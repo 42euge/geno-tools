@@ -1,8 +1,8 @@
 # The control surface
 
 geno-tools is controlled at four levels, from most conversational to most
-precise: slash commands, the CLI, policy config, and session manifests. All
-four converge on the same state under `~/.geno/`, so you can mix them freely.
+precise: slash commands, the CLI, policy config, and profiles. All four
+converge on the same state under `~/.geno/`, so you can mix them freely.
 
 ## 1. Slash commands: conversational control
 
@@ -46,8 +46,9 @@ absorption
   geno-tools absorb <url> [--dry-run] [--prefix ext]
 
 sessions
-  geno-tools launch <agent> [--manifest <name>]  start an agent with a manifest's skill subset (geno-iso)
-  geno-tools manifest ls|new|show [<name>]       manage session manifests
+  geno-tools launch <agent> --profile <name>     start an agent scoped to a profile (geno-iso)
+  geno-tools profile list|show|create [<name>]   manage profiles (~/.geno/profiles/*.yaml)
+  geno-tools resolve <name>                      emit a profile's resolved plan as JSON
 
 health
   geno-tools doctor [--fix]              verify the whole installation
@@ -130,53 +131,59 @@ being asked*, and each level strictly contains the previous one:
 Per-session overrides beat the file: `GENO_AUTONOMY=0 claude` gives you a
 fully passive session regardless of config; `GENO_MODE=dev` likewise.
 
-## 4. Session manifests: launch with exactly the skills you name
+## 4. Profiles: launch with exactly the skills and MCP servers you name
 
-The three levels above govern the whole machine. A session manifest governs
-one session. It names the skillsets (and variants) an agent launches with;
-everything not named stays out of that session.
+The three levels above govern the whole machine. A **profile** governs one
+launched session. It names the skillsets (at pinned variants), the MCP servers,
+and the agents an invocation launches with; everything not named stays out of
+that session.
 
 ```yaml
-# ~/.geno/manifests/research.yaml — a named manifest
-# (a project can also carry its own at ./.geno/manifest.yaml)
-agent: claude
-skillsets:
-  - geno-research
-  - geno-notes@wiki-v2       # variant pin (see Meta-Harness)
-  - geno-kaggle
-autonomy: 0                  # config overrides scoped to this session
+# ~/.geno/profiles/research.yaml — a named profile
+agents: [claude-code]
+skills:
+  - name: geno-research
+  - name: geno-notes
+    variant: wiki-v2         # variant pin (see Meta-Harness)
+  - name: geno-kaggle
+mcp: [core, confluence]      # MCP catalog names (see the MCP adapter)
+autonomy: 0                  # config override scoped to this session
 ```
 
-Launch against it:
+Inspect what it resolves to, then launch against it:
 
 ```console
-$ geno-tools launch claude --manifest research
-geno-tools
-── launch · research ───────────────────────────
-  agent      claude (Claude Code)
-  iso        geno-iso container a41f9c
-  skillsets  geno-research · geno-notes@wiki-v2 · geno-kaggle
-  autonomy   0 (manifest override)
-starting agent …
+$ geno-tools resolve research          # emit the resolved plan as JSON
+$ geno-tools launch claude-code --profile research
+launch · research → claude-code
+──────────────────────────────────────────────
+  container agent  claude
+  workspace        .
+  mount            …/geno-notes/.worktrees/wiki-v2/skills -> /home/agent/.claude/skills/geno-notes
+  mcp servers      core, confluence
+  $ geno-iso run --agent claude --profile bare --mcp-config …/.mcp.json
 ```
 
-In a project with `./.geno/manifest.yaml`, plain `geno-tools launch claude`
-picks it up automatically.
+The four built-in bundles (`bare` / `base` / `standard` / `full`) are available
+as profiles without a file on disk; a same-named file overrides the built-in.
 
 The subset is enforced, not just hidden: `launch` runs the agent inside a
-geno-iso container and mounts only the listed skillsets, so the session
-cannot see or run anything the manifest leaves out. Boundary declarations
-from the [trust gate](trust-and-audit.md) become container policy in the
-same step.
+geno-iso container, bind-mounts only the profile's (pinned-variant) skills, and
+injects a generated `.mcp.json` with only the named MCP servers — so the session
+cannot see or run anything the profile leaves out. Boundary declarations from
+the [trust gate](trust-and-audit.md) become container policy in the same step.
+`launch` hard-requires the geno-iso runtime; there is no unenforced host
+fallback.
 
 ## What geno-tools itself depends on
 
 The dependency surface is deliberately small: `git`, Python 3.10+, and
-**geno-iso**. geno-iso is foundational. It supplies the container runtime
-that `launch` uses to enforce session manifests, and that autonomy level 2
-uses for its background daemon. Everything else geno-tools does (venvs,
-symlinks, agent registration) is plain filesystem work. Without geno-iso
-present, `launch` falls back to an unenforced host session and says so.
+**Docker**. The geno-iso container runtime ships inside geno-tools
+(`geno_tools/iso/`, the `geno-iso` binary) and supplies the isolation that
+`launch` uses to enforce profiles, and that autonomy level 2 uses for its
+background daemon. Everything else geno-tools does (venvs, symlinks, agent
+registration) is plain filesystem work. `launch` hard-requires the container
+runtime — there is no unenforced host fallback.
 
 ## Precedence
 
@@ -184,6 +191,6 @@ When surfaces disagree, the order is:
 
 1. **Command-line flags** (`--no-audit`, `--isolated-venv`)
 2. **Environment** (`GENO_MODE`, `GENO_AUTONOMY`)
-3. **Session manifest** (`--manifest <name>`, or `./.geno/manifest.yaml`)
+3. **Profile** (`--profile <name>` → `~/.geno/profiles/<name>.yaml`)
 4. **`~/.geno/config.yaml`**
 5. **Built-in defaults** (`geno_tools/config/defaults.yaml`)

@@ -1,7 +1,23 @@
 # geno-tools
 
-Installer and meta-CLI for geno-* skillsets. Discovers, installs, updates, and manages
-the full lifecycle of skills across all supported coding agents.
+Unified geno control plane: **resolve · scope · launch**. geno-tools resolves
+skillset bundles — skills at pinned variants, transitive `requires:` deps, and
+MCP catalog names → server specs — and launches them in isolated containers
+scoped to a **profile**. Raw skill *registration* is delegated to `npx skills`;
+geno-tools owns everything `npx skills` can't do: dependency resolution,
+variant pinning, MCP catalogs, per-invocation isolation, and the container
+runtime (folded in from the former geno-iso repo).
+
+Three layers:
+- **`npx skills`** (external) — per-agent skill registration.
+- **geno-tools** — resolve (skills@variant, deps, MCP catalogs), variant
+  worktrees (fork/use/promote), profiles, and the MCP catalog adapter.
+- **geno-iso** (`geno_tools/iso/`, `geno-iso` binary) — per-invocation
+  isolated container launch.
+
+A **profile** (`~/.geno/profiles/*.yaml`) is a named bundle of *(skills @
+variant)* + *(MCP servers)* + target agents. `geno-tools launch <agent>
+--profile <name>` materializes exactly that into one scoped container session.
 
 ## Skills table
 
@@ -26,6 +42,24 @@ the full lifecycle of skills across all supported coding agents.
 | geno-tools-meta-ecosystem-onboarding | meta/ecosystem | /geno-tools-meta-ecosystem-onboarding |
 | geno-tools-author-skill | author | /geno-tools-author-skill |
 | geno-tools-author-repo | author | /geno-tools-author-repo |
+| geno-tools-iso-containers-run | iso | /geno-tools-iso-containers-run |
+| geno-tools-iso-containers-list | iso | /geno-tools-iso-containers-list |
+| geno-tools-iso-containers-enter | iso | /geno-tools-iso-containers-enter |
+| geno-tools-iso-images-build | iso | /geno-tools-iso-images-build |
+| geno-tools-iso-credentials-extract | iso | /geno-tools-iso-credentials-extract |
+| geno-tools-iso-housekeep | iso | /geno-tools-iso-housekeep |
+| geno-tools-iso-dev-guide | iso | /geno-tools-iso-dev-guide |
+
+## Profiles & launch (CLI, not skills)
+
+- `geno-tools profile list|show <name>|create <name>` — manage `~/.geno/profiles/*.yaml`
+- `geno-tools resolve <name>` — emit a profile's resolved plan as JSON (inspection seam)
+- `geno-tools launch <agent> --profile <name> [workspace] [--rm]` — run a CLI in a
+  geno-iso container scoped to the profile (skills at pinned variants bind-mounted,
+  MCP servers injected). Hard-requires the `geno-iso` runtime.
+- `geno-tools fork <name> <variant>` / `use <name>@<variant>` / `promote <name> <variant>` —
+  variant worktree lifecycle that profiles pin against.
+- `geno-iso …` — the container runtime binary (run/it/ls/stop/rm/build/creds).
 
 ## Repo structure
 
@@ -49,16 +83,20 @@ geno-tools/
 │   ├── audit/                 #   ecosystem compliance auditor
 │   ├── meta/harness/          #   fork / use / promote variant loop
 │   ├── meta/ecosystem/        #   discover / scan / onboarding
-│   └── author/                #   scaffold skill and repo
+│   ├── author/                #   scaffold skill and repo
+│   └── iso/                   #   container run/list/enter, image build, creds, housekeep (folded from geno-iso)
 ├── geno_tools/                # Python package (CLI implementation)
 │   ├── cli.py                 #   argparse entry point
-│   ├── commands.py            #   subcommand dispatch
+│   ├── commands.py            #   subcommand dispatch (incl. fork/use/promote, profile, resolve, launch)
+│   ├── profiles.py            #   profile store + resolver (~/.geno/profiles/*.yaml)
+│   ├── mcp.py                 #   MCP catalog adapter (pluggable providers; write .mcp.json)
 │   ├── registry.py            #   skillset registry lookup
 │   ├── discovery.py           #   GitHub org scanning
-│   ├── paths.py               #   ~/.geno/ path helpers
+│   ├── paths.py               #   ~/.geno/ path helpers (ROOT, PROFILES_DIR, ISO_DIR)
 │   ├── config.py              #   config loading
 │   ├── trace.py               #   geno-trace CLI
 │   ├── docs.py                #   geno-docs CLI
+│   ├── iso/                   #   geno-iso container runtime (cli, docker, profiles, credentials, dockerfiles/)
 │   └── scripts/               #   bootstrap.sh, compile_skill_docs.py
 ├── docs/                      # MkDocs Material site
 │   ├── index.md

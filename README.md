@@ -2,19 +2,32 @@
 
 [![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://42euge.github.io/geno-tools/)
 
-Agent-agnostic meta package manager for AI coding agents. Discovers, absorbs, evaluates, and governs skills across Claude Code, Codex, and Antigravity CLI.
+Unified control plane for AI coding agents: **resolve · scope · launch**. Raw
+skill registration is delegated to [`npx skills`](https://github.com/vercel-labs/skills);
+geno-tools owns everything registration can't — dependency resolution, variant
+pinning, MCP catalogs, and per-invocation isolated launches — across Claude
+Code, Codex, and other agents.
 
 **Website:** <https://42euge.github.io/geno-tools>
 
 ## What it does
 
-`geno-tools` discovers skills from open-source registries and private ecosystems, absorbs external skill systems ([vercel-labs/skills](https://github.com/vercel-labs/skills), [obra/superpowers](https://github.com/obra/superpowers), Ralphy Loop plugins) into a unified framework, and manages their full lifecycle:
+A **profile** (`~/.geno/profiles/*.yaml`) is a named bundle of *(skills @
+variant)* + *(MCP servers)* + target agents. `geno-tools launch <agent>
+--profile <name>` materializes exactly that bundle into one isolated container
+session — the session sees those skills and MCP servers and nothing else.
 
-- **Discovery** — find candidate skills from a curated registry, GitHub/GitLab/Bitbucket orgs, private mirrors, or any git URL
-- **Absorption** — normalize heterogeneous skill formats into `SKILL.md` + `genotools.yaml`; register with all agents via a single `geno-tools install`
-- **Meta-harness** — `fork`/`use`/`promote` with git worktrees to evaluate, refine, and iterate on skill variations in isolation
-- **Auditing** — built-in compliance scanning gates every onboarding path (prompt injection, dependency hygiene, filesystem/network boundaries)
-- **Per-skillset venvs** — isolated at `~/.geno-tools/geno-{name}/venvs/`
+- **Resolve** — turn a profile into a concrete plan: skills at pinned variants,
+  transitive `requires:` dependencies, and MCP catalog names → server specs
+  (things `npx skills` structurally can't do — see `docs/npx-skills-dependencies.md`)
+- **Variants** — `fork`/`use`/`promote` with git worktrees to evaluate and
+  evolve skill variations in isolation; profiles pin against them
+- **MCP catalogs** — a pluggable adapter resolves catalog names to server
+  specs; proprietary catalogs plug in privately without touching this repo
+- **Scope & launch** — run an agent inside a [geno-iso](#) container that mounts
+  only the profile's skills, enforcing the subset per invocation
+- **Discovery & audit** — find candidate skillsets across GitHub/GitLab/Bitbucket
+  orgs; a built-in compliance auditor gates onboarding
 - **Zero telemetry** — local execution, no call-home
 
 ## Install
@@ -160,7 +173,7 @@ Lower-level building blocks that power skillsets and the agent itself:
 
 | Repo | Description |
 |------|-------------|
-| [42euge/geno-tools](https://github.com/42euge/geno-tools) | This repo — installer/manager for everything above. Also ships the bundled `geno-icons` skill for pixel-art project icons. |
+| [42euge/geno-tools](https://github.com/42euge/geno-tools) | This repo — control plane (resolve · scope · launch) for everything above, with the folded-in geno-iso container runtime. Also ships the bundled `geno-icons` skill for pixel-art project icons. |
 
 ## Enterprise: private skillsets, public tooling
 
