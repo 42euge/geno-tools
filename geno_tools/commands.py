@@ -84,6 +84,7 @@ def dispatch(args: argparse.Namespace) -> int:
         "use": _use,
         "promote": _promote,
         "update": _self_update,   # update geno-tools itself
+        "uninstall": _uninstall,  # fully remove geno-tools (inverse of install)
         "upgrade": _upgrade,      # upgrade installed skillset(s) — was `update`
         "remove": _remove,
         "deps": _deps,
@@ -1135,6 +1136,219 @@ def _find_pipx() -> str | None:
         if p.exists():
             return str(p)
     return None
+
+
+# ── uninstall (inverse of install) ────────────────────────────────────────────
+
+# geno-tools' OWN state files/dirs inside ~/.geno. Everything else in ~/.geno
+# (recordings, tasks, vault, geno-notes content, arbitrary user files) is USER
+# DATA and is never touched — only removed skillsets clean their own subtrees.
+_GENO_OWN_STATE = [
+    "config.yaml", "registry.json", "settings.json", "llm.db",
+    "bootstrap.log", "traces", "health", "discovery", "datasets",
+]
+
+# Agent skills dirs npx registers into (mirror of profiles.KNOWN_AGENTS paths).
+_AGENT_SKILL_DIRS = [
+    Path.home() / ".claude" / "skills",
+    Path.home() / ".agents" / "skills",
+    Path.home() / ".codex" / "skills",
+    Path.home() / ".cursor" / "skills",
+    Path.home() / ".gemini" / "skills",
+    Path.home() / ".gemini" / "antigravity" / "skills",
+    Path.home() / ".copilot" / "skills",
+]
+
+_CC_PLUGIN_DIRS = [
+    Path.home() / ".claude" / "plugins" / "cache" / "geno-tools",
+    Path.home() / ".claude" / "plugins" / "data" / "geno-tools-geno-tools",
+    Path.home() / ".claude" / "plugins" / "data" / "geno-tools-skills-dir",
+    _CC_MARKETPLACE,
+]
+
+
+def _uninstall(args: argparse.Namespace) -> int:
+    """`geno-tools uninstall` — the faithful inverse of install.
+
+    Removes everything geno-tools created — installed skillsets, venvs, bin
+    symlinks, agent skill registrations, Claude Code plugin/marketplace clones,
+    and (with --purge-data) geno-tools' own state files in ~/.geno. It never
+    deletes ~/.geno wholesale: user data living there is enumerated and KEPT,
+    and reported so you know exactly what remains.
+
+    The pipx/brew package removal is the one step a running process can't do to
+    itself cleanly, so we print the exact command instead of self-deleting.
+    """
+    home = Path.home()
+
+    # ── plan: enumerate everything, delete nothing yet ──
+    skillsets = _installed_skillsets() if paths.ROOT.exists() else []
+
+    agent_skills: list[Path] = []
+    for d in _AGENT_SKILL_DIRS:
+        if not d.exists():
+            continue
+        for entry in sorted(d.iterdir()):
+            if entry.name.startswith(("geno-", "geno-tools", "geno-iso")):
+                agent_skills.append(entry)
+
+    bin_links: list[Path] = []
+    if SYSTEM_BIN.exists():
+        managed_prefix = str(paths.ROOT)
+        for entry in SYSTEM_BIN.iterdir():
+            if not entry.is_symlink():
+                continue
+            try:
+                target = (entry.parent / entry.readlink()).resolve()
+            except OSError:
+                continue
+            if str(target).startswith(managed_prefix):
+                bin_links.append(entry)
+
+    plugin_dirs = [d for d in _CC_PLUGIN_DIRS if d.exists()]
+
+    own_state = [paths.GENO_DIR / n for n in _GENO_OWN_STATE
+                 if (paths.GENO_DIR / n).exists()]
+    profiles_dir = paths.PROFILES_DIR if paths.PROFILES_DIR.exists() else None
+
+    # user data = everything in ~/.geno that is NOT our own state / profiles
+    kept_user_data: list[Path] = []
+    if paths.GENO_DIR.exists():
+        own_names = set(_GENO_OWN_STATE) | {"profiles"}
+        for entry in sorted(paths.GENO_DIR.iterdir()):
+            if entry.name not in own_names and not entry.name.startswith("."):
+                kept_user_data.append(entry)
+
+    # ── report ──
+    print(_bold("geno-tools uninstall"))
+    print(_rule("plan"))
+
+    def _section(title, items, render=lambda p: str(p)):
+        print(_bold(f"  {title} ({len(items)})"))
+        for it in items:
+            print(f"    {_red('remove')}  {render(it)}")
+        if not items:
+            print(_dim("    (none)"))
+
+    _section(f"skillsets under {paths.ROOT}", skillsets,
+             lambda n: f"{paths.ROOT}/{n}")
+    _section("agent skill registrations", agent_skills)
+    _section("bin symlinks", bin_links)
+    _section("Claude Code plugin/marketplace clones", plugin_dirs)
+    if args.purge_data:
+        _section("geno-tools own state in ~/.geno", own_state)
+        if profiles_dir:
+            print(f"    {_red('remove')}  {profiles_dir}")
+    else:
+        print(_bold("  geno-tools own state in ~/.geno"))
+        print(_dim("    (kept — pass --purge-data to also remove config/registry/traces/health)"))
+
+    print()
+    print(_bold(f"  {_green('KEPT')} — your data, never touched:"))
+    if kept_user_data:
+        for it in kept_user_data:
+            print(f"    keep    {it}")
+    else:
+        print(_dim("    (no user data found in ~/.geno)"))
+
+    total = (len(skillsets) + len(agent_skills) + len(bin_links)
+             + len(plugin_dirs) + (len(own_state) + (1 if profiles_dir else 0)
+                                   if args.purge_data else 0))
+    print()
+    if total == 0:
+        print(_green("nothing to remove — geno-tools is not installed here."))
+        # still print the package-removal hint below
+
+    if args.dry_run:
+        print(_dim("dry-run — nothing was deleted."))
+        _print_pkg_removal_hint()
+        return 0
+
+    if total > 0 and not args.yes:
+        try:
+            resp = input(f"remove {total} item(s)? [y/N] ").strip().lower()
+        except EOFError:
+            resp = ""
+        if resp not in ("y", "yes"):
+            print("aborted.")
+            return 1
+
+    # ── execute ──
+    for name in skillsets:
+        _uninstall_skills_via_npx(name)
+        _remove_bin_symlinks(name)
+        shutil.rmtree(paths.skillset_root(name), ignore_errors=True)
+        print(f"  removed skillset {name}")
+    for s in agent_skills:
+        shutil.rmtree(s, ignore_errors=True) if s.is_dir() and not s.is_symlink() else s.unlink(missing_ok=True)
+        print(f"  removed {s}")
+    for b in bin_links:
+        b.unlink(missing_ok=True)
+        print(f"  removed {b}")
+    for d in plugin_dirs:
+        shutil.rmtree(d, ignore_errors=True)
+        print(f"  removed {d}")
+    if args.purge_data:
+        for f in own_state:
+            if f.is_dir():
+                shutil.rmtree(f, ignore_errors=True)
+            else:
+                f.unlink(missing_ok=True)
+            print(f"  removed {f}")
+        if profiles_dir:
+            shutil.rmtree(profiles_dir, ignore_errors=True)
+            print(f"  removed {profiles_dir}")
+    # if ~/.geno-tools is now empty, remove it
+    if paths.ROOT.exists() and not any(paths.ROOT.iterdir()):
+        shutil.rmtree(paths.ROOT, ignore_errors=True)
+        print(f"  removed empty {paths.ROOT}")
+
+    # clean geno-tools entries from Claude JSON configs
+    _clean_agent_json_configs()
+
+    print(_green("\nuninstalled geno-tools' on-disk footprint."))
+    _print_pkg_removal_hint()
+    return 0
+
+
+def _print_pkg_removal_hint() -> None:
+    """The package itself must be removed by the package manager, not by a
+    process removing its own interpreter mid-run."""
+    print()
+    print(_bold("last step — remove the CLI package (a process can't delete itself):"))
+    print("  pipx uninstall geno-tools        # if installed via pipx")
+    print(_dim("  # or, if installed via Homebrew:"))
+    print("  brew uninstall 42euge/geno/geno  # NOTE: may cascade shared deps; check `brew uses`")
+
+
+def _clean_agent_json_configs() -> None:
+    """Remove geno-tools plugin/marketplace entries from agent JSON configs.
+
+    Edits settings.json / .claude.json in place, preserving all other keys and
+    any historical usage records.
+    """
+    import json as _json
+    targets = [
+        home / ".claude" / "settings.json"
+        for home in [Path.home()]
+    ] + [Path.home() / ".claude.json"]
+    for p in targets:
+        if not p.exists():
+            continue
+        try:
+            data = _json.loads(p.read_text())
+        except Exception:  # noqa: BLE001
+            continue
+        changed = False
+        for key in ("enabledPlugins", "extraKnownMarketplaces", "installedPlugins"):
+            v = data.get(key)
+            if isinstance(v, dict):
+                for k in [k for k in v if "geno-tools" in k or "geno-iso" in k]:
+                    del v[k]
+                    changed = True
+        if changed:
+            p.write_text(_json.dumps(data, indent=2) + "\n")
+            print(f"  cleaned geno entries from {p}")
 
 
 def _upgrade(args: argparse.Namespace) -> int:

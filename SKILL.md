@@ -44,6 +44,7 @@ resolution, variant pinning, profiles, MCP catalogs, and container launch.
 - `geno-tools remove <repo> [--keep-data]` — uninstall from all agents
 - `geno-tools upgrade [repo]` — upgrade installed skillset(s): pull latest + re-register
 - `geno-tools update` — update geno-tools **itself** to the latest version
+- `geno-tools uninstall [--dry-run] [--purge-data]` — fully remove geno-tools (inverse of install; keeps your data)
 - `geno-tools deps <repo>` — dependency tree
 
 Variants, profiles & launch:
