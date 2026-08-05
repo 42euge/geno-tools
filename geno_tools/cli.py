@@ -43,6 +43,17 @@ def main(argv: list[str] | None = None) -> int:
 
     # update — update geno-tools ITSELF to the latest version
     sub.add_parser("update", help="update geno-tools itself to the latest version")
+
+    # uninstall — the inverse of install: remove geno-tools + all skillsets
+    p_uninstall = sub.add_parser(
+        "uninstall", help="fully remove geno-tools and all it installed (inverse of install)")
+    p_uninstall.add_argument("--dry-run", action="store_true",
+                             help="show exactly what would be removed and kept, without deleting")
+    p_uninstall.add_argument("--yes", "-y", action="store_true",
+                             help="skip the confirmation prompt")
+    p_uninstall.add_argument("--purge-data", action="store_true",
+                             help="ALSO delete geno-tools' own state files in ~/.geno "
+                                  "(config, registry, traces, health). User data is never touched.")
     # upgrade — upgrade installed skillset(s) to latest (git pull + re-register)
     p_upgrade = sub.add_parser("upgrade", help="upgrade installed skillset(s) to latest")
     p_upgrade.add_argument("name", nargs="?", help="skillset to upgrade; omit for all")

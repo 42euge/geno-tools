@@ -5,10 +5,12 @@ Supported agents: **Claude Code**, **Codex**, **Antigravity CLI**.
 ## 1. Install the CLI
 
 ```bash
-brew install 42euge/geno/geno-tools
+brew install 42euge/geno/geno
 ```
 
-CLI only; no agent is touched. All state lives in `~/.geno/`.
+The tap ships a single umbrella formula named **`geno`** (not `geno-tools`) —
+it pipx-installs `geno-tools` and the other geno CLIs for you. CLI only; no
+agent is touched. All state lives in `~/.geno/`.
 
 ```bash
 geno-tools --version
@@ -89,6 +91,51 @@ geno-tools
 
 ```bash
 geno-tools upgrade            # update skillsets
-geno-tools remove <name>      # uninstall one
-brew upgrade geno-tools       # update geno-tools itself
+geno-tools remove <name>      # remove one skillset
+brew upgrade 42euge/geno/geno # update geno-tools itself
 ```
+
+Removing everything is one command — the inverse of install. It removes all
+skillsets, agent registrations, and plugin clones, and always keeps your data
+in `~/.geno`:
+
+```bash
+geno-tools uninstall --dry-run   # preview: what's removed vs KEPT
+geno-tools uninstall             # do it (prompts to confirm)
+pipx uninstall geno-tools        # last step: remove the CLI package itself
+```
+
+## 6. Define a profile
+
+A [profile](profiles-and-launch.md) names the skills (at pinned variants) and
+MCP servers a launched session should see — and nothing else.
+
+```bash
+geno-tools profile create eng --agent claude-code
+```
+
+Then edit `~/.geno/profiles/eng.yaml`:
+
+```yaml
+agents: [claude-code]
+skills:
+  - name: geno-loops
+  - name: geno-notes
+mcp: [core]
+```
+
+```bash
+geno-tools profile show eng      # human-readable resolved view
+geno-tools resolve eng           # the resolved plan as JSON
+```
+
+## 7. Launch a scoped session
+
+```bash
+geno-tools launch claude-code --profile eng .
+```
+
+This runs Claude Code inside an isolated container that sees only `eng`'s
+skills and MCP servers. Add `--rm` for a one-shot, or `--dry-run` to preview
+the invocation without starting anything. Requires Docker + the bundled
+`geno-iso` runtime.
