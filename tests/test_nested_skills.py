@@ -104,7 +104,10 @@ class TestNestedDiscovery:
         rels = [str(d).split("/skills/", 1)[-1] for d in dirs]
         assert rels == ["cat/leaf"]
 
-    def test_install_registers_every_leaf_with_full_depth(self, tmp_root, monkeypatch):
+    def test_install_registers_whole_tree_in_one_full_depth_call(self, tmp_root, monkeypatch):
+        # A single npx call over the skills/ root registers every nested leaf
+        # via --full-depth — no per-leaf loop (that spammed a banner + repeated
+        # per-agent failures once per skill).
         _skillset(tmp_root, "geno-i", {
             "manager/install": "geno-i-manager-install",
             "meta/harness/fork": "geno-i-meta-harness-fork",
@@ -112,8 +115,10 @@ class TestNestedDiscovery:
         calls = []
         monkeypatch.setattr("subprocess.check_call", lambda cmd, **kw: calls.append(cmd))
         commands._install_skills_via_npx("geno-i")
-        assert len(calls) == 2
-        for cmd in calls:
-            assert cmd[0] == "npx"
-            assert "--full-depth" in cmd
-            assert "--global" in cmd
+        assert len(calls) == 1
+        cmd = calls[0]
+        assert cmd[0] == "npx"
+        assert "--full-depth" in cmd
+        assert "--global" in cmd
+        # targets the skills/ tree root so --full-depth finds the nested leaves
+        assert cmd[cmd.index("add") + 1].endswith("/skills")
