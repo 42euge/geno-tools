@@ -563,16 +563,27 @@ def _remove_bin_symlinks(full: str) -> None:
 # ── npx skills ──────────────────────────────────────────────────────────────
 
 def _install_skills_via_npx(full: str, agent: str = "*") -> None:
+    """Register a skillset's skills with `npx skills` in ONE call.
+
+    `npx skills add <dir> --full-depth` already walks the whole skills tree and
+    discovers every leaf (applying its own shadowing rule), so we hand it the
+    skillset root once instead of looping per leaf — a single banner, a single
+    summary, and any per-agent failures reported once instead of N times.
+    """
     skill_dirs = _enumerate_skill_dirs(full)
     if not skill_dirs:
         return
+    # Point npx at the skills/ tree root (or the umbrella root for flat
+    # skillsets) and let --full-depth find the leaves in one pass.
+    active = paths.skillset_active(full)
+    root = active / "skills" if (active / "skills").is_dir() else active
     scope = "all agents" if agent == "*" else agent
-    print(f"  installing {len(skill_dirs)} skill(s) via npx skills ({scope}, global)")
-    for skill_dir in skill_dirs:
-        subprocess.check_call([
-            "npx", "--yes", "skills", "add", str(skill_dir),
-            "--agent", agent, "--global", "--full-depth", "--yes",
-        ])
+    print(f"  registering {len(skill_dirs)} skill(s) via npx skills "
+          f"({scope}, global) — one pass over {root}")
+    subprocess.check_call([
+        "npx", "--yes", "skills", "add", str(root),
+        "--agent", agent, "--global", "--full-depth", "--yes",
+    ])
 
 
 def _uninstall_skills_via_npx(full: str) -> None:

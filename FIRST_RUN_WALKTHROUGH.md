@@ -146,24 +146,40 @@ geno-tools discover
 
 ## Step 4 — Install a skillset (and watch the layers)
 
-Pick something small with a CLI, e.g. `geno-notes`:
+Use `geno-tt` (it ships the `tt` CLI, so you see the provisioning layer too):
 
 ```bash
-geno-tools install geno-notes
+geno-tools install geno-tt
 ```
 
 Watch the output for the layered behavior:
 
-- [ ] It clones into `~/.geno-tools/geno-notes/` (bare repo + `main/` worktree +
+- [ ] It clones into `~/.geno-tools/geno-tt/` (bare repo + `main/` worktree +
   `active -> main` symlink).
 - [ ] It resolves `requires:` dependencies (installs them too).
-- [ ] It creates a venv and symlinks any CLI binaries onto your PATH.
-- [ ] It hands **registration** to `npx skills add … --full-depth`.
+- [ ] It creates a venv and symlinks the `tt` CLI onto your PATH.
+- [ ] It hands **registration** to `npx skills add … --full-depth` — a
+  **single** invocation over the whole skills tree.
 - [ ] `geno-tools status` shows it with version + commit + drift state.
 
+> ✅ **FIXED (2026-08-05) — npx registration was invoked once per leaf skill.**
+> Installing geno-tt (34 skills) previously looped `npx skills add` **34 times**
+> — 34 ASCII banners, 34 "Installing to all 76 agents", and the same two
+> per-agent failures (`Eve` / `PromptScript` don't support global install)
+> repeated 34 times. `npx skills add <dir> --full-depth` already discovers the
+> whole tree in one call, so `_install_skills_via_npx` now hands it the skills/
+> root **once** (commands.py). Verified: 1 invocation, all 34 skills still
+> registered in `~/.claude/skills` and `~/.agents/skills`.
+>
+> _(The `Eve` / `PromptScript` "does not support global skill installation"
+> lines come from `npx skills` itself trying all 76 agents — harmless, but now
+> shown once instead of N times. A future nicety: scope npx to the agents the
+> user actually has.)_
+
 > **Refine:** _Did the output make the "npx does registration, geno-tools does
-> the rest" split legible? Was the venv/PATH step surprising? Did `status`
-> drift language (`in-sync` / `behind`) make sense?_
+> the rest" split legible? Was the venv/PATH step (`tt` on PATH) surprising?
+> Did `status` drift language (`in-sync` / `behind`) make sense? Was
+> registration now a single clean pass, not a wall of repeated banners?_
 
 ---
 

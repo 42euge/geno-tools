@@ -86,7 +86,10 @@ class TestEnumerateSkillDirs:
 
 
 class TestInstallSkillsViaNpx:
-    def test_installs_each_skill_individually(self, fake_skillset, monkeypatch):
+    def test_registers_whole_tree_in_one_call(self, fake_skillset, monkeypatch):
+        # Even with multiple sub-skills, npx skills is invoked ONCE over the
+        # skills/ root — --full-depth discovers the leaves. This is the fix for
+        # the per-leaf loop that printed a banner + repeated failures N times.
         fake_skillset(
             "geno-dev",
             sub_skills=["geno-dev-tasks-start", "geno-dev-commits-rewrite"],
@@ -99,14 +102,23 @@ class TestInstallSkillsViaNpx:
 
         commands._install_skills_via_npx("geno-dev")
 
-        assert len(calls) == 2  # 2 sub-skills (umbrella root skipped)
-        for cmd in calls:
-            assert cmd[0] == "npx"
-            assert "--global" in cmd
-            assert "--full-depth" in cmd
-            assert "--yes" in cmd
-            # each call gets a distinct skill dir path
-            assert "--skill" not in cmd  # no more --skill '*'
+        assert len(calls) == 1  # ONE call, not one-per-leaf
+        cmd = calls[0]
+        assert cmd[0] == "npx"
+        assert "add" in cmd
+        assert "--global" in cmd
+        assert "--full-depth" in cmd
+        assert "--yes" in cmd
+        # points at the skills/ tree root, not an individual leaf dir
+        target = cmd[cmd.index("add") + 1]
+        assert target.endswith("/skills")
+
+    def test_agent_scoping_passed_through(self, fake_skillset, monkeypatch):
+        fake_skillset("geno-dev", sub_skills=["geno-dev-a"])
+        calls = []
+        monkeypatch.setattr("subprocess.check_call", lambda cmd, **kw: calls.append(cmd))
+        commands._install_skills_via_npx("geno-dev", agent="claude-code")
+        assert calls[0][calls[0].index("--agent") + 1] == "claude-code"
 
     def test_no_skills_does_nothing(self, tmp_root, monkeypatch):
         # empty skillset with no SKILL.md
