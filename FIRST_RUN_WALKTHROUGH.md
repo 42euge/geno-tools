@@ -70,26 +70,37 @@ geno-tools --version        # expect 0.7.0
   geno-iso --help | head -3
   ```
 
-> 🐞 **FOUND (2026-08-05) — silent partial install via Homebrew.**
-> `brew install 42euge/geno/geno` printed its success caveats, but
-> `geno-tools` (and every other pipx tool) was **not installed** —
-> `geno-tools: command not found`. Only the `geno` go binary landed.
+> 🐞 **FOUND (2026-08-05) — `brew install geno` installs ONLY the `geno` go
+> binary; every Python tool (`geno-tools`, `tt`, …) is missing.**
+> The install prints success + caveats listing all commands, but
+> `geno-tools: command not found`.
 >
-> **Root cause:** the `geno` formula runs `pipx install …` per tool chained
-> with `|| true`, so any pipx hiccup (here, stray keystrokes disrupting the
-> steps mid-`brew install`) is swallowed and brew reports success anyway.
-> Every one of those exact `pipx install` commands succeeded on the first
-> manual retry — the tools are fine; the formula hides failures.
+> **Root cause (verified against the formula source):** the formula runs
+> `pipx install git+…/<tool>.git` for all six Python tools **inside `def
+> install`** — which Homebrew executes in a **build sandbox with an isolated,
+> throwaway `$HOME`/`$PIPX_HOME`**. pipx writes the venvs there and reports
+> success, then the sandbox home is discarded when the build ends, so nothing
+> persists to `~/.local/pipx`. Only the `geno` go binary survives, because it
+> alone is written to the formula prefix (`bin/"geno"`), the one location brew
+> keeps. The formula's `post_install` (which *does* run with the real HOME)
+> does NOT install the tools — it only registers geno-tt and *assumes*
+> `command -v geno-tools` already succeeds.
 >
-> **Severity: high — this is a Step-1 blocker that fails SILENTLY at the front
-> door**, worse than a loud error because the user has no clue why the command
-> is missing.
+> This is NOT an error-swallowing / `|| true` bug (the tool-install loop has no
+> `|| true`, and it would have aborted the build on failure). It is a
+> **structural sandbox incompatibility: `pipx install` in `def install` can
+> never persist.** As written, `brew install geno` can only ever deliver the
+> go binary.
 >
-> **Fix for the formula:** drop `|| true` on the tool installs, or verify each
-> binary lands (`command -v geno-tools`) and `odie` with a clear message if
-> not. A partial install must never report success.
+> **Severity: high — Step-1 blocker, fails silently at the front door.**
 >
-> **Workaround (until the formula is fixed):** re-run the installs by hand —
+> **Fix for the formula:** move the per-tool `pipx install` calls from
+> `def install` into **`post_install`** (runs outside the sandbox, real HOME),
+> and verify each binary lands afterward (`command -v geno-tools`), `odie`-ing
+> with a clear message if not. Or have the `geno` go binary bootstrap the
+> Python tools on first run.
+>
+> **Workaround (until the formula is fixed):** install the tools by hand —
 > ```bash
 > for r in geno-tools geno-tt geno-vault geno-surf geno-pear geno-specs; do
 >   pipx install --force "git+https://github.com/42euge/$r.git"
