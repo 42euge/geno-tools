@@ -130,14 +130,26 @@ class TestHooks:
         assert "hooks" in data
 
     def test_session_start_hook_script_exists(self):
+        """Every ${CLAUDE_PLUGIN_ROOT}-relative hook script must exist on disk.
+
+        SessionStart also carries inline shell one-liners (e.g. `geno-trace
+        health …`, the geno-iso inbox drain) — those are commands, not paths, so
+        only plugin-root-relative entries are path-checked.
+        """
         path = REPO_ROOT / "geno_tools" / "hooks" / "hooks.json"
         data = json.loads(path.read_text())
+        checked = 0
         for hook in data["hooks"].get("SessionStart", []):
             for h in hook.get("hooks", []):
                 cmd = h.get("command", "")
-                script = cmd.replace("${CLAUDE_PLUGIN_ROOT}/", "")
+                if "${CLAUDE_PLUGIN_ROOT}/" not in cmd:
+                    continue  # inline shell, not a script path
+                # take just the script path (first token after substitution)
+                script = cmd.replace("${CLAUDE_PLUGIN_ROOT}/", "").split()[0]
                 script_path = REPO_ROOT / script
                 assert script_path.exists(), f"hook script not found: {script_path}"
+                checked += 1
+        assert checked >= 1, "expected at least one plugin-root hook script"
 
 
 class TestConfigDefaults:
@@ -151,8 +163,13 @@ class TestConfigDefaults:
         assert "aliases" in data
         assert "discovery" in data
 
-    def test_init_script_seeds_config(self):
-        script = REPO_ROOT / "geno_tools" / "scripts" / "init-geno-dir.sh"
+    def test_bootstrap_script_seeds_config(self):
+        """bootstrap.sh materializes ~/.geno/config.yaml from config/defaults.yaml.
+
+        (This consolidated the old init-geno-dir.sh; that script no longer
+        exists and is referenced nowhere.)
+        """
+        script = REPO_ROOT / "geno_tools" / "scripts" / "bootstrap.sh"
         assert script.exists()
         text = script.read_text()
         assert "config.yaml" in text
