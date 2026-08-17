@@ -577,12 +577,24 @@ def _install_skills_via_npx(full: str, agent: str = "*") -> None:
     # skillsets) and let --full-depth find the leaves in one pass.
     active = paths.skillset_active(full)
     root = active / "skills" if (active / "skills").is_dir() else active
-    scope = "all agents" if agent == "*" else agent
+
+    # Scope --agent to the agents actually on this machine. Passing "*" makes
+    # npx try all ~76 agents it knows and emit a failure line for each one that
+    # can't do global installs (Eve, PromptScript, …). Fall back to "*" if we
+    # detect nothing, so an unfamiliar setup still gets registered.
+    if agent == "*":
+        from geno_tools import profiles as _profiles
+        detected = _profiles.detect_installed_agents()
+        agents = detected or ["*"]
+    else:
+        agents = [agent]
+
+    scope = "all agents" if agents == ["*"] else ", ".join(agents)
     print(f"  registering {len(skill_dirs)} skill(s) via npx skills "
           f"({scope}, global) — one pass over {root}")
     subprocess.check_call([
         "npx", "--yes", "skills", "add", str(root),
-        "--agent", agent, "--global", "--full-depth", "--yes",
+        "--agent", *agents, "--global", "--full-depth", "--yes",
     ])
 
 

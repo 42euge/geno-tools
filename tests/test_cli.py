@@ -43,9 +43,14 @@ class TestCliParsing:
         assert rc == 0
 
     def test_ls_available(self, monkeypatch, capsys):
-        monkeypatch.setattr("geno_tools.registry._cache", {
-            "geno-dev": "https://example.com/geno-dev.git",
+        # `discover` reads registry.read_full() directly (not the _cache view),
+        # so patch that — patching _cache alone let the REAL ~/.geno/registry.json
+        # leak in, making this pass/fail on machine state.
+        monkeypatch.setattr("geno_tools.registry.read_full", lambda: {
+            "geno-dev": {"url": "https://example.com/geno-dev.git",
+                         "category": "Developer Tools"},
         })
+        monkeypatch.setattr("geno_tools.registry.is_stale", lambda *a, **k: False)
         monkeypatch.setattr("geno_tools.discovery.candidates_by_name", lambda: {})
         rc = main(["ls", "--available"])
         assert rc == 0
