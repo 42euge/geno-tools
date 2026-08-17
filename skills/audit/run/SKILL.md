@@ -170,7 +170,7 @@ If `commands/` contains content that hasn't been migrated to `skills/` yet, migr
 - An umbrella skill exists at `skills/{skillset}/SKILL.md`
 - Every directory under `skills/` contains a `SKILL.md`
 - No `commands/` directory exists — if found, migrate contents to `skills/` and delete it
-- **Monolithic CLI check**: if the skillset has a CLI backend (`[project.scripts]` in `pyproject.toml` or a standalone bin script) with multiple subcommands, it must have corresponding sub-skillset skill directories under `skills/` beyond the umbrella. To check: (a) find the CLI entry point from `[project.scripts]` and inspect it for `add_parser` / `add_command` / `app.command` / `@cli.command` calls (argparse, click, typer) to count subcommands; (b) count directories under `skills/` that contain a `SKILL.md` and subtract 1 for the umbrella. A skillset with ≥ 3 CLI subcommands and 0 sub-skillset skill directories **fails**. A comment in `CLAUDE.md` or `GENO.md` claiming the repo is a "single-skill skillset" does not exempt it from this check. **Correct pattern**: geno-dev (`geno-dev-tasks-start`, `geno-dev-commits-rewrite`, `geno-dev-loops-cruise`, `geno-dev-sessions-fork`, etc. — 9 sub-skills for 9 functional groups). **Failure example**: geno-notes (18 CLI subcommands — add, start, done, abandon, note, inbox, triage, list, show, search, promote, reindex, compile, lint, site, path, scope, init — but only the umbrella skill under `skills/`).
+- **Monolithic CLI check**: if the skillset has a CLI backend (`[project.scripts]` in `pyproject.toml` or a standalone bin script) with multiple subcommands, it must have corresponding sub-skillset skill directories under `skills/` beyond the umbrella. To check: (a) find the CLI entry point from `[project.scripts]` and inspect it for `add_parser` / `add_command` / `app.command` / `@cli.command` calls (argparse, click, typer) to count subcommands; (b) count directories under `skills/` that contain a `SKILL.md` and subtract 1 for the umbrella. A skillset with ≥ 3 CLI subcommands and 0 sub-skillset skill directories **fails**. A comment in `AGENTS.md` claiming the repo is a "single-skill skillset" does not exempt it from this check. **Correct pattern**: geno-dev (`geno-dev-tasks-start`, `geno-dev-commits-rewrite`, `geno-dev-loops-cruise`, `geno-dev-sessions-fork`, etc. — 9 sub-skills for 9 functional groups). **Failure example**: geno-notes (18 CLI subcommands — add, start, done, abandon, note, inbox, triage, list, show, search, promote, reindex, compile, lint, site, path, scope, init — but only the umbrella skill under `skills/`).
 
 ### Nesting (category tree)
 
@@ -199,22 +199,25 @@ Discovery uses `npx skills add --full-depth` (geno-tools passes this).
 
 ## Agent Instruction Files
 
-Coding agents read repo-level instruction files to understand architecture, entry points, and conventions. Without these, agents rediscover the repo structure every session. Each agent has its own file convention:
+Coding agents read repo-level instruction files to understand architecture, entry points, and conventions. Without these, agents rediscover the repo structure every session.
 
-| Agent | Instruction file | Notes |
-|-------|-----------------|-------|
-| Claude Code | `CLAUDE.md` | Read automatically on session start |
-| OpenAI Codex | `AGENTS.md` | Read automatically on session start |
-| Antigravity CLI | `AGENTS.md` | Read as project-level agent instructions |
-| OpenCode | `.opencode/INSTALL.md` | Plugin-based — context loaded via `.opencode/plugins/` |
+### Single source of truth — `AGENTS.md`
 
-### Single source of truth — `GENO.md`
+Every geno-* repo has exactly **one** instruction file: `AGENTS.md` at the repo root. `AGENTS.md` is the cross-agent standard — Claude Code, OpenAI Codex, Gemini CLI, and Antigravity CLI all read it directly, so no per-agent pointer files are needed.
 
-Rather than maintaining duplicate content across `CLAUDE.md`, `AGENTS.md`, and OpenCode configs, every geno-* repo should have a single `GENO.md` file at the repo root containing all agent instructions. The per-agent files become thin pointers that import it:
+| Agent | Reads `AGENTS.md` | Notes |
+|-------|------------------|-------|
+| Claude Code | yes | Read automatically on session start |
+| OpenAI Codex | yes | Read automatically on session start |
+| Gemini CLI | yes | Via `contextFileName` in `gemini-extension.json` |
+| Antigravity CLI | yes | Read as project-level agent instructions |
+| OpenCode | via plugin | Context loaded through `.opencode/plugins/` |
 
-### What goes in `GENO.md`
+The older pattern — a `GENO.md` holding the content plus `CLAUDE.md` / `GEMINI.md` / `AGENTS.md` pointer stubs importing it — is **retired**. It added three files and a layer of indirection to solve a problem that `AGENTS.md` support already solves. Repos still carrying `GENO.md`, `CLAUDE.md`, or `GEMINI.md` should fold the content into `AGENTS.md` and delete them.
 
-`GENO.md` is the canonical instruction file — the single document any agent reads to understand the repo cold. It should contain everything an agent needs to start working without asking questions or exploring the codebase first. Write it for an agent that just walked into the room: no prior context, no assumptions.
+### What goes in `AGENTS.md`
+
+`AGENTS.md` is the canonical instruction file — the single document any agent reads to understand the repo cold. It should contain everything an agent needs to start working without asking questions or exploring the codebase first. Write it for an agent that just walked into the room: no prior context, no assumptions.
 
 #### Required sections
 
@@ -235,7 +238,7 @@ Rather than maintaining duplicate content across `CLAUDE.md`, `AGENTS.md`, and O
    ## Repo structure
 
    geno-{name}/
-   ├── GENO.md              # agent instructions (this file)
+   ├── AGENTS.md            # agent instructions (this file)
    ├── SKILL.md             # umbrella skill manifest
    ├── genotools.yaml       # geno-tools manifest
    ├── skills/              # skill definitions
@@ -250,7 +253,7 @@ Rather than maintaining duplicate content across `CLAUDE.md`, `AGENTS.md`, and O
    - **Nomenclature**: how skills are named in this repo (e.g. `geno-{name}-{sub-skillset}-{skill}`). Do not restate ecosystem-wide naming rules — just show the pattern as it applies to this skillset.
    - **SKILL.md frontmatter**: required fields and format for new skills
    - **Adding a new skill**: step-by-step checklist (create directory under `skills/`, write SKILL.md with frontmatter, update umbrella description, update docs, update this file's skills table)
-   - **Command prefix aliasing**: slash commands in repo source files must always use the canonical `geno-` prefix (e.g. `/geno-{name}-tasks-start`). The prefix users type (`/gt-`, `/geno-`, or bare `/`) is configured per-installation in `~/.geno/config.yaml` and applied at install time by `geno-tools install`. Never hardcode an aliased prefix like `gt-` in SKILL.md descriptions, GENO.md, or any committed file.
+   - **Command prefix aliasing**: slash commands in repo source files must always use the canonical `geno-` prefix (e.g. `/geno-{name}-tasks-start`). The prefix users type (`/gt-`, `/geno-`, or bare `/`) is configured per-installation in `~/.geno/config.yaml` and applied at install time by `geno-tools install`. Never hardcode an aliased prefix like `gt-` in SKILL.md descriptions, AGENTS.md, or any committed file.
    - **Versioning**: which files contain the version number (always `genotools.yaml`; plus any others like `pyproject.toml` or `package.json`) and the rule that the version must be bumped when adding/removing skills or changing behavior
 
 #### Recommended sections
@@ -259,48 +262,33 @@ Rather than maintaining duplicate content across `CLAUDE.md`, `AGENTS.md`, and O
 
 6. **Dependencies and runtime** — if the skillset needs a venv, external tools, or system dependencies, list them here so agents know what's available and what constraints exist.
 
-#### What NOT to put in `GENO.md`
+#### What NOT to put in `AGENTS.md`
 
 - Install instructions for end users — those go in `README.md` and `docs/getting-started.md`
 - Agent-specific syntax or references — this file is read by all agents
 - Transient state like current tasks or in-progress work — those go in `.geno/` or conversation context
 
-### Per-agent pointer files
+### No pointer files
 
-The per-agent files are thin pointers. No content lives in them — they exist only because each agent looks for a different filename.
+Do **not** create `GENO.md`, `CLAUDE.md`, or `GEMINI.md`. One file, one place to edit — every targeted agent reads `AGENTS.md` directly, so a pointer stub buys nothing and gives the repo two places where instructions can drift.
 
-**`CLAUDE.md`**:
-```markdown
-@./GENO.md
-```
-
-**`GEMINI.md`**:
-```markdown
-@./GENO.md
-```
-
-**`AGENTS.md`**:
-```markdown
-@import GENO.md
-```
-
-This way, updating `GENO.md` updates every agent at once. No content lives in the per-agent files — they are pure pointers.
+Repos migrating off the old pattern: `git mv GENO.md AGENTS.md` (overwriting the stub), `rm CLAUDE.md GEMINI.md`, and fix the self-references inside the moved file.
 
 ### Audit checks
 
 **Required:**
-- `GENO.md` exists at repo root and is non-empty
+- `AGENTS.md` exists at repo root and is non-empty
+- `AGENTS.md` holds the instructions themselves — it must not be an `@import` / `@./` pointer to another file
 
 **Recommended:**
-- `CLAUDE.md` exists and contains only `@./GENO.md` (no other content)
-- `AGENTS.md` exists and contains only `@import GENO.md`
+- `GENO.md`, `CLAUDE.md`, and `GEMINI.md` are absent (retired — content belongs in `AGENTS.md`)
 - If `plugin.json` exists, it identifies the Antigravity plugin and keeps skills in the shared `skills/` directory
-- No agent instruction content is duplicated across files — all substance lives in `GENO.md`
-- `GENO.md` contains a Conventions section (a heading matching `Conventions`, case-insensitive)
-- `GENO.md` Conventions section mentions command prefix aliasing — at minimum, states that source files use canonical `geno-` prefixed names for slash commands, not aliased prefixes
-- `GENO.md` Conventions section includes skill creation guidance — at minimum, a checklist for adding a new skill
-- `GENO.md` skills table uses canonical `/geno-{name}-*` slash command names, not aliased forms like `/gt-*`
-- `GENO.md` Conventions section includes versioning guidance — at minimum, identifies which files contain the version and states that the version should be bumped when skills are added, removed, or behavior changes
+- If `gemini-extension.json` exists, its `contextFileName` is `AGENTS.md`
+- `AGENTS.md` contains a Conventions section (a heading matching `Conventions`, case-insensitive)
+- `AGENTS.md` Conventions section mentions command prefix aliasing — at minimum, states that source files use canonical `geno-` prefixed names for slash commands, not aliased prefixes
+- `AGENTS.md` Conventions section includes skill creation guidance — at minimum, a checklist for adding a new skill
+- `AGENTS.md` skills table uses canonical `/geno-{name}-*` slash command names, not aliased forms like `/gt-*`
+- `AGENTS.md` Conventions section includes versioning guidance — at minimum, identifies which files contain the version and states that the version should be bumped when skills are added, removed, or behavior changes
 
 ---
 
@@ -483,7 +471,7 @@ This rule applies to install commands. For the general rule about slash command 
 ### Audit checks
 
 **Recommended:**
-- No file in the repo contains `npx skills add` as a user-facing install instruction. Check `README.md`, `docs/**/*.md`, `GENO.md`, `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, and `SKILL.md` for this pattern.
+- No file in the repo contains `npx skills add` as a user-facing install instruction. Check `README.md`, `docs/**/*.md`, `AGENTS.md`, and `SKILL.md` for this pattern.
 - Install instructions use the canonical `geno-tools install geno-{name}` or `/geno-tools install geno-{name}` form, not raw `npx`, `pip install`, or any aliased command names.
 
 ---
@@ -514,11 +502,11 @@ aliases:
   # or ""                # /install, /media-audiobook-create
 ```
 
-The prefix is applied at install time by `geno-tools install` when materializing skills via `npx skills add`. Repo source files — SKILL.md frontmatter, SKILL.md body, GENO.md, README.md, docs — must always use the **canonical name**, which uses the `geno-` prefix. The canonical name is the skill's `name` field in its SKILL.md frontmatter (e.g. `geno-notes`, `geno-dev-tasks-start`).
+The prefix is applied at install time by `geno-tools install` when materializing skills via `npx skills add`. Repo source files — SKILL.md frontmatter, SKILL.md body, AGENTS.md, README.md, docs — must always use the **canonical name**, which uses the `geno-` prefix. The canonical name is the skill's `name` field in its SKILL.md frontmatter (e.g. `geno-notes`, `geno-dev-tasks-start`).
 
 ### What to check
 
-Scan all committed files that reference slash commands: SKILL.md (root and `skills/*/SKILL.md`), GENO.md, README.md, `docs/**/*.md`, CLAUDE.md, AGENTS.md, GEMINI.md.
+Scan all committed files that reference slash commands: SKILL.md (root and `skills/*/SKILL.md`), AGENTS.md, README.md, `docs/**/*.md`.
 
 Look for patterns that indicate an aliased prefix was hardcoded:
 
@@ -548,7 +536,7 @@ In SKILL.md `description` fields, replace trigger phrases like `Use when user sa
 - No SKILL.md file (root or under `skills/`) contains aliased command prefixes like `/gt-` in its `description` frontmatter field or body content. Slash command references must use the canonical `geno-` prefix. This is a functional requirement — agents use these descriptions to match user intent to skills, and aliased names may not match the installed command name.
 
 **Recommended:**
-- No file in the repo (`GENO.md`, `README.md`, `docs/**/*.md`, `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`) contains aliased slash command references. All slash command references use the canonical `geno-` prefix.
+- No file in the repo (`AGENTS.md`, `README.md`, `docs/**/*.md`) contains aliased slash command references. All slash command references use the canonical `geno-` prefix.
 
 ---
 
@@ -572,7 +560,7 @@ Sections in repo files that restate ecosystem-level rules. These include but are
 
 ### What to scan
 
-Check all markdown files that agents or contributors read: `GENO.md`, `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `README.md`, and `docs/**/*.md`.
+Check all markdown files that agents or contributors read: `AGENTS.md`, `README.md`, and `docs/**/*.md`.
 
 ### How to detect
 
@@ -587,7 +575,7 @@ Look for sections that match these patterns:
 
 Remove the offending sections entirely. If the file becomes empty or loses important repo-specific content in the process, preserve only the repo-specific parts. If a section mixes ecosystem rules with repo-specific details (e.g. a compliance section that restates nomenclature rules but also lists this repo's specific skills), keep only the repo-specific content.
 
-A repo's `GENO.md` should contain a skills table showing what skills *this* repo has — that's repo-specific. It should not explain *how to name* skills in general — that's the ecosystem spec.
+A repo's `AGENTS.md` should contain a skills table showing what skills *this* repo has — that's repo-specific. It should not explain *how to name* skills in general — that's the ecosystem spec.
 
 ### Audit checks
 
@@ -649,9 +637,9 @@ A repo's `GENO.md` should contain a skills table showing what skills *this* repo
    ```
 
 5. **Fix all non-PASS items.** After running the checks, fix every FAIL, WARN, and INFO item that can be addressed:
-   - Create missing files (`CLAUDE.md`, `GEMINI.md`, `AGENTS.md`, `README.md`, `LICENSE`, `docs/`, `mkdocs.yml`, etc.) using the conventions defined in this document
+   - Create missing files (`AGENTS.md`, `README.md`, `LICENSE`, `docs/`, `mkdocs.yml`, etc.) using the conventions defined in this document
    - Add missing fields to `genotools.yaml` or `SKILL.md` frontmatter
-   - For `CLAUDE.md` / agent instruction files, generate content from the repo's `SKILL.md`, `genotools.yaml`, and code structure
+   - For `AGENTS.md`, generate content from the repo's `SKILL.md`, `genotools.yaml`, and code structure
    - For `docs/`, scaffold the required structure (`index.md`, `getting-started.md`) and `mkdocs.yml` using the template from the Documentation section
    - For `README.md`, generate from the manifest description and SKILL.md
    - Do not modify the project's `.gitignore` for `.geno/` or `CLAUDE.local.md` — those belong in the global gitignore only

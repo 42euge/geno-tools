@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compile SKILL.md + GENO.md files into MkDocs-compatible docs pages.
+"""Compile SKILL.md + AGENTS.md files into MkDocs-compatible docs pages.
 
 Scans workspace repos and installed skillsets, parses frontmatter,
 and generates the skill catalog + per-skill zoom-level pages for the
@@ -92,6 +92,21 @@ class SkillInfo:
     body: str = ""
     source_path: Path | None = None
     is_umbrella: bool = False
+
+
+#: Root agent-instruction filenames, in preference order. AGENTS.md is the
+#: current standard; GENO.md is the retired name, still read so this script
+#: keeps working against repos that haven't migrated yet.
+AGENT_DOC_NAMES = ("AGENTS.md", "GENO.md")
+
+
+def read_agent_doc(repo_dir: Path) -> str:
+    """Return the repo's agent-instruction text, or "" if it has none."""
+    for name in AGENT_DOC_NAMES:
+        path = repo_dir / name
+        if path.is_file():
+            return path.read_text(encoding="utf-8", errors="replace")
+    return ""
 
 
 @dataclass
@@ -196,9 +211,7 @@ def discover_skillsets(
             repo_url=f"https://github.com/42euge/{repo_name}",
         )
 
-        geno_path = repo_dir / "GENO.md"
-        if geno_path.is_file():
-            ss.geno_md = geno_path.read_text(encoding="utf-8", errors="replace")
+        ss.geno_md = read_agent_doc(repo_dir)
 
         for skill_dir in sorted(skills_dir.iterdir()):
             skill_md = skill_dir / "SKILL.md"
@@ -246,9 +259,7 @@ def discover_skillsets(
             repo_url=f"https://github.com/42euge/{repo_name}",
         )
 
-        geno_path = repo_dir / "GENO.md"
-        if geno_path.is_file():
-            ss.geno_md = geno_path.read_text(encoding="utf-8", errors="replace")
+        ss.geno_md = read_agent_doc(repo_dir)
 
         for skill_dir in sorted(skills_dir.iterdir()):
             skill_md = skill_dir / "SKILL.md"
@@ -291,9 +302,7 @@ def discover_skillsets(
             repo_url=f"https://github.com/42euge/{repo_name}",
         )
 
-        geno_path = active_dir / "GENO.md"
-        if geno_path.is_file():
-            ss.geno_md = geno_path.read_text(encoding="utf-8", errors="replace")
+        ss.geno_md = read_agent_doc(active_dir)
 
         root_skill = active_dir / "SKILL.md"
         if root_skill.is_file():
@@ -900,10 +909,9 @@ def init_repo_docs(repo_dir: Path) -> None:
     docs_dir.mkdir(parents=True, exist_ok=True)
     (docs_dir / "stylesheets").mkdir(exist_ok=True)
 
-    geno_md = repo_dir / "GENO.md"
     description = REPO_DESCRIPTIONS.get(repo_name, f"{repo_name} skillset")
-    if geno_md.is_file():
-        text = geno_md.read_text(encoding="utf-8", errors="replace")
+    text = read_agent_doc(repo_dir)
+    if text:
         for line in text.split("\n"):
             line = line.strip()
             if line and not line.startswith("#") and not line.startswith("@"):

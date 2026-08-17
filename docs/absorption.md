@@ -17,7 +17,7 @@ $ geno-tools absorb https://github.com/obra/superpowers
 absorbing ext-superpowers from https://github.com/obra/superpowers
   format: superpowers pack (34 skills)
   converting: 34 SKILL.md files (frontmatter normalized)
-  writing: genotools.yaml (provenance block), GENO.md (skills table)
+  writing: genotools.yaml (provenance block), AGENTS.md (skills table)
   audit: compliant · 3 WARN
   installing 34 skill(s) via npx skills (all agents, global)
 installed ext-superpowers  (absorbed from obra/superpowers @ 8c41f2d)
@@ -29,7 +29,7 @@ What happens:
    skills repo, Ralphy Loop plugin, bare `.claude/skills/` folder). Adapters
    are pluggable the same way discovery providers are.
 2. **Convert** — a shim repo is generated: every skill normalized to a
-   `SKILL.md` with standard frontmatter, plus `genotools.yaml` and `GENO.md`.
+   `SKILL.md` with standard frontmatter, plus `genotools.yaml` and `AGENTS.md`.
    Upstream files are vendored unmodified; normalization lives alongside,
    so upstream diffs stay reviewable.
 3. **Gate** — the converted repo goes through the full

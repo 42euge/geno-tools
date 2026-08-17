@@ -131,10 +131,9 @@ $ geno-tools install geno-sketchy
 installing geno-sketchy from https://github.com/42euge/geno-sketchy.git
 audit · geno-sketchy  (~/.geno/quarantine/geno-sketchy)
   [FAIL] boundary: undeclared network host  pastebin.com in scripts/sync.py
-  [WARN] GENO.md (single source of truth)
-  [WARN] AGENTS.md present
+  [WARN] AGENTS.md (single source of truth)
 ────────────────────────────────────────────────
-  1 FAIL · 2 WARN  — required checks must pass to be installable
+  1 FAIL · 1 WARN  — required checks must pass to be installable
   quarantined: ~/.geno/quarantine/geno-sketchy
   review:    geno-tools quarantine ls
   override:  geno-tools install geno-sketchy --no-audit
