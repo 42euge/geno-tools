@@ -1,5 +1,5 @@
 name: geno-tools
-version: "0.7.0"
+version: "0.8.0"
 description: >-
   Unified geno control plane: resolve · scope · launch. Resolves skillset
   bundles (skills at pinned variants, deps, MCP catalogs) and launches them in

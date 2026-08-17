@@ -117,9 +117,11 @@ def audit(path: str) -> list[tuple[str, str, str]]:
         "yes" if lib else "no — skill-only (add a package to compose it)")
 
     # ── recommended docs / plugin ──
-    add("OK" if (root / "GENO.md").exists() else "WARN", "GENO.md (single source of truth)")
-    for f in ("CLAUDE.md", "AGENTS.md"):
-        add("OK" if (root / f).exists() else "WARN", f"{f} present")
+    add("OK" if (root / "AGENTS.md").exists() else "WARN",
+        "AGENTS.md (single source of truth)")
+    for f in ("GENO.md", "CLAUDE.md", "GEMINI.md"):
+        if (root / f).exists():
+            add("WARN", f"{f} is retired — fold it into AGENTS.md")
     add("OK" if (root / ".claude-plugin" / "plugin.json").exists() else "INFO",
         "Claude Code plugin manifest")
 
