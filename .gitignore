@@ -19,6 +19,9 @@ node_modules/
 # MkDocs
 site/
 
+# Claude Code local state (settings, session worktrees)
+.claude/
+
 # geno-audit temp clones
 .geno-audit/
 build/
