@@ -45,6 +45,38 @@ KNOWN_AGENTS: dict[str, str] = {
 }
 
 
+# The agent HOME dir to probe for presence, per agent. We check the home rather
+# than its skills/ subdir because skills/ often doesn't exist until the first
+# install — the home is what tells us the agent is actually on this machine.
+_AGENT_HOMES: dict[str, str] = {
+    "claude-code": "~/.claude",
+    "codex": "~/.codex",
+    "cursor": "~/.cursor",
+    "antigravity": "~/.gemini/antigravity",
+    "gemini-cli": "~/.gemini",
+    "github-copilot": "~/.copilot",
+    "opencode": "~/.config/opencode",
+}
+
+
+def detect_installed_agents() -> list[str]:
+    """Return the KNOWN_AGENTS that appear to be installed on this machine.
+
+    Used to scope `npx skills add --agent …` instead of passing `*`. npx knows
+    ~76 agents and tries them all, which spams a per-agent failure line for
+    every agent that doesn't support global installs (e.g. Eve, PromptScript).
+    Scoping to what's actually here keeps registration output meaningful.
+
+    Returns [] when nothing is detected — callers should fall back to "*" so a
+    novel setup still gets its skills registered rather than none.
+    """
+    found = []
+    for name, home in _AGENT_HOMES.items():
+        if Path(home).expanduser().is_dir():
+            found.append(name)
+    return found
+
+
 class ProfileError(Exception):
     """Raised when a profile is unknown or malformed."""
 

@@ -458,3 +458,57 @@ class TestBinSymlinks:
 
         commands._remove_bin_symlinks("geno-dev")
         assert not (bin_dir / "geno-dev").exists()
+
+
+class TestAgentScoping:
+    """npx --agent is scoped to detected agents, not '*' (avoids ~76-agent spam)."""
+
+    def test_scopes_to_detected_agents(self, fake_skillset, monkeypatch):
+        fake_skillset("geno-dev", sub_skills=["geno-dev-a"])
+        monkeypatch.setattr(
+            "geno_tools.profiles.detect_installed_agents",
+            lambda: ["claude-code", "codex"],
+        )
+        calls = []
+        monkeypatch.setattr("subprocess.check_call", lambda cmd, **kw: calls.append(cmd))
+        commands._install_skills_via_npx("geno-dev")
+        cmd = calls[0]
+        i = cmd.index("--agent")
+        assert cmd[i + 1:i + 3] == ["claude-code", "codex"]
+        assert "*" not in cmd
+
+    def test_falls_back_to_star_when_nothing_detected(self, fake_skillset, monkeypatch):
+        fake_skillset("geno-dev", sub_skills=["geno-dev-a"])
+        monkeypatch.setattr("geno_tools.profiles.detect_installed_agents", lambda: [])
+        calls = []
+        monkeypatch.setattr("subprocess.check_call", lambda cmd, **kw: calls.append(cmd))
+        commands._install_skills_via_npx("geno-dev")
+        cmd = calls[0]
+        assert cmd[cmd.index("--agent") + 1] == "*"
+
+    def test_explicit_agent_bypasses_detection(self, fake_skillset, monkeypatch):
+        fake_skillset("geno-dev", sub_skills=["geno-dev-a"])
+        def _boom():
+            raise AssertionError("detection must not run for an explicit agent")
+        monkeypatch.setattr("geno_tools.profiles.detect_installed_agents", _boom)
+        calls = []
+        monkeypatch.setattr("subprocess.check_call", lambda cmd, **kw: calls.append(cmd))
+        commands._install_skills_via_npx("geno-dev", agent="cursor")
+        cmd = calls[0]
+        assert cmd[cmd.index("--agent") + 1] == "cursor"
+
+
+class TestDetectInstalledAgents:
+    def test_detects_by_agent_home(self, tmp_path, monkeypatch):
+        from geno_tools import profiles
+        monkeypatch.setattr(profiles, "_AGENT_HOMES", {
+            "claude-code": str(tmp_path / ".claude"),
+            "cursor": str(tmp_path / ".cursor"),
+        })
+        (tmp_path / ".claude").mkdir()
+        assert profiles.detect_installed_agents() == ["claude-code"]
+
+    def test_none_installed(self, tmp_path, monkeypatch):
+        from geno_tools import profiles
+        monkeypatch.setattr(profiles, "_AGENT_HOMES", {"x": str(tmp_path / "nope")})
+        assert profiles.detect_installed_agents() == []
