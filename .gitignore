@@ -10,7 +10,10 @@ venv/
 .DS_Store
 
 # IDE
-.vscode/
+.vscode/*
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/extensions.json
 .idea/
 
 # Node

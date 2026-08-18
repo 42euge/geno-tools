@@ -1,4 +1,4 @@
-"""Skillset lifecycle command group."""
+"""Skillset lifecycle manager."""
 
 from .commands import add_parser, dispatch
 

@@ -49,14 +49,24 @@ geno-tools/
 │   └── config/                #   show / set
 ├── geno_tools/                # Python package (CLI implementation)
 │   ├── cli.py                 #   argparse entry point
-│   ├── commands.py            #   top-level command dispatch and implementations
-│   ├── skills/commands.py     #   `skills` parser and dispatch
-│   ├── agents.py              #   installed coding-agent detection
-│   ├── registry.py            #   skillset registry lookup
-│   ├── discovery.py           #   GitHub org scanning
-│   ├── paths.py               #   ~/.geno/ path helpers
-│   ├── config.py              #   config loading
-│   └── config/defaults.yaml   #   seeded into ~/.geno/config.yaml
+│   ├── core/                  #   geno-tools self-management module
+│   │   ├── commands.py        #     update/config commands
+│   │   ├── config.py          #     config loading
+│   │   ├── terminal.py        #     shared terminal formatting
+│   │   └── config/defaults.yaml
+│   └── skills_manager/        #   managed-skillset module
+│       ├── commands/          #     lifecycle parser and one module per command
+│       │   ├── install.py
+│       │   ├── uninstall.py
+│       │   ├── upgrade.py
+│       │   ├── remove.py
+│       │   ├── deps.py
+│       │   ├── discover.py
+│       │   └── scan.py
+│       ├── agents.py          #     installed coding-agent detection
+│       ├── registry.py        #     skillset registry lookup
+│       ├── discovery.py       #     source-provider scanning
+│       └── paths.py           #     managed-state paths
 ├── docs/                      # docs source
 └── tests/                     # pytest suite
 ```
@@ -105,8 +115,7 @@ or making breaking changes to the manifest schema.
 
 ## Architecture
 
-`geno_tools/cli.py` is the argparse entry point. `commands.py` dispatches to handler
-functions. `registry.py` resolves skillset names to git URLs via the bundled registry.
-`discovery.py` scans GitHub org APIs to find new `geno-*` repos. `paths.py` centralizes
-all `~/.geno/` path construction so no other module hardcodes paths. `config.py` seeds
-`~/.geno/config.yaml` from `geno_tools/config/defaults.yaml` on first use.
+`geno_tools/cli.py` is the argparse entry point. The `core` module owns
+geno-tools' configuration, self-update behavior, and shared terminal output.
+The `skills_manager` module owns skillset lifecycle commands, discovery,
+registry lookup, agent detection, and managed-state paths.

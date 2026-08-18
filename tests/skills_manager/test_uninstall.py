@@ -11,7 +11,8 @@ from pathlib import Path
 
 import pytest
 
-from geno_tools import commands, paths
+from geno_tools.skills_manager import paths
+from geno_tools.skills_manager.commands import uninstall as commands
 
 
 @pytest.fixture()
@@ -40,7 +41,6 @@ def fake_install(tmp_path, monkeypatch):
         (home / ".geno" / f).write_text("x")
     (home / ".geno" / "traces").mkdir()
     (home / ".geno" / "health").mkdir()
-    (home / ".geno" / "profiles").mkdir()
     # USER DATA — must survive
     (home / ".geno" / "recordings").mkdir()
     (home / ".geno" / "vault").mkdir()

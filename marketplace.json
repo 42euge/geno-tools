@@ -15,7 +15,7 @@
       },
       "category": "Coding",
       "description": "Meta-CLI for installing and managing geno-* skillsets",
-      "version": "0.8.1"
+      "version": "0.9.0"
     }
   ],
   "description": "Geno ecosystem control plane: resolve and scope skillset bundles",

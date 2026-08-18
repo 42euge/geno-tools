@@ -25,7 +25,7 @@ import sys
 from dataclasses import dataclass
 from typing import Callable, Iterable
 
-from geno_tools import config
+from geno_tools.core import config
 
 
 @dataclass(frozen=True)
@@ -506,7 +506,7 @@ def scan(*, namespace: str | None = None, dry_run: bool = False) -> list[Candida
 
 def _get_installed_names() -> set[str]:
     """Get names of currently installed skillsets."""
-    from geno_tools import paths
+    from . import paths
     installed = set()
     if paths.ROOT.exists():
         for p in paths.ROOT.iterdir():

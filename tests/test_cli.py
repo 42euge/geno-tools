@@ -44,7 +44,7 @@ class TestCliHelp:
 
 class TestCliParsing:
     def test_status_no_args(self, tmp_root, no_subprocess, monkeypatch):
-        monkeypatch.setattr("geno_tools.registry._cache", {})
+        monkeypatch.setattr("geno_tools.skills_manager.registry._cache", {})
         rc = main(["status"])
         assert rc == 0
 
@@ -52,12 +52,12 @@ class TestCliParsing:
         # `discover` reads registry.read_full() directly (not the _cache view),
         # so patch that — patching _cache alone let the REAL ~/.geno/registry.json
         # leak in, making this pass/fail on machine state.
-        monkeypatch.setattr("geno_tools.registry.read_full", lambda: {
+        monkeypatch.setattr("geno_tools.skills_manager.registry.read_full", lambda: {
             "geno-dev": {"url": "https://example.com/geno-dev.git",
                          "category": "Developer Tools"},
         })
-        monkeypatch.setattr("geno_tools.registry.is_stale", lambda *a, **k: False)
-        monkeypatch.setattr("geno_tools.discovery.candidates_by_name", lambda: {})
+        monkeypatch.setattr("geno_tools.skills_manager.registry.is_stale", lambda *a, **k: False)
+        monkeypatch.setattr("geno_tools.skills_manager.discovery.candidates_by_name", lambda: {})
         rc = main(["skills", "discover"])
         assert rc == 0
         out = capsys.readouterr().out

@@ -1,15 +1,10 @@
-"""Tests for the registry — a discovery cache, no hardcoded list, no gh.
-
-The registry reads ~/.geno/registry.json (written by the discover skill). It
-ships no fallback data and never shells out. These tests point CACHE_FILE at a
-temp file and exercise read/write/resolve.
-"""
+"""Tests for the skills-manager registry cache."""
 
 import json
 
 import pytest
 
-from geno_tools import registry
+from geno_tools.skills_manager import registry
 
 
 @pytest.fixture(autouse=True)
@@ -29,17 +24,11 @@ def _seed(cache, mapping):
 
 class TestEmptyRegistry:
     def test_no_cache_is_empty(self):
-        # No discovery has run → empty, no hardcoded fallback.
         assert registry.available() == {}
 
     def test_resolve_returns_none_when_empty(self):
         assert registry.resolve("geno-loops") is None
         assert registry.resolve("loops") is None
-
-    def test_no_fallback_attribute(self):
-        # The hardcoded fallback dict is gone.
-        assert not hasattr(registry, "_FALLBACK")
-
 
 class TestCacheRoundTrip:
     def test_write_then_available(self):

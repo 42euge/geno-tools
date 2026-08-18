@@ -4,8 +4,6 @@ Verifies the Claude Code plugin installation experience documented in README.md:
   1. marketplace.json is valid and has required fields
   2. plugin.json points to a valid skills directory
   3. Every skill in skills/ has a valid SKILL.md with required frontmatter
-  4. The SessionStart hook script exists and is executable-ready
-  5. Skills listed in plugin.json match what's on disk
 """
 
 from __future__ import annotations
@@ -121,11 +119,11 @@ class TestSkills:
 
 class TestConfigDefaults:
     def test_defaults_yaml_exists(self):
-        path = REPO_ROOT / "geno_tools" / "config" / "defaults.yaml"
+        path = REPO_ROOT / "geno_tools" / "core" / "config" / "defaults.yaml"
         assert path.exists()
 
     def test_defaults_yaml_valid(self):
-        path = REPO_ROOT / "geno_tools" / "config" / "defaults.yaml"
+        path = REPO_ROOT / "geno_tools" / "core" / "config" / "defaults.yaml"
         data = yaml.safe_load(path.read_text())
         assert "aliases" in data
         assert "discovery" in data

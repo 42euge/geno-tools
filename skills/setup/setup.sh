@@ -17,7 +17,7 @@ echo "geno-tools setup — installing the CLI from ${plugin_root}"
 
 # 1. Seed ~/.geno/config.yaml (same as bootstrap).
 mkdir -p "${HOME}/.geno"
-default_config="${plugin_root}/geno_tools/config/defaults.yaml"
+default_config="${plugin_root}/geno_tools/core/config/defaults.yaml"
 if [[ ! -e "${HOME}/.geno/config.yaml" && -f "${default_config}" ]]; then
   cp "${default_config}" "${HOME}/.geno/config.yaml"
   ok "seeded ~/.geno/config.yaml"

@@ -1,8 +1,8 @@
-"""Tests for the paths module — normalization and on-disk layout."""
+"""Tests for skills-manager paths and on-disk layout."""
 
 from pathlib import Path
 
-from geno_tools import paths
+from geno_tools.skills_manager import paths
 
 
 class TestNormalize:
@@ -14,14 +14,6 @@ class TestNormalize:
 
     def test_non_geno_prefix_gets_prefixed(self):
         assert paths.normalize("acme-foo") == "geno-acme-foo"
-
-
-class TestShort:
-    def test_strips_prefix(self):
-        assert paths.short("geno-dev") == "dev"
-
-    def test_no_prefix_unchanged(self):
-        assert paths.short("something") == "something"
 
 
 class TestSkillsetPaths:

@@ -1,12 +1,11 @@
-"""User configuration from ~/.geno/config.yaml."""
+"""geno-tools configuration from ~/.geno/config.yaml."""
 
 from __future__ import annotations
 
 import shutil
 import yaml
 from pathlib import Path
-
-CONFIG_DIR = Path.home() / ".geno"
+CONFIG_DIR = Path.home() / ".geno" / "geno-tools"
 CONFIG_FILE = CONFIG_DIR / "config.yaml"
 
 _DEFAULTS_SOURCE = Path(__file__).resolve().parent / "config" / "defaults.yaml"
@@ -21,9 +20,6 @@ _DEFAULTS = {
         ],
     },
 }
-
-_SETTINGS_FILE = Path.home() / ".geno" / "settings.json"
-
 
 def ensure_dir() -> Path:
     """Create ~/.geno/ (and seed config.yaml from defaults) if missing.
@@ -78,17 +74,17 @@ def set_config(key: str, value: str) -> None:
     if not isinstance(value, str):
         v: object = value
     else:
-      try:
-        v = int(value)
-      except ValueError:
         try:
-            v = float(value)
+            v = int(value)
         except ValueError:
-            if value.lower() in ("true", "yes"):
-                v = True
-            elif value.lower() in ("false", "no"):
-                v = False
-            else:
-                v = value
+            try:
+                v = float(value)
+            except ValueError:
+                if value.lower() in ("true", "yes"):
+                    v = True
+                elif value.lower() in ("false", "no"):
+                    v = False
+                else:
+                    v = value
     cur[parts[-1]] = v
     CONFIG_FILE.write_text(yaml.safe_dump(data, sort_keys=False))
