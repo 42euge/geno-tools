@@ -16,8 +16,6 @@ def tmp_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     root = tmp_path / ".geno-tools"
     root.mkdir()
     monkeypatch.setattr("geno_tools.paths.ROOT", root)
-    monkeypatch.setattr("geno_tools.paths.STATE_HASH", root / ".state-hash")
-    monkeypatch.setattr("geno_tools.paths.BOOTSTRAP", root / "geno-bootstrap")
     return root
 
 

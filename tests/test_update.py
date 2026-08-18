@@ -101,19 +101,6 @@ class TestUpdateOne:
         assert result.status == "skipped"
         assert "feature-branch" in result.detail
 
-    def test_dev_mode_skipped(self, tmp_root):
-        root = tmp_root / "geno-dev"
-        root.mkdir()
-        (root / ".git").mkdir()
-        real_main = tmp_root / "real-checkout"
-        real_main.mkdir()
-        (root / "main").symlink_to(real_main)
-        (root / "active").symlink_to("main")
-
-        result = commands._update_one("geno-dev")
-        assert result.status == "skipped"
-        assert "dev mode" in result.detail
-
     def test_missing_worktree_error(self, tmp_root):
         root = tmp_root / "geno-dev"
         root.mkdir()
@@ -255,7 +242,7 @@ class TestUpdateAll:
         monkeypatch.setattr("subprocess.check_call", lambda cmd, **kw: None)
 
         from geno_tools.cli import main
-        rc = main(["upgrade"])
+        rc = main(["skills", "upgrade"])
         assert rc == 0
         out = capsys.readouterr().out
         assert "geno-agents" in out
@@ -265,7 +252,7 @@ class TestUpdateAll:
     def test_excludes_bootstrap(self, tmp_root, monkeypatch, capsys):
         (tmp_root / "geno-bootstrap").mkdir()
         from geno_tools.cli import main
-        rc = main(["upgrade"])
+        rc = main(["skills", "upgrade"])
         assert rc == 0
         assert "no skillsets" in capsys.readouterr().out
 
@@ -300,7 +287,7 @@ class TestSelfUpdate:
 
     def test_empty_install(self, tmp_root, capsys):
         from geno_tools.cli import main
-        rc = main(["upgrade"])
+        rc = main(["skills", "upgrade"])
         assert rc == 0
         assert "no skillsets" in capsys.readouterr().out
 
@@ -324,14 +311,14 @@ class TestUpdateCli:
         monkeypatch.setattr("subprocess.check_call", lambda cmd, **kw: None)
 
         from geno_tools.cli import main
-        rc = main(["upgrade", "geno-dev"])
+        rc = main(["skills", "upgrade", "geno-dev"])
         assert rc == 0
         out = capsys.readouterr().out
         assert "geno-dev" in out
 
     def test_nonexistent_fails(self, tmp_root, capsys):
         from geno_tools.cli import main
-        rc = main(["upgrade", "geno-nonexistent"])
+        rc = main(["skills", "upgrade", "geno-nonexistent"])
         assert rc == 1
         assert "not installed" in capsys.readouterr().err
 
@@ -353,7 +340,7 @@ class TestUpdateCli:
         monkeypatch.setattr("subprocess.check_call", lambda cmd, **kw: None)
 
         from geno_tools.cli import main
-        rc = main(["upgrade", "dev"])
+        rc = main(["skills", "upgrade", "dev"])
         assert rc == 0
         out = capsys.readouterr().out
         assert "geno-dev" in out

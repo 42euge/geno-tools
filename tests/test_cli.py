@@ -5,9 +5,9 @@ import pytest
 from geno_tools.cli import main
 
 
-EXPECTED_COMMANDS = [
-    "status", "ls", "install", "dev", "fork", "use",
-    "promote", "update", "upgrade", "remove", "deps", "doctor", "discover",
+EXPECTED_COMMANDS = ["status", "skills", "update", "config"]
+EXPECTED_SKILLS_COMMANDS = [
+    "install", "uninstall", "upgrade", "remove", "deps", "discover", "scan",
 ]
 
 
@@ -35,14 +35,20 @@ class TestCliHelp:
             main([cmd, "--help"])
         assert exc.value.code == 0
 
+    @pytest.mark.parametrize("cmd", EXPECTED_SKILLS_COMMANDS)
+    def test_skills_subcommand_help(self, cmd, capsys):
+        with pytest.raises(SystemExit) as exc:
+            main(["skills", cmd, "--help"])
+        assert exc.value.code == 0
+
 
 class TestCliParsing:
-    def test_ls_no_args(self, tmp_root, no_subprocess, monkeypatch):
+    def test_status_no_args(self, tmp_root, no_subprocess, monkeypatch):
         monkeypatch.setattr("geno_tools.registry._cache", {})
-        rc = main(["ls"])
+        rc = main(["status"])
         assert rc == 0
 
-    def test_ls_available(self, monkeypatch, capsys):
+    def test_discover(self, monkeypatch, capsys):
         # `discover` reads registry.read_full() directly (not the _cache view),
         # so patch that — patching _cache alone let the REAL ~/.geno/registry.json
         # leak in, making this pass/fail on machine state.
@@ -52,22 +58,22 @@ class TestCliParsing:
         })
         monkeypatch.setattr("geno_tools.registry.is_stale", lambda *a, **k: False)
         monkeypatch.setattr("geno_tools.discovery.candidates_by_name", lambda: {})
-        rc = main(["ls", "--available"])
+        rc = main(["skills", "discover"])
         assert rc == 0
         out = capsys.readouterr().out
         assert "geno-dev" in out
 
     def test_install_requires_name(self):
         with pytest.raises(SystemExit) as exc:
-            main(["install"])
+            main(["skills", "install"])
         assert exc.value.code != 0
 
     def test_remove_requires_name(self):
         with pytest.raises(SystemExit) as exc:
-            main(["remove"])
+            main(["skills", "remove"])
         assert exc.value.code != 0
 
     def test_deps_requires_name(self):
         with pytest.raises(SystemExit) as exc:
-            main(["deps"])
+            main(["skills", "deps"])
         assert exc.value.code != 0

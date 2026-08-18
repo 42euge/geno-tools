@@ -57,7 +57,7 @@ npx skills add <skillset> --agent '*' --global --full-depth --yes
 
 `npx skills` (vercel-labs) walks only **depth-2** by default
 (`skills/<category>/<name>/`); `--full-depth` is required for deeper trees and is
-always passed by `geno-tools install`/`update`. Discovery stops at the first
+always passed by `geno-tools skills install`/`update`. Discovery stops at the first
 `SKILL.md` on a path — the **shadowing** rule that makes category-XOR-leaf
 mandatory.
 

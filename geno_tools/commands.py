@@ -75,62 +75,17 @@ def _fmt_state(state: str) -> str:
 
 
 def dispatch(args: argparse.Namespace) -> int:
+    if args.cmd == "skills":
+        from geno_tools.skills import dispatch as dispatch_skills
+        return dispatch_skills(args)
+
     handlers = {
-        "ls": _status,            # alias for status (back-compat)
         "status": _status,
-        "install": _install,
-        "dev": _dev,
-        "fork": _fork,
-        "use": _use,
-        "promote": _promote,
         "update": _self_update,   # update geno-tools itself
-        "uninstall": _uninstall,  # fully remove geno-tools (inverse of install)
-        "upgrade": _upgrade,      # upgrade installed skillset(s) — was `update`
-        "remove": _remove,
-        "deps": _deps,
-        "doctor": _doctor,
-        "discover": _discover,
-        "scan": _scan,
-        "docs": _docs,
-        "audit": _audit,
         "config": _config_show if getattr(args, "config_cmd", None) == "show"
                   else _config_set,
-        "llm": _llm,
-        "workspace": _workspace,
-        "install-agent": _install_agent,
-        "profile": _profile,
-        "resolve": _resolve_cmd,
-        "launch": _launch,
     }
     return handlers[args.cmd](args)
-
-
-def _audit(args: argparse.Namespace) -> int:
-    """`geno-tools audit [path]` — check a repo against ecosystem conventions."""
-    from pathlib import Path
-
-    from geno_tools import audit as auditmod
-
-    target = getattr(args, "path", None) or "."
-    results = auditmod.audit(target)
-    root = Path(target).resolve()
-    order = {"FAIL": 0, "WARN": 1, "INFO": 2, "OK": 3}
-    results.sort(key=lambda r: order.get(r[0], 9))
-    tag = {"FAIL": _red("FAIL"), "WARN": _yellow("WARN"),
-           "INFO": _dim("INFO"), "OK": _green(" OK ")}
-    print(_bold(f"audit · {root.name}") + _dim(f"  ({root})"))
-    for level, check, detail in results:
-        print(f"  [{tag[level]}] {check}" + (_dim(f"  {detail}") if detail else ""))
-    fails = sum(1 for r in results if r[0] == "FAIL")
-    warns = sum(1 for r in results if r[0] == "WARN")
-    print(_rule())
-    if fails:
-        print(f"  {_red(f'{fails} FAIL')}"
-              + (_yellow(f" · {warns} WARN") if warns else "")
-              + _dim("  — required checks must pass to be installable"))
-    else:
-        print(f"  {_green('compliant')}" + (_yellow(f" · {warns} WARN") if warns else ""))
-    return 1 if fails else 0
 
 
 # ── status / available ──────────────────────────────────────────────────────
@@ -145,20 +100,14 @@ def _installed_skillsets() -> list[str]:
     )
 
 
-def _status(args: argparse.Namespace) -> int:
-    """`geno-tools status` — installed skillsets, versions, drift vs remote.
-
-    Back-compat: `geno-tools ls --available` still routes to the registry list.
-    """
-    if getattr(args, "available", False):
-        return _available(args)
-
+def _status(_: argparse.Namespace) -> int:
+    """`geno-tools status` — installed skillsets, versions, drift vs remote."""
     installed = _installed_skillsets()
     print(_bold("geno-tools"))
     if not installed:
         print(_rule("installed"))
         print(_dim("  no skillsets installed."))
-        print(_dim("  geno-tools discover   # see what you can install"))
+        print(_dim("  geno-tools skills discover   # see what you can install"))
         return 0
 
     print(_rule(f"installed · {len(installed)}"))
@@ -175,13 +124,8 @@ def _status(args: argparse.Namespace) -> int:
     behind = [r for r in rows if r["state"].startswith("behind")]
     if behind:
         print()
-        print(_dim(f"  {len(behind)} behind remote — geno-tools upgrade"))
+        print(_dim(f"  {len(behind)} behind remote — geno-tools skills upgrade"))
     return 0
-
-
-def _available(args: argparse.Namespace) -> int:
-    """Deprecated alias for `discover` (prints the grouped discoverable list)."""
-    return _discover(args)
 
 
 # Category print order: known geno-ecosystem buckets first, then any extras,
@@ -193,7 +137,7 @@ _CATEGORY_ORDER = [
 
 
 def _discover(args: argparse.Namespace) -> int:
-    """`geno-tools discover` — find & list installable skillsets, by category.
+    """`geno-tools skills discover` — list installable skillsets by category.
 
     Prints the cached list (instant); auto-refreshes via curl when the cache is
     missing or stale (>30 min), or when --refresh is passed.
@@ -212,8 +156,8 @@ def _discover(args: argparse.Namespace) -> int:
     if not entries:
         print(_rule("discover"))
         print(_dim("  no skillsets found (no network, empty cache)."))
-        print(_dim("  retry:  geno-tools discover --refresh"))
-        print(_dim("  or install directly:  geno-tools install <git-url>"))
+        print(_dim("  retry:  geno-tools skills discover --refresh"))
+        print(_dim("  or install directly:  geno-tools skills install <git-url>"))
         return 0
 
     installed = set(_installed_skillsets())
@@ -235,14 +179,12 @@ def _discover(args: argparse.Namespace) -> int:
 
 
 def _skillset_status(full: str, *, check_remote: bool) -> dict:
-    """version + active variant + short commit + (optionally) remote drift.
+    """Version, short commit, and optionally remote drift.
 
     state (with check_remote): in-sync, behind <sha>, ahead, diverged, dirty,
     or offline. Empty without check_remote.
     """
-    active = paths.skillset_active(full)
-    variant = active.readlink().name if active.is_symlink() else "?"
-    worktree = paths.skillset_worktree(full, variant)
+    worktree = paths.skillset_worktree(full)
     version = str(_read_manifest(full).get("version", "?"))
 
     def _git(*a) -> str:
@@ -257,9 +199,7 @@ def _skillset_status(full: str, *, check_remote: bool) -> dict:
     commit = _git("rev-parse", "--short", "HEAD") or "?"
     state = ""
 
-    # `active -> <variant>` is always a symlink; dev mode is when the *worktree*
-    # itself is a symlink to a local checkout — only then skip the remote check.
-    if check_remote and not worktree.is_symlink():
+    if check_remote:
         if _git("status", "--porcelain"):
             state = "dirty"
         else:
@@ -292,14 +232,14 @@ def _skillset_status(full: str, *, check_remote: bool) -> dict:
                 else:
                     state = "diverged"
 
-    return {"name": full, "version": version, "variant": variant,
+    return {"name": full, "version": version, "variant": "main",
             "commit": commit, "state": state}
 
 
 # ── manifest ───────────────────────────────────────────────────────────────
 
 def _read_manifest(full: str) -> dict:
-    worktree = paths.skillset_worktree(full, "main")
+    worktree = paths.skillset_worktree(full)
     manifest = worktree / "genotools.yaml"
     if not manifest.exists():
         return {}
@@ -320,8 +260,6 @@ def _get_requires(full: str) -> list[str]:
 # ── install ─────────────────────────────────────────────────────────────────
 
 def _install(args: argparse.Namespace) -> int:
-    if args.here:
-        return _todo(f"install --here {args.name}: cwd alias materialization")
     config.ensure_dir()
     return _install_one(args.name, installing=set())
 
@@ -423,7 +361,7 @@ def _resolve_source(name_or_source: str) -> tuple[str, str | None]:
         f"unknown skillset: {name_or_source}\n"
         f"  not in the discovery cache, not a local path, not a git URL.\n"
         f"  run /geno-tools-meta-ecosystem-discover to refresh the cache,\n"
-        f"  or install directly: geno-tools install <git-url>"
+        f"  or install directly: geno-tools skills install <git-url>"
     )
 
 
@@ -471,7 +409,7 @@ def _clone_and_worktree(source: str, full: str) -> None:
     default_branch = _detect_default_branch(bare)
     subprocess.check_call([
         "git", "-C", str(bare), "worktree", "add",
-        str(paths.skillset_worktree(full, "main")), default_branch,
+        str(paths.skillset_worktree(full)), default_branch,
     ])
 
 
@@ -486,7 +424,7 @@ def _detect_default_branch(bare_repo: Path) -> str:
 # ── venv ────────────────────────────────────────────────────────────────────
 
 def _create_venv_if_needed(full: str) -> dict[str, str]:
-    worktree = paths.skillset_worktree(full, "main")
+    worktree = paths.skillset_worktree(full)
     pyproject = worktree / "pyproject.toml"
     if not pyproject.exists():
         return {}
@@ -583,8 +521,8 @@ def _install_skills_via_npx(full: str, agent: str = "*") -> None:
     # can't do global installs (Eve, PromptScript, …). Fall back to "*" if we
     # detect nothing, so an unfamiliar setup still gets registered.
     if agent == "*":
-        from geno_tools import profiles as _profiles
-        detected = _profiles.detect_installed_agents()
+        from geno_tools import agents
+        detected = agents.detect_installed()
         agents = detected or ["*"]
     else:
         agents = [agent]
@@ -718,391 +656,6 @@ def _print_dep_tree(full: str, indent: int, seen: set[str]) -> None:
         _print_dep_tree(dep_full, indent + 1, seen)
 
 
-# ── stubs (later phases) ────────────────────────────────────────────────────
-
-def _dev(args: argparse.Namespace) -> int:
-    return _todo(f"dev {args.name} {args.path}")
-
-
-def _fork(args: argparse.Namespace) -> int:
-    """Create a variant worktree off main: a git worktree on a new branch.
-
-    Does NOT flip the active symlink — use `geno-tools use <name>@<variant>`
-    to activate it. With --isolated-venv, builds a fresh per-variant venv so
-    the variant's deps don't clobber the shared main venv.
-    """
-    full = paths.normalize(args.name)
-    variant = args.variant
-    if variant == "main":
-        print("cannot fork the reserved variant name 'main'", file=sys.stderr)
-        return 1
-    if not paths.skillset_root(full).exists():
-        print(f"not installed: {full}", file=sys.stderr)
-        return 1
-
-    worktree = paths.skillset_worktree(full, variant)
-    if worktree.exists():
-        print(f"variant already exists: {full}@{variant}", file=sys.stderr)
-        return 1
-
-    bare = paths.skillset_git(full)
-    base = _detect_default_branch(bare)
-    worktree.parent.mkdir(parents=True, exist_ok=True)
-    print(f"forking {full}@{variant} off {base}")
-    subprocess.check_call([
-        "git", "-C", str(bare), "worktree", "add", "-b", variant,
-        str(worktree), base,
-    ])
-
-    if args.isolated_venv:
-        _create_variant_venv(full, variant, worktree)
-
-    print(f"forked {full}@{variant} at {worktree}")
-    print(f"  activate with: geno-tools use {full}@{variant}")
-    return 0
-
-
-def _use(args: argparse.Namespace) -> int:
-    """Select a variant by repointing the `active` symlink + re-registering.
-
-    `<name>@<variant>` — flips ~/.geno-tools/geno-<name>/active to the variant
-    worktree, then re-runs npx skills registration so the active variant's
-    skills surface. --here (cwd-only override) is not yet implemented.
-    """
-    if "@" not in args.spec:
-        print("spec must be <name>@<variant> (e.g. geno-foo@exp-1)",
-              file=sys.stderr)
-        return 1
-    name, variant = args.spec.rsplit("@", 1)
-    full = paths.normalize(name)
-
-    if args.here:
-        return _todo(f"use --here {args.spec}: cwd-only override")
-
-    if not paths.skillset_root(full).exists():
-        print(f"not installed: {full}", file=sys.stderr)
-        return 1
-
-    target = paths.skillset_worktree(full, variant)
-    if not target.exists():
-        print(f"no such variant: {full}@{variant}\n"
-              f"  fork it first: geno-tools fork {full} {variant}",
-              file=sys.stderr)
-        return 1
-
-    active = paths.skillset_active(full)
-    # active is a symlink relative to the skillset root: "main" or
-    # ".worktrees/<variant>". Mirror how _install_one seeds it.
-    rel = "main" if variant == "main" else str(Path(".worktrees") / variant)
-    if active.is_symlink() or active.exists():
-        active.unlink()
-    active.symlink_to(rel)
-    print(f"active: {full} -> {rel}")
-
-    _install_skills_via_npx(full)
-    print(f"using {full}@{variant}")
-    return 0
-
-
-def _promote(args: argparse.Namespace) -> int:
-    """Merge a variant branch into main (fast-forward only; no upstream push).
-
-    If the active symlink pointed at the promoted variant, flips it back to
-    main and re-registers so the merged main is what's live.
-    """
-    full = paths.normalize(args.name)
-    variant = args.variant
-    if variant == "main":
-        print("cannot promote 'main' into itself", file=sys.stderr)
-        return 1
-    if not paths.skillset_root(full).exists():
-        print(f"not installed: {full}", file=sys.stderr)
-        return 1
-
-    variant_wt = paths.skillset_worktree(full, variant)
-    if not variant_wt.exists():
-        print(f"no such variant: {full}@{variant}", file=sys.stderr)
-        return 1
-
-    # Guard: the variant worktree must be clean before merging.
-    dirty = subprocess.check_output(
-        ["git", "-C", str(variant_wt), "status", "--porcelain"], text=True
-    ).strip()
-    if dirty:
-        print(f"variant {full}@{variant} has uncommitted changes; "
-              f"commit or discard before promoting", file=sys.stderr)
-        return 1
-
-    main_wt = paths.skillset_worktree(full, "main")
-    print(f"promoting {full}@{variant} -> main (ff-only)")
-    rc = subprocess.call(
-        ["git", "-C", str(main_wt), "merge", "--ff-only", variant]
-    )
-    if rc != 0:
-        print(f"  ff-only merge failed: main has diverged from {variant}",
-              file=sys.stderr)
-        return 1
-
-    # If active pointed at the promoted variant, flip back to main.
-    active = paths.skillset_active(full)
-    try:
-        current = active.readlink()
-    except OSError:
-        current = None
-    if current is not None and Path(current).name == variant:
-        active.unlink()
-        active.symlink_to("main")
-        print(f"active: {full} -> main")
-        _install_skills_via_npx(full)
-
-    print(f"promoted {full}@{variant} into main")
-    return 0
-
-
-def _create_variant_venv(full: str, variant: str, worktree: Path) -> dict[str, str]:
-    """Build a per-variant venv under venvs/<variant>/ (isolated fork deps)."""
-    pyproject = worktree / "pyproject.toml"
-    if not pyproject.exists():
-        return {}
-    data = tomllib.loads(pyproject.read_text())
-    project = data.get("project", {})
-    if not project:
-        return {}
-    deps = project.get("dependencies", []) or []
-    scripts = project.get("scripts", {}) or {}
-
-    venv_dir = paths.skillset_venvs(full) / variant
-    venv_dir.parent.mkdir(parents=True, exist_ok=True)
-    print(f"  creating isolated venv: {venv_dir}")
-    subprocess.check_call([sys.executable, "-m", "venv", str(venv_dir)])
-    pip = venv_dir / "bin" / "pip"
-    subprocess.check_call([str(pip), "install", "--quiet", "--upgrade", "pip"])
-    if deps:
-        print(f"  installing deps: {', '.join(deps)}")
-        subprocess.check_call([str(pip), "install", "--quiet", *deps])
-    print("  installing package (editable)")
-    subprocess.check_call([str(pip), "install", "--quiet", "-e", str(worktree)])
-    return scripts
-
-
-# ── profiles ─────────────────────────────────────────────────────────────────
-
-def _profile(args: argparse.Namespace) -> int:
-    sub = getattr(args, "profile_cmd", None)
-    if sub == "list":
-        return _profile_list(args)
-    if sub == "show":
-        return _profile_show(args)
-    if sub == "create":
-        return _profile_create(args)
-    # Default: list
-    return _profile_list(args)
-
-
-def _profile_list(args: argparse.Namespace) -> int:
-    from geno_tools import profiles as prof
-    from geno_tools.iso import profiles as builtin
-    names = prof.list_profiles()
-    if not names:
-        print("no profiles")
-        return 0
-    print(_bold("profiles"))
-    print(_rule())
-    for name in names:
-        tag = _dim(" (built-in)") if (
-            name in builtin.NAMES and not prof.profile_path(name).exists()
-        ) else ""
-        print(f"  {name}{tag}")
-    return 0
-
-
-def _profile_show(args: argparse.Namespace) -> int:
-    from geno_tools import profiles as prof
-    try:
-        resolved = prof.resolve(args.name)
-    except prof.ProfileError as e:
-        print(str(e), file=sys.stderr)
-        return 1
-    print(_bold(f"profile · {args.name}"))
-    print(_rule())
-    print(f"  agents   {', '.join(resolved['agents'])}")
-    if resolved["autonomy"] is not None:
-        print(f"  autonomy {resolved['autonomy']}")
-    print("  skills")
-    for s in resolved["skills"]:
-        mark = "" if s["worktree_exists"] else _yellow(" [worktree missing]")
-        pin = f"@{s['variant']}" if s["variant"] != "main" else ""
-        print(f"    {s['name']}{pin}{mark}")
-    if resolved["missing"]:
-        print(_yellow(f"  missing (not installed): {', '.join(resolved['missing'])}"))
-    if resolved["mcp"]:
-        print(f"  mcp      {', '.join(resolved['mcp'])}")
-    return 0
-
-
-def _profile_create(args: argparse.Namespace) -> int:
-    from geno_tools import profiles as prof
-    path = prof.profile_path(args.name)
-    if path.exists():
-        print(f"profile already exists: {path}", file=sys.stderr)
-        return 1
-    path.parent.mkdir(parents=True, exist_ok=True)
-    agents = args.agent or ["claude-code"]
-    body = {
-        "agents": agents,
-        "skills": [],
-        "mcp": [],
-    }
-    path.write_text(yaml.safe_dump(body, sort_keys=False))
-    print(f"created profile: {path}")
-    print("  edit it to add skills (with optional @variant) and mcp catalogs")
-    return 0
-
-
-def _resolve_cmd(args: argparse.Namespace) -> int:
-    """`geno-tools resolve <profile>` — emit the resolved plan as JSON.
-
-    The inspection seam over the profile resolver: shows exactly which
-    worktree paths + MCP catalog names a profile lowers to. Used by `launch`
-    and for debugging.
-    """
-    import json
-    from geno_tools import profiles as prof
-    try:
-        resolved = prof.resolve(args.name)
-    except prof.ProfileError as e:
-        print(str(e), file=sys.stderr)
-        return 1
-    # Paths → strings for JSON.
-    out = dict(resolved)
-    out["skills"] = [
-        {**s, "worktree": str(s["worktree"])} for s in resolved["skills"]
-    ]
-    print(json.dumps(out, indent=2))
-    return 0
-
-
-# ── launch ───────────────────────────────────────────────────────────────────
-
-# geno-tools/npx agent name  ->  geno-iso `--agent` value
-_LAUNCH_AGENT_MAP = {
-    "claude-code": "claude",
-    "codex": "codex",
-    "gemini-cli": "gemini",
-}
-
-
-def _launch(args: argparse.Namespace) -> int:
-    """Launch a CLI in a geno-iso container scoped to a profile.
-
-    Composes the whole stack: resolve the profile -> generate an .mcp.json from
-    the resolved MCP catalog specs -> run `geno-iso` with each pinned variant
-    worktree bind-mounted into the container's skills path. Hard-requires the
-    geno-iso container runtime (no host fallback).
-    """
-    import json
-    import shutil as _shutil
-    import tempfile
-
-    from geno_tools import mcp
-    from geno_tools import profiles as prof
-
-    agent = args.agent
-    if agent not in prof.KNOWN_AGENTS:
-        print(f"unknown agent: {agent}\n  known: {', '.join(prof.KNOWN_AGENTS)}",
-              file=sys.stderr)
-        return 1
-    iso_agent = _LAUNCH_AGENT_MAP.get(agent)
-    if iso_agent is None:
-        print(f"agent '{agent}' is not yet supported by launch "
-              f"(container images exist for: {', '.join(_LAUNCH_AGENT_MAP)})",
-              file=sys.stderr)
-        return 1
-
-    # Hard-require geno-iso (no host fallback, per design).
-    if not _shutil.which("geno-iso"):
-        print("geno-iso not found on PATH — launch requires the container "
-              "runtime.\n  install it: geno-tools install geno-iso "
-              "(or pipx install this package)", file=sys.stderr)
-        return 1
-
-    try:
-        resolved = prof.resolve(args.profile)
-    except prof.ProfileError as e:
-        print(str(e), file=sys.stderr)
-        return 1
-
-    if agent not in resolved["agents"]:
-        print(f"profile '{args.profile}' does not target agent '{agent}'\n"
-              f"  it targets: {', '.join(resolved['agents'])}", file=sys.stderr)
-        return 1
-
-    if resolved["missing"]:
-        print(f"profile references skillsets that are not installed: "
-              f"{', '.join(resolved['missing'])}\n"
-              f"  install them first: "
-              f"{'; '.join('geno-tools install ' + m for m in resolved['missing'])}",
-              file=sys.stderr)
-        return 1
-
-    # Build variant bind-mounts: each skill's variant worktree -> the agent's
-    # in-container skills dir, under a per-skillset subdir.
-    mounts: list[tuple[str, str]] = []
-    for s in resolved["skills"]:
-        if not s["worktree_exists"]:
-            print(f"variant worktree missing for {s['name']}@{s['variant']}\n"
-                  f"  fork it: geno-tools fork {s['name']} {s['variant']}",
-                  file=sys.stderr)
-            return 1
-        # Container skills path for claude: /home/agent/.claude/skills/<name>
-        dest = f"/home/agent/.claude/skills/{s['name']}"
-        mounts.append((str(s["worktree"] / "skills"), dest))
-
-    # Resolve MCP catalog names -> concrete specs -> a .mcp.json for the run.
-    mcp_config_path = None
-    if resolved["mcp"]:
-        try:
-            specs = mcp.resolve_mcp(resolved["mcp"])
-        except KeyError as e:
-            print(str(e), file=sys.stderr)
-            return 1
-        tmp = Path(tempfile.mkdtemp(prefix="geno-launch-")) / ".mcp.json"
-        mcp.write_mcp_config(specs, tmp)
-        mcp_config_path = str(tmp)
-
-    # Build the geno-iso invocation. Skills come via bind-mounts (not -s
-    # network install), so the container profile stays `bare`.
-    cmd = ["geno-iso", "run", "--agent", iso_agent, "--profile", "bare"]
-    if args.ephemeral:
-        cmd.append("--rm")
-    cmd.append(args.workspace)
-    if mcp_config_path:
-        cmd += ["--mcp-config", mcp_config_path]
-
-    # NOTE: variant bind-mounts are passed to geno-iso via the GENO_ISO_MOUNTS
-    # env var (consumed by the run command); this avoids widening the public
-    # `geno-iso run` flag surface for a geno-tools-internal concern.
-    env_mounts = json.dumps(mounts)
-
-    print(_bold(f"launch · {args.profile} → {agent}"))
-    print(_rule())
-    print(f"  container agent  {iso_agent}")
-    print(f"  workspace        {args.workspace}")
-    for host, dest in mounts:
-        print(f"  mount            {host} -> {dest}")
-    if mcp_config_path:
-        print(f"  mcp servers      {', '.join(resolved['mcp'])}")
-    print(f"  $ {' '.join(cmd)}")
-
-    if args.dry_run:
-        print(_dim("  (dry-run — not launching)"))
-        return 0
-
-    import os as _os
-    env = {**_os.environ, "GENO_ISO_MOUNTS": env_mounts}
-    return subprocess.call(cmd, env=env)
-
-
 REPO_URL = "https://github.com/42euge/geno-tools.git"
 _CC_MARKETPLACE = Path.home() / ".claude" / "plugins" / "marketplaces" / "geno-tools"
 
@@ -1163,15 +716,7 @@ def _find_pipx() -> str | None:
 
 # ── uninstall (inverse of install) ────────────────────────────────────────────
 
-# geno-tools' OWN state files/dirs inside ~/.geno. Everything else in ~/.geno
-# (recordings, tasks, vault, geno-notes content, arbitrary user files) is USER
-# DATA and is never touched — only removed skillsets clean their own subtrees.
-_GENO_OWN_STATE = [
-    "config.yaml", "registry.json", "settings.json", "llm.db",
-    "bootstrap.log", "traces", "health", "discovery", "datasets",
-]
-
-# Agent skills dirs npx registers into (mirror of profiles.KNOWN_AGENTS paths).
+# Agent skills dirs npx registers into.
 _AGENT_SKILL_DIRS = [
     Path.home() / ".claude" / "skills",
     Path.home() / ".agents" / "skills",
@@ -1191,19 +736,15 @@ _CC_PLUGIN_DIRS = [
 
 
 def _uninstall(args: argparse.Namespace) -> int:
-    """`geno-tools uninstall` — the faithful inverse of install.
+    """`geno-tools skills uninstall` — the faithful inverse of install.
 
-    Removes everything geno-tools created — installed skillsets, venvs, bin
-    symlinks, agent skill registrations, Claude Code plugin/marketplace clones,
-    and (with --purge-data) geno-tools' own state files in ~/.geno. It never
-    deletes ~/.geno wholesale: user data living there is enumerated and KEPT,
-    and reported so you know exactly what remains.
+    Removes installed skillsets, venvs, bin symlinks, agent skill
+    registrations, and Claude Code plugin/marketplace clones. State and user
+    data under ~/.geno are kept and reported.
 
     The pipx/brew package removal is the one step a running process can't do to
     itself cleanly, so we print the exact command instead of self-deleting.
     """
-    home = Path.home()
-
     # ── plan: enumerate everything, delete nothing yet ──
     skillsets = _installed_skillsets() if paths.ROOT.exists() else []
 
@@ -1230,20 +771,15 @@ def _uninstall(args: argparse.Namespace) -> int:
 
     plugin_dirs = [d for d in _CC_PLUGIN_DIRS if d.exists()]
 
-    own_state = [paths.GENO_DIR / n for n in _GENO_OWN_STATE
-                 if (paths.GENO_DIR / n).exists()]
-    profiles_dir = paths.PROFILES_DIR if paths.PROFILES_DIR.exists() else None
-
-    # user data = everything in ~/.geno that is NOT our own state / profiles
+    # Everything under ~/.geno is retained.
     kept_user_data: list[Path] = []
     if paths.GENO_DIR.exists():
-        own_names = set(_GENO_OWN_STATE) | {"profiles"}
         for entry in sorted(paths.GENO_DIR.iterdir()):
-            if entry.name not in own_names and not entry.name.startswith("."):
+            if not entry.name.startswith("."):
                 kept_user_data.append(entry)
 
     # ── report ──
-    print(_bold("geno-tools uninstall"))
+    print(_bold("geno-tools skills uninstall"))
     print(_rule("plan"))
 
     def _section(title, items, render=lambda p: str(p)):
@@ -1258,14 +794,6 @@ def _uninstall(args: argparse.Namespace) -> int:
     _section("agent skill registrations", agent_skills)
     _section("bin symlinks", bin_links)
     _section("Claude Code plugin/marketplace clones", plugin_dirs)
-    if args.purge_data:
-        _section("geno-tools own state in ~/.geno", own_state)
-        if profiles_dir:
-            print(f"    {_red('remove')}  {profiles_dir}")
-    else:
-        print(_bold("  geno-tools own state in ~/.geno"))
-        print(_dim("    (kept — pass --purge-data to also remove config/registry/traces/health)"))
-
     print()
     print(_bold(f"  {_green('KEPT')} — your data, never touched:"))
     if kept_user_data:
@@ -1275,8 +803,7 @@ def _uninstall(args: argparse.Namespace) -> int:
         print(_dim("    (no user data found in ~/.geno)"))
 
     total = (len(skillsets) + len(agent_skills) + len(bin_links)
-             + len(plugin_dirs) + (len(own_state) + (1 if profiles_dir else 0)
-                                   if args.purge_data else 0))
+             + len(plugin_dirs))
     print()
     if total == 0:
         print(_green("nothing to remove — geno-tools is not installed here."))
@@ -1311,16 +838,6 @@ def _uninstall(args: argparse.Namespace) -> int:
     for d in plugin_dirs:
         shutil.rmtree(d, ignore_errors=True)
         print(f"  removed {d}")
-    if args.purge_data:
-        for f in own_state:
-            if f.is_dir():
-                shutil.rmtree(f, ignore_errors=True)
-            else:
-                f.unlink(missing_ok=True)
-            print(f"  removed {f}")
-        if profiles_dir:
-            shutil.rmtree(profiles_dir, ignore_errors=True)
-            print(f"  removed {profiles_dir}")
     # if ~/.geno-tools is now empty, remove it
     if paths.ROOT.exists() and not any(paths.ROOT.iterdir()):
         shutil.rmtree(paths.ROOT, ignore_errors=True)
@@ -1410,13 +927,10 @@ class _UpdateResult:
 
 def _update_one(full: str) -> _UpdateResult:
     bare = paths.skillset_git(full)
-    worktree = paths.skillset_worktree(full, "main")
+    worktree = paths.skillset_worktree(full)
 
     if not worktree.exists():
         return _UpdateResult(full, "error", "main worktree missing")
-
-    if worktree.is_symlink():
-        return _UpdateResult(full, "skipped", "dev mode (local symlink)")
 
     try:
         status = subprocess.check_output(
@@ -1487,7 +1001,7 @@ def _update_one(full: str) -> _UpdateResult:
 
 
 def _maybe_reinstall_venv(full: str, old_rev: str, new_rev: str) -> None:
-    worktree = paths.skillset_worktree(full, "main")
+    worktree = paths.skillset_worktree(full)
     if not (worktree / "pyproject.toml").exists():
         return
 
@@ -1544,10 +1058,6 @@ def _print_update_summary(results: list[_UpdateResult]) -> None:
             print(f"  {r.name:<24} {r.detail}")
 
 
-def _doctor(_: argparse.Namespace) -> int:
-    return _todo("doctor")
-
-
 def _scan(args: argparse.Namespace) -> int:
     srcs = discovery.sources()
     if not srcs:
@@ -1569,47 +1079,12 @@ def _scan(args: argparse.Namespace) -> int:
     return 0
 
 
-def _docs(args: argparse.Namespace) -> int:
-    from geno_tools.docs import compile_docs
-
-    docs_dir = Path(args.docs_dir) if args.docs_dir else None
-    if docs_dir is None:
-        cwd = Path.cwd()
-        if (cwd / "docs").is_dir():
-            docs_dir = cwd / "docs"
-        elif (cwd / "mkdocs.yml").is_file():
-            docs_dir = cwd / "docs"
-        else:
-            print("Error: cannot find docs/ directory. Use --docs-dir.",
-                  file=sys.stderr)
-            return 1
-
-    extra = [Path(d) for d in (args.extra_dir or [])]
-    compile_docs(docs_dir, extra or None, dry_run=args.dry_run)
-    return 0
-
-
-def _todo(msg: str) -> int:
-    print(f"[not yet implemented] {msg}", file=sys.stderr)
-    return 2
-
-
 # ── config subcommand ─────────────────────────────────────────────────────────
 
 def _config_show(args: argparse.Namespace) -> int:
     """`geno-tools config show` — print current config, redacting secrets."""
-    import json as _json
     from geno_tools import config as cfg
-    data = cfg.load()
-    # Redact token
-    if "llm" in data:
-        data = {**data, "llm": {**data["llm"], "token": "***" if cfg.get_llm().get("token") else ""}}
-    print(yaml.safe_dump(data, sort_keys=False).rstrip())
-    settings = cfg._SETTINGS_FILE
-    if settings.exists():
-        print(f"\n# token set in {settings}: yes")
-    else:
-        print(f"\n# token not yet set — run: geno-tools config set llm.token <token>")
+    print(yaml.safe_dump(cfg.load(), sort_keys=False).rstrip())
     return 0
 
 
@@ -1617,380 +1092,6 @@ def _config_set(args: argparse.Namespace) -> int:
     """`geno-tools config set <key> <value>` — set a config value."""
     from geno_tools import config as cfg
     cfg.set_config(args.key, args.value)
-    dest = "~/.geno/settings.json" if args.key in ("llm.token",) else "~/.geno/config.yaml"
     if _is_tty():
-        print(f"set {args.key} in {dest}")
-    return 0
-
-
-# ── llm subcommand ────────────────────────────────────────────────────────────
-
-def _llm(args: argparse.Namespace) -> int:
-    """`geno-tools llm <sub>` dispatcher."""
-    sub = getattr(args, "llm_cmd", None) or "probe"
-    if sub == "probe":
-        return _llm_probe(args)
-    if sub == "suggest":
-        return _llm_suggest(args)
-    print(f"Unknown llm subcommand '{sub}'. Use: probe, suggest", file=sys.stderr)
-    return 1
-
-
-def _llm_probe(args: argparse.Namespace) -> int:
-    """`geno-tools llm probe [--samples N] [--history]` — benchmark all models."""
-    from geno_tools import config as cfg, llm as gllm
-    lc = cfg.get_llm()
-    endpoint = lc.get("endpoint", "").strip()
-    token = lc.get("token", "")
-    timeout = int(lc.get("timeout", 10))
-    samples = getattr(args, "samples", 3) or 3
-    history_only = getattr(args, "history", False)
-
-    if not endpoint:
-        print("No LLM endpoint configured. Run:\n  geno-tools config set llm.endpoint <url>",
-              file=sys.stderr)
-        return 1
-
-    bold = _bold if _is_tty() else lambda s: s
-    dim = _dim if _is_tty() else lambda s: s
-    green = _green if _is_tty() else lambda s: s
-    red = _red if _is_tty() else lambda s: s
-    yellow = _yellow if _is_tty() else lambda s: s
-
-    if history_only:
-        # Show the averaged historical rankings from the DB without running new probes
-        rankings = gllm.load_rankings(endpoint)
-        if not rankings:
-            print(dim("No probe history yet. Run: geno-tools llm probe"))
-            return 0
-        w = max(len(r["model"]) for r in rankings)
-        print(bold(f"Historical rankings ({len(rankings)} models) — {endpoint}"))
-        print(f"{'#':<3}  {'MODEL':<{w}}  {'AVG TTFT':>9}  {'AVG TOT':>8}  {'TOK/S':>6}  {'RUNS':>4}")
-        print("-" * (w + 40))
-        for i, r in enumerate(rankings, 1):
-            tps = f"{r['tok_per_sec']:.1f}" if r["tok_per_sec"] else "—"
-            print(f"{i:<3}  {r['model']:<{w}}  {r['ttft_ms']:>7}ms  {r['total_ms']:>6}ms  {tps:>6}  {r['runs']:>4}")
-        return 0
-
-    print(f"Discovering models at {endpoint} …")
-    try:
-        models = gllm.discover_models(endpoint, token, timeout)
-    except Exception as e:
-        print(f"Error: {e}", file=sys.stderr)
-        return 1
-    print(f"Found {len(models)} model(s). Probing {samples} sample(s) each — results saved to ~/.geno/llm.db …\n")
-
-    results = gllm.probe_all(endpoint, token, concurrency=8, timeout=timeout, samples=samples)
-
-    # Print this-run table
-    ok_results = [r for r in results if r["ok"]]
-    w = max((len(r["model"]) for r in results), default=10)
-    print(f"{'#':<3}  {'MODEL':<{w}}  {'TTFT':>7}  {'TOTAL':>7}  {'TOK/S':>6}  {'S':>2}  STATUS")
-    print("-" * (w + 42))
-    for i, r in enumerate(results, 1):
-        if r["ok"]:
-            tps = f"{r['tok_per_sec']:.1f}" if r["tok_per_sec"] else "—"
-            print(f"{i:<3}  {r['model']:<{w}}  {r['ttft_ms']:>5}ms  {r['total_ms']:>5}ms"
-                  f"  {tps:>6}  {r['samples']:>2}  {green('ok')}")
-        else:
-            print(f"{i:<3}  {r['model']:<{w}}  {'—':>7}  {'—':>7}  {'—':>6}  {'0':>2}  {red(r['error'][:35])}")
-
-    # Update config.yaml top model from DB-averaged rankings (more stable)
-    db_rankings = gllm.load_rankings(endpoint)
-    if db_rankings:
-        top = db_rankings[0]["model"]
-        cfg.set_config("llm.model", top)
-        print(f"\n{bold('Top model')} (DB average): {top}")
-
-    print(dim(f"\nRun history saved to ~/.geno/llm.db  ({len(ok_results)}/{len(results)} ok)"))
-    print(dim("View historical rankings: geno-tools llm probe --history"))
-    return 0
-
-
-def _llm_suggest(args: argparse.Namespace) -> int:
-    """`geno-tools llm suggest --cwd ... --job ... --title ...`
-    Print a suggested dot-notation tab name to stdout."""
-    from geno_tools import config as cfg, llm as gllm
-    lc = cfg.get_llm()
-    endpoint = lc.get("endpoint", "").strip()
-    token = lc.get("token", "")
-    timeout = int(lc.get("timeout", 10))
-
-    # Pick model: explicit flag > configured > top ranking
-    model = getattr(args, "model", None) or lc.get("model", "")
-    if not model:
-        rankings = lc.get("model_rankings") or []
-        if rankings:
-            model = rankings[0].get("model", "")
-    if not model:
-        print("", end="")  # no suggestion — caller falls back to manual input
-        return 0
-    if not endpoint:
-        print("", end="")
-        return 0
-
-    name = gllm.suggest_name(
-        endpoint, token, model,
-        cwd=getattr(args, "cwd", "") or "",
-        job=getattr(args, "job", "") or "",
-        title=getattr(args, "title", "") or "",
-        timeout=timeout,
-    )
-    print(name, end="")
-    return 0
-
-
-# ---------------------------------------------------------------------------
-# VS Code workspace management
-# ---------------------------------------------------------------------------
-
-def _workspace(args: argparse.Namespace) -> int:
-    """`geno-tools workspace <sub>` — find, open, and create .code-workspace files."""
-    sub = getattr(args, "ws_cmd", None) or "ls"
-    if sub == "ls":
-        return _workspace_ls(args)
-    if sub == "open":
-        return _workspace_open(args)
-    if sub == "create":
-        return _workspace_create(args)
-    print(f"Unknown workspace subcommand '{sub}'. Use: ls, open, create", file=sys.stderr)
-    return 1
-
-
-def _find_workspaces(root: Path | None = None) -> list[Path]:
-    """Recursively find all *.code-workspace files under root (default ~/code)."""
-    import glob
-    search_root = root or (Path.home() / "code")
-    if not search_root.exists():
-        return []
-    return sorted(Path(p) for p in glob.glob(
-        str(search_root / "**" / "*.code-workspace"), recursive=True
-    ))
-
-
-def _workspace_ls(args: argparse.Namespace) -> int:
-    root = Path(args.root).expanduser() if getattr(args, "root", None) else None
-    workspaces = _find_workspaces(root)
-    if not workspaces:
-        print("No .code-workspace files found.")
-        return 0
-    bold = _bold if _is_tty() else lambda s: s
-    dim = _dim if _is_tty() else lambda s: s
-    home = Path.home()
-    for i, ws in enumerate(workspaces, 1):
-        try:
-            display = "~/" + str(ws.relative_to(home))
-        except ValueError:
-            display = str(ws)
-        print(f"  {i:<3} {bold(ws.stem):<40} {dim(display)}")
-    print(f"\n{len(workspaces)} workspace(s). Open with: geno-tools workspace open <name|index>")
-    return 0
-
-
-def _workspace_open(args: argparse.Namespace) -> int:
-    import shutil, subprocess as _sp
-    target = getattr(args, "target", None)
-    if not target:
-        print("Usage: geno-tools workspace open <name|path|index>", file=sys.stderr)
-        return 1
-
-    root = Path(getattr(args, "root", None) or "").expanduser() or None
-    workspaces = _find_workspaces(root)
-
-    # Resolve: exact path, then index, then name match
-    ws_path: Path | None = None
-    p = Path(target).expanduser()
-    if p.suffix == ".code-workspace" and p.exists():
-        ws_path = p
-    elif target.isdigit():
-        idx = int(target) - 1
-        if 0 <= idx < len(workspaces):
-            ws_path = workspaces[idx]
-    else:
-        matches = [w for w in workspaces
-                   if w.stem.lower() == target.lower()
-                   or target.lower() in w.stem.lower()]
-        if len(matches) == 1:
-            ws_path = matches[0]
-        elif len(matches) > 1:
-            print(f"Ambiguous: {len(matches)} workspaces match '{target}':")
-            for m in matches:
-                print(f"  {m}")
-            return 1
-
-    if not ws_path:
-        print(f"No workspace found matching '{target}'. Run: geno-tools workspace ls",
-              file=sys.stderr)
-        return 1
-
-    code_bin = shutil.which("code") or shutil.which("code-insiders")
-    if not code_bin:
-        print("'code' not found on PATH. Install VS Code and run: Shell Command: Install 'code' command in PATH",
-              file=sys.stderr)
-        return 1
-
-    print(f"Opening {ws_path.name} …")
-    _sp.Popen([code_bin, str(ws_path)])
-    return 0
-
-
-def _workspace_create(args: argparse.Namespace) -> int:
-    import json as _json
-    name = getattr(args, "name", None)
-    paths_arg = getattr(args, "paths", None) or []
-    if not name:
-        print("Usage: geno-tools workspace create <name> [path ...]", file=sys.stderr)
-        return 1
-
-    out_dir = Path(getattr(args, "output", None) or ".").expanduser()
-    out_path = out_dir / f"{name}.code-workspace"
-
-    folders = [{"path": str(Path(p).expanduser())} for p in paths_arg] if paths_arg else []
-    workspace = {"folders": folders, "settings": {}}
-    out_path.write_text(_json.dumps(workspace, indent=2) + "\n")
-    print(f"Created {out_path}")
-    if not paths_arg:
-        print("  Tip: add folders with VS Code's 'Add Folder to Workspace…' or edit the JSON directly.")
-    return 0
-
-
-# ── install-agent ────────────────────────────────────────────────────────────
-
-# Agents with a native plugin CLI — use the CLI to add marketplace + install.
-# Format: agent_name → (marketplace_add_cmd, plugin_install_cmd, plugin_update_cmd)
-_AGENT_CLI = {
-    "claude-code": (
-        ["claude", "plugin", "marketplace", "add", "42euge/geno-tools"],
-        ["claude", "plugin", "install", "geno-tools@geno-tools"],
-        ["claude", "plugin", "update",  "geno-tools@geno-tools"],
-    ),
-    "codex": (
-        ["codex", "plugin", "marketplace", "add", "42euge/geno-tools"],
-        ["codex", "plugin", "add",    "geno-tools@geno-tools"],
-        ["codex", "plugin", "upgrade", "geno-tools"],   # codex uses upgrade for marketplace refresh
-    ),
-}
-
-_AGENT_TARGETS = {
-    "claude-code":  ("~/.claude",    "plugin.json"),
-    "codex":        ("~/.codex",     "plugin.json"),
-    "antigravity":  ("~/.antigravity", "plugin.json"),
-}
-
-
-def _run_agent_cli(cmds: list[list[str]], dry_run: bool) -> int:
-    """Run a sequence of agent CLI commands, printing each before running."""
-    for argv in cmds:
-        print(f"  $ {' '.join(argv)}")
-        if dry_run:
-            continue
-        r = subprocess.run(argv, capture_output=False)
-        if r.returncode != 0:
-            return r.returncode
-    return 0
-
-
-def _install_agent(args: argparse.Namespace) -> int:
-    """`geno-tools install-agent <agent> [-m manifest] [--dry-run] [--list]`
-
-    For agents with a native plugin CLI (claude-code, codex), uses the CLI to:
-      1. Add the geno-tools marketplace
-      2. Install (or reinstall) the geno-tools plugin
-
-    For other agents, falls back to writing a plugin.json manifest file.
-    """
-    import json as _json
-
-    if getattr(args, "list_agents", False):
-        print(f"{'AGENT':<16}  METHOD       CONFIG DIR")
-        print(f"{'-----':<16}  ------       ----------")
-        for name in sorted(_AGENT_TARGETS):
-            cfg, _ = _AGENT_TARGETS[name]
-            resolved = str(Path(cfg).expanduser())
-            exists = " ✓" if Path(resolved).exists() else ""
-            method = "CLI" if name in _AGENT_CLI else "file"
-            print(f"{name:<16}  {method:<12} {resolved}{exists}")
-        return 0
-
-    agent = getattr(args, "agent", None)
-    if not agent:
-        print("Usage: geno-tools install-agent <agent> [options]", file=sys.stderr)
-        print("       geno-tools install-agent --list", file=sys.stderr)
-        return 1
-
-    if agent not in _AGENT_TARGETS:
-        print(f"Unknown agent {agent!r}. Known: {', '.join(sorted(_AGENT_TARGETS))}", file=sys.stderr)
-        return 1
-
-    dry_run = getattr(args, "dry_run", False)
-
-    # ── CLI path (claude-code, codex) ──────────────────────────────────────
-    if agent in _AGENT_CLI and not getattr(args, "manifest", None):
-        mkt_add, plugin_install, plugin_update = _AGENT_CLI[agent]
-        agent_bin = mkt_add[0]
-        if not shutil.which(agent_bin):
-            print(f"  {agent_bin} not found on PATH — install {agent} first.", file=sys.stderr)
-            return 1
-        print(f"Installing geno into {agent} via native plugin CLI:")
-        print(f"  step 1/2  add marketplace")
-        rc = _run_agent_cli([mkt_add], dry_run)
-        if rc != 0:
-            return rc
-        print(f"  step 2/2  install plugin")
-        # Try install; if already installed, update instead
-        if not dry_run:
-            r = subprocess.run(plugin_install, capture_output=True, text=True)
-            print(f"  $ {' '.join(plugin_install)}")
-            if r.returncode != 0 and "already installed" in (r.stdout + r.stderr):
-                print(f"  already installed — updating…")
-                subprocess.run(plugin_update)
-            elif r.returncode != 0:
-                print(r.stderr.strip(), file=sys.stderr)
-                return r.returncode
-            else:
-                print((r.stdout or r.stderr).strip())
-        else:
-            print(f"  $ {' '.join(plugin_install)}")
-            print(f"  $ {' '.join(plugin_update)}  (if already installed)")
-        print(f"\n✓ geno installed into {agent}")
-        return 0
-
-    cfg_dir_raw, plugin_file = _AGENT_TARGETS[agent]
-    cfg_dir = Path(cfg_dir_raw).expanduser()
-    dest = cfg_dir / plugin_file
-
-    manifest_path = getattr(args, "manifest", None)
-    if manifest_path:
-        manifest = _json.loads(Path(manifest_path).read_text())
-    else:
-        skill_dirs = []
-        if paths.ROOT.exists():
-            for entry in sorted(paths.ROOT.iterdir()):
-                if not entry.is_dir():
-                    continue
-                active_skills = entry / "active" / "skills"
-                if active_skills.exists():
-                    skill_dirs.append(str(active_skills))
-        manifest = {
-            "name": "geno",
-            "version": "0.1.0",
-            "description": "Geno ecosystem — agentic workspace orchestration",
-            "repository": "https://github.com/42euge/geno-tools",
-            "skills": skill_dirs,
-        }
-
-    out = _json.dumps(manifest, indent=2) + "\n"
-    print(f"agent:    {agent}")
-    print(f"config:   {cfg_dir}")
-    print(f"manifest: {dest}")
-    print(f"skills:   {len(manifest.get('skills', []))} entries")
-
-    if getattr(args, "dry_run", False):
-        print("\n[dry-run] would write:")
-        print(out)
-        return 0
-
-    cfg_dir.mkdir(parents=True, exist_ok=True)
-    dest.write_text(out)
-    print(f"\n✓ installed geno skills into {dest}")
+        print(f"set {args.key} in ~/.geno/config.yaml")
     return 0

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "geno-tools"
-version = "0.8.0"
+version = "0.8.1"
 description = "Unified geno control plane: resolve, scope, and launch skillset bundles"
 requires-python = ">=3.11"
 dependencies = ["pyyaml>=6.0", "click>=8.0"]
@@ -14,15 +14,9 @@ test = ["pytest>=8.0"]
 
 [project.scripts]
 geno-tools = "geno_tools.cli:main"
-geno-trace = "geno_tools.trace:main"
-geno-docs = "geno_tools.docs:main"
-geno-iso = "geno_tools.iso.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["geno_tools*"]
-
-[tool.setuptools.package-data]
-"geno_tools.iso" = ["dockerfiles/**/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

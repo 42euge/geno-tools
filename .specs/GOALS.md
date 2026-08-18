@@ -1,3 +1,0 @@
-# Goals
-
-> To be defined.
