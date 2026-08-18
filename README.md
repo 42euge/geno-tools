@@ -15,20 +15,20 @@ A **skillset** is a self-contained git repo named `{prefix}-{slug}` that geno-to
 
 Inside each skillset:
 
-- `GENO.md` at the root — the umbrella manifest the agent loads first
-- `skills/<subskill>/SKILL.md` — **subskillsets**, each scoped to one focused capability (a single skillset typically ships several). geno-tools registers all of them in one shot via `npx skills add --skill '*'`.
-- Optional `pyproject.toml`, runtime scripts, and copy-once configs
+- `genotools.yaml` at the root — where `requires:` and `version:` live
+- `skills/<subskill>/SKILL.md` — **subskillsets**, each scoped to one focused capability (a single skillset typically ships several). geno-tools registers all of them in one `npx skills` call.
+- Optional `pyproject.toml` for a Python runtime, and `AGENTS.md` for agent-facing instructions
 
-Subskillsets keep individual SKILL.md files small and tightly scoped, while the umbrella SKILL.md gives the agent enough context to discover them.
+Subskillsets keep individual SKILL.md files small and tightly scoped.
+
+See [docs/skillsets.md](docs/skillsets.md) for the full contract.
 
 ## Onboarding a skillset
 
-There are two ways to make a skillset installable through `geno-tools skills install`:
+Two ways to make a skillset installable through `geno-tools skills install`:
 
-1. **Curated registry** — submit a PR adding `"<repo-name>": "<git-url>"` to `geno_tools/skills_manager/registry.py`. After that, `geno-tools skills install <repo-name>` works for everyone.
-2. **Direct git URL** — anyone can install any compliant repo without a registry entry: `geno-tools skills install https://github.com/you/your-skillset.git`. This is the recommended path for private, internal, or experimental skillsets.
-
-A minimum viable skillset only needs a root `SKILL.md`, a `genotools.yaml`, and an `AGENTS.md`; everything else (venv, runtime symlinks, configs, subskillsets) is opt-in.
+1. **Direct git URL** — install any compliant repo with no registry entry anywhere: `geno-tools skills install https://github.com/you/your-skillset.git`. This is the path for private, internal, and experimental skillsets.
+2. **Discovery** — push to a host geno-tools is configured to scan. A repo becomes a candidate when its name matches the configured prefix and it exposes skills; after that `geno-tools skills install <repo-name>` resolves by bare name. There is no curated list to PR into — discovery is a cache, not a registry.
 
 ## Existing geno-* repos
 
@@ -53,7 +53,7 @@ The pattern is to mirror the `geno-*` convention under your own namespace: `{you
 - **Organizational** — one shared prefix for the whole company or team. An incident-response skillset lives in `internal-incident-response`, a finance one in `internal-finance`. Everyone on the team installs the same prefix.
 - **Personal** — your own prefix for skillsets that are yours, not the org's: `yourname-notes`, `yourname-scratch`. Useful for in-progress work you don't want to publish or push onto teammates yet.
 
-Same layout either way — same `SKILL.md` + `genotools.yaml` + `AGENTS.md` + optional venv shape — just hosted privately.
+Same layout either way — same `genotools.yaml` + `skills/` tree + optional venv shape — just hosted privately.
 
 How it works in practice:
 

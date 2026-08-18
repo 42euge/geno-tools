@@ -8,27 +8,62 @@ any supported coding agent.
 
 | Path | Role |
 |------|------|
-| `SKILL.md` (root) | umbrella manifest; the agent loads this first |
+| `genotools.yaml` | the marker: this repo is a geno-tools skillset. Holds `requires:` and `version:` |
 | `skills/<name>/SKILL.md` | **subskillsets** — one focused capability each |
-| `AGENTS.md` | agent-facing instructions |
-| `genotools.yaml` | skillset metadata (`requires:`, venv shape) |
-| `pyproject.toml` (optional) | Python runtime; geno-tools builds the venv |
-| `layer.json` (optional) | ecosystem category, read by discovery |
+| `AGENTS.md` (optional) | agent-facing instructions; read by agents, not by geno-tools |
+| `pyproject.toml` (optional) | Python runtime; `[project]` drives the venv and console scripts |
+| `layer.json` (optional) | ecosystem category, read remotely by discovery |
 
-A minimum viable skillset is just the root `SKILL.md`, `genotools.yaml`, and
-`AGENTS.md`. Everything else — venv, runtime symlinks, copy-once configs,
-subskillsets — is opt-in.
+### The root `SKILL.md` problem
+
+Discovery currently probes for a **root `SKILL.md`** to decide a repo is a
+skillset (`registry.py:132`, plus the GitLab/Bitbucket/Gitea providers in
+`discovery.py`). But a root `SKILL.md` is also treated as a depth-1 skill by
+`npx skills`, which **shadows the entire `skills/` tree** — it returns that one
+and stops. Measured against this repo:
+
+```
+npx skills add <repo> --list              → 1 skill
+npx skills add <repo> --list --full-depth → 16 skills
+```
+
+geno-tools passes `--full-depth` so its own installs are correct, but anything
+using plain `npx skills` gets 1 of N. Claude Code's single-skill-plugin path
+likewise requires there be *no* `skills/` directory, so having both disables it.
+
+So the root `SKILL.md` is load-bearing for discovery and harmful for
+registration. The intended fix is to make `genotools.yaml` the discovery marker
+and drop the root `SKILL.md` — that keeps `SKILL.md` conformant to the [Agent
+Skills spec](https://agentskills.io/specification) (`name` + `description` are
+its only required fields) while geno-tools' own metadata lives in a file no
+other tool claims. **Not yet implemented** — it needs the five probe sites
+changed together, or conformant skillsets become undiscoverable.
 
 ## Subskillsets
 
 A skillset typically ships several. Each `skills/<name>/SKILL.md` is scoped to
-one capability, which keeps individual files small enough that an agent loads
-only what it needs; the umbrella `SKILL.md` carries just enough context for the
-agent to discover them.
+one capability, so an agent loads only what it needs.
 
-They nest — `skills/config/set/SKILL.md` is as valid as `skills/setup/SKILL.md` —
-and geno-tools registers every leaf in a single `npx skills add --skill '*'`
-call rather than one call per skill.
+They nest — `skills/config/set/SKILL.md` is as valid as `skills/setup/SKILL.md`.
+geno-tools hands the whole tree to a single `npx skills add … --full-depth`
+call rather than one call per skill. `--full-depth` is required: without it the
+walk stops at the first `SKILL.md` it finds on each branch.
+
+### Writing a good `SKILL.md`
+
+Frontmatter is `name` + `description`. The rule worth internalizing is about
+`description`: **state the triggering conditions, never the workflow.** A
+description that summarizes the process creates a shortcut the agent takes
+*instead of* reading the skill body — a real case had a description mentioning
+"code review between tasks" cause one review where the skill's own flowchart
+specified two.
+
+```yaml
+# ✗ summarizes workflow — the agent may follow this and skip the body
+description: Use when executing plans — dispatches a subagent per task with review between
+# ✓ triggering conditions only
+description: Use when executing implementation plans with independent tasks
+```
 
 ## Namespaces
 
@@ -58,8 +93,9 @@ Three paths, in increasing order of commitment:
    recommended path for private, internal, and experimental skillsets.
 3. **Discovery** — push to a host geno-tools is configured to scan (see
    `discovery.sources` in `~/.geno/config.yaml`). A repo becomes a candidate when
-   its name matches the configured prefix and it exposes a top-level `SKILL.md`.
-   After that, `geno-tools skills install <repo-name>` resolves by bare name.
+   its name matches the configured prefix and it exposes skills. After that,
+   `geno-tools skills install <repo-name>` resolves by bare name. Discovery is a
+   cache, not a curated list — there's nothing to PR into.
 
 ## Dependencies
 

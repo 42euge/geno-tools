@@ -17,18 +17,12 @@ metadata:
 geno-tools update
 ```
 
-Updates the geno-tools meta-tool to the latest published version:
+Updates the geno-tools CLI itself to the latest published version. Homebrew is
+the install path: `brew upgrade geno-tools` when the running copy lives in a
+formula Cellar, falling back to `pipx` from the git remote otherwise.
 
-1. Reinstalls the `geno-tools` CLI from GitHub via `pipx` (the binary on PATH).
-2. Refreshes the Claude Code marketplace clone so a plugin reinstall pulls latest.
-
-A CLI subprocess can't issue Claude Code's slash commands, so the final reload
-is yours to run — the command prints it:
-
-```
-/plugin install geno-tools@geno-tools
-/reload-plugins
-```
+Installed skillsets are untouched — they have their own lifecycle. Re-register
+their skills with `geno-tools skills upgrade`.
 
 > `update` = geno-tools itself · `upgrade` = installed skillsets. Don't confuse
 > them.

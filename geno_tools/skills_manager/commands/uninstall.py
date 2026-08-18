@@ -23,6 +23,9 @@ _AGENT_SKILL_DIRS = [
     Path.home() / ".gemini" / "antigravity" / "skills",
     Path.home() / ".copilot" / "skills",
 ]
+# Legacy: geno-tools was briefly distributed as a Claude Code plugin/marketplace.
+# Homebrew is the only install path now, but uninstall still sweeps these so
+# anyone who used the old channel gets a clean removal.
 _CC_PLUGIN_DIRS = [
     Path.home() / ".claude" / "plugins" / "cache" / "geno-tools",
     Path.home() / ".claude" / "plugins" / "data" / "geno-tools-geno-tools",
@@ -74,7 +77,7 @@ def run(args: argparse.Namespace) -> int:
     )
     _print_section("agent skill registrations", agent_skills)
     _print_section("bin symlinks", bin_links)
-    _print_section("Claude Code plugin/marketplace clones", plugin_dirs)
+    _print_section("legacy Claude Code plugin/marketplace clones", plugin_dirs)
     print()
     print(bold(f"  {green('KEPT')} — your data, never touched:"))
     if kept_user_data:

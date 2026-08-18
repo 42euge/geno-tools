@@ -12,8 +12,8 @@ metadata:
 # geno-tools — Skillset Manager
 
 Orchestrator for the geno-* ecosystem. Its own skills are organized into
-category directories (`skills/<category>/<name>/SKILL.md`) — see `SKILLS.md` for
-the nesting standard.
+category directories (`skills/<category>/<name>/SKILL.md`) — see
+`docs/skillsets.md` for the layout standard.
 
 ```!
 which geno-tools >/dev/null 2>&1 || echo "geno-tools CLI not on PATH — run /geno-tools-setup to install it (or 'bash \$PLUGIN_ROOT/skills/setup/setup.sh')."
