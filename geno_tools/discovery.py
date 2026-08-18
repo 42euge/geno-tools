@@ -5,7 +5,7 @@ A *source* declares where to look (GitHub org, GitLab group, etc.) and a
 prefix and exposes a top-level ``SKILL.md``.
 
 Discovery never installs anything. It only proposes repos that the operator
-(or platform team) can then audit and install through ``geno-tools install``.
+(or platform team) can then audit and install through ``geno-tools skills install``.
 
 The provider layer is pluggable. A provider implements::
 

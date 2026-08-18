@@ -1,9 +1,9 @@
 """Tests for the install/remove/skills flow — the core of geno-tools.
 
 These tests verify the documented install behavior:
-  1. geno-tools install <name> clones, creates venv, symlinks bin, registers skills
+  1. geno-tools skills install <name> clones, creates venv, symlinks bin, registers skills
   2. All sub-skills are enumerated and installed individually (not just the umbrella)
-  3. geno-tools remove <name> unregisters skills, removes bin symlinks, cleans up
+  3. geno-tools skills remove <name> unregisters skills, removes bin symlinks, cleans up
   4. Dependency resolution installs transitive requires
 """
 
@@ -259,77 +259,14 @@ class TestDependencyResolution:
         fake_skillset("geno-top", has_manifest=True, requires=["geno-child"])
         fake_skillset("geno-child")
         from geno_tools.cli import main
-        rc = main(["deps", "geno-top"])
+        rc = main(["skills", "deps", "geno-top"])
         assert rc == 0
         out = capsys.readouterr().out
         assert "geno-top" in out
         assert "geno-child" in out
 
 
-# ── ls command ────────────────────────────────────────────────────────────
-
-
-class TestLs:
-    def test_empty_install(self, tmp_root, capsys, monkeypatch):
-        monkeypatch.setattr("geno_tools.registry._cache", {})
-        from geno_tools.cli import main
-        rc = main(["ls"])
-        assert rc == 0
-        assert "no skillsets" in capsys.readouterr().out
-
-    def test_lists_installed(self, fake_skillset, capsys, monkeypatch):
-        monkeypatch.setattr("geno_tools.registry._cache", {})
-        fake_skillset("geno-dev")
-        fake_skillset("geno-agents")
-        from geno_tools.cli import main
-        rc = main(["ls"])
-        assert rc == 0
-        out = capsys.readouterr().out
-        assert "geno-dev" in out
-        assert "geno-agents" in out
-
-    def test_ls_shows_version(self, fake_skillset, capsys, monkeypatch):
-        # `ls` is now an alias for `status`: shows version, always checks drift
-        # (no --check hint — status always compares to remote).
-        monkeypatch.setattr("geno_tools.registry._cache", {})
-        root = fake_skillset("geno-dev")
-        (root / "main" / "genotools.yaml").write_text('version: "0.4.2"\n')
-        from geno_tools.cli import main
-        rc = main(["ls"])
-        assert rc == 0
-        out = capsys.readouterr().out
-        assert "geno-dev" in out
-        assert "0.4.2" in out          # version from genotools.yaml
-        assert "--check" not in out    # no flag hint; status always checks
-
-    def test_skillset_status_degrades_without_git(self, fake_skillset, monkeypatch):
-        # fixture has only a fake .git dir; status must not raise, commit "?".
-        monkeypatch.setattr("geno_tools.registry._cache", {})
-        root = fake_skillset("geno-dev")
-        (root / "main" / "genotools.yaml").write_text('version: "0.4.2"\n')
-        info = commands._skillset_status("geno-dev", check_remote=True)
-        assert info["variant"] == "main"
-        assert info["commit"] == "?"   # no real git history
-        assert info["version"] == "0.4.2"
-
-    def test_ls_available_aliases_discover(self, monkeypatch, capsys):
-        # `ls --available` routes to discover; fresh cache so no network.
-        monkeypatch.setattr("geno_tools.registry.is_stale", lambda *a, **k: False)
-        monkeypatch.setattr("geno_tools.registry.read_full", lambda: {
-            "geno-dev": {"url": "https://example.com/geno-dev.git",
-                         "category": "Developer Tools"},
-            "geno-media": {"url": "https://example.com/geno-media.git",
-                           "category": "Applied Research"},
-        })
-        from geno_tools.cli import main
-        rc = main(["ls", "--available"])
-        assert rc == 0
-        out = capsys.readouterr().out
-        assert "geno-dev" in out
-        assert "geno-media" in out
-
-
-class TestStatusAndAvailable:
+class TestStatusAndDiscover:
     def test_status_shows_version(self, fake_skillset, capsys, monkeypatch):
         root = fake_skillset("geno-dev")
         (root / "main" / "genotools.yaml").write_text('version: "0.4.2"\n')
@@ -355,7 +292,7 @@ class TestStatusAndAvailable:
         })
         fake_skillset("geno-dev")  # installed
         from geno_tools.cli import main
-        assert main(["discover"]) == 0
+        assert main(["skills", "discover"]) == 0
         out = capsys.readouterr().out
         assert "Developer Tools" in out and "Modalities & Capabilities" in out
         assert "geno-dev" in out and "geno-media" in out
@@ -370,15 +307,9 @@ class TestStatusAndAvailable:
                             lambda *a, **k: called.__setitem__("n", called["n"] + 1) or {})
         monkeypatch.setattr("geno_tools.registry.read_full", lambda: {})
         from geno_tools.cli import main
-        assert main(["discover"]) == 0
+        assert main(["skills", "discover"]) == 0
         assert called["n"] == 1
         assert "discover" in capsys.readouterr().out
-
-    def test_ls_is_alias_for_status(self, fake_skillset, capsys):
-        fake_skillset("geno-dev")
-        from geno_tools.cli import main
-        assert main(["ls"]) == 0
-        assert "geno-dev" in capsys.readouterr().out
 
     def test_output_is_plain_when_not_tty(self, fake_skillset, capsys):
         # capsys captured stdout is not a TTY → no ANSI escapes, ASCII rule.
@@ -400,7 +331,7 @@ class TestRemove:
         monkeypatch.setattr("geno_tools.commands.SYSTEM_BIN", Path("/nonexistent"))
 
         from geno_tools.cli import main
-        rc = main(["remove", "geno-dev"])
+        rc = main(["skills", "remove", "geno-dev"])
         assert rc == 0
         assert not paths.skillset_root("geno-dev").exists()
 
@@ -415,13 +346,13 @@ class TestRemove:
         monkeypatch.setattr("geno_tools.commands.SYSTEM_BIN", Path("/nonexistent"))
 
         from geno_tools.cli import main
-        rc = main(["remove", "geno-dev", "--keep-data"])
+        rc = main(["skills", "remove", "geno-dev", "--keep-data"])
         assert rc == 0
         assert venvs.exists()
 
     def test_remove_nonexistent_fails(self, tmp_root, capsys):
         from geno_tools.cli import main
-        rc = main(["remove", "geno-nonexistent"])
+        rc = main(["skills", "remove", "geno-nonexistent"])
         assert rc == 1
         assert "not installed" in capsys.readouterr().err
 
@@ -466,7 +397,7 @@ class TestAgentScoping:
     def test_scopes_to_detected_agents(self, fake_skillset, monkeypatch):
         fake_skillset("geno-dev", sub_skills=["geno-dev-a"])
         monkeypatch.setattr(
-            "geno_tools.profiles.detect_installed_agents",
+            "geno_tools.agents.detect_installed",
             lambda: ["claude-code", "codex"],
         )
         calls = []
@@ -479,7 +410,7 @@ class TestAgentScoping:
 
     def test_falls_back_to_star_when_nothing_detected(self, fake_skillset, monkeypatch):
         fake_skillset("geno-dev", sub_skills=["geno-dev-a"])
-        monkeypatch.setattr("geno_tools.profiles.detect_installed_agents", lambda: [])
+        monkeypatch.setattr("geno_tools.agents.detect_installed", lambda: [])
         calls = []
         monkeypatch.setattr("subprocess.check_call", lambda cmd, **kw: calls.append(cmd))
         commands._install_skills_via_npx("geno-dev")
@@ -490,7 +421,7 @@ class TestAgentScoping:
         fake_skillset("geno-dev", sub_skills=["geno-dev-a"])
         def _boom():
             raise AssertionError("detection must not run for an explicit agent")
-        monkeypatch.setattr("geno_tools.profiles.detect_installed_agents", _boom)
+        monkeypatch.setattr("geno_tools.agents.detect_installed", _boom)
         calls = []
         monkeypatch.setattr("subprocess.check_call", lambda cmd, **kw: calls.append(cmd))
         commands._install_skills_via_npx("geno-dev", agent="cursor")
@@ -500,15 +431,15 @@ class TestAgentScoping:
 
 class TestDetectInstalledAgents:
     def test_detects_by_agent_home(self, tmp_path, monkeypatch):
-        from geno_tools import profiles
-        monkeypatch.setattr(profiles, "_AGENT_HOMES", {
+        from geno_tools import agents
+        monkeypatch.setattr(agents, "_AGENT_HOMES", {
             "claude-code": str(tmp_path / ".claude"),
             "cursor": str(tmp_path / ".cursor"),
         })
         (tmp_path / ".claude").mkdir()
-        assert profiles.detect_installed_agents() == ["claude-code"]
+        assert agents.detect_installed() == ["claude-code"]
 
     def test_none_installed(self, tmp_path, monkeypatch):
-        from geno_tools import profiles
-        monkeypatch.setattr(profiles, "_AGENT_HOMES", {"x": str(tmp_path / "nope")})
-        assert profiles.detect_installed_agents() == []
+        from geno_tools import agents
+        monkeypatch.setattr(agents, "_AGENT_HOMES", {"x": str(tmp_path / "nope")})
+        assert agents.detect_installed() == []

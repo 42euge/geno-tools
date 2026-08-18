@@ -4,35 +4,19 @@ Everything lives under ~/.geno-tools/. Each installed skillset gets its own
 directory named with the full `geno-{name}` form:
 
     ~/.geno-tools/
-    ├── .state-hash                    # bumped on any state change
-    ├── geno-bootstrap/                # meta-plugin geno-tools owns
     └── geno-{name}/                   # one per installed skillset
         ├── .git/                      # bare repo
         ├── main/                      # primary worktree
-        ├── .worktrees/<variant>/      # additional worktrees
-        ├── venvs/<venv-name>/         # shared by default; per-worktree if isolated
-        └── active -> main             # symlink; `geno-tools use` repoints this
+        ├── venvs/default/             # isolated Python runtime
+        └── active -> main             # active skillset worktree symlink
 """
 
 from pathlib import Path
 
 HOME = Path.home()
 ROOT = HOME / ".geno-tools"
-STATE_HASH = ROOT / ".state-hash"
-BOOTSTRAP = ROOT / "geno-bootstrap"
 
 GENO_DIR = HOME / ".geno"
-TRACES_DIR = GENO_DIR / "traces"
-HEALTH_DIR = GENO_DIR / "health"
-DISCOVERY_DIR = GENO_DIR / "discovery"
-DATASETS_DIR = GENO_DIR / "datasets"
-ISO_DIR = GENO_DIR / "iso"
-PROFILES_DIR = GENO_DIR / "profiles"
-
-
-def iso_dockerfiles() -> Path:
-    """Where geno-iso syncs its Dockerfiles for `docker build`."""
-    return ISO_DIR / "dockerfiles"
 
 
 def normalize(name: str) -> str:
@@ -52,10 +36,8 @@ def skillset_git(name: str) -> Path:
     return skillset_root(name) / ".git"
 
 
-def skillset_worktree(name: str, variant: str = "main") -> Path:
-    if variant == "main":
-        return skillset_root(name) / "main"
-    return skillset_root(name) / ".worktrees" / variant
+def skillset_worktree(name: str) -> Path:
+    return skillset_root(name) / "main"
 
 
 def skillset_active(name: str) -> Path:

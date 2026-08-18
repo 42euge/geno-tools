@@ -1,7 +1,7 @@
 ---
 name: geno-tools-meta-ecosystem-onboarding
 description: >-
-  Walks an operator through onboarding a new skillset into a geno-tools install,
+  Walks an operator through onboarding a new skillset into a geno-tools skills install,
   including enterprise discovery from GitHub Enterprise, GitLab, Bitbucket, or
   Gitea. Use when the user wants to add a new skillset, set up a private
   namespace, or audit a candidate repo before installing.
@@ -10,7 +10,7 @@ allowed-tools: "Bash(geno-tools *) Bash(python3 -m genotools *) Read Write Edit"
 
 # geno-onboarding — Skillset Onboarding (Public + Enterprise)
 
-Helps an operator onboard a new skillset to their geno-tools install. Two flavors:
+Helps an operator onboard a new skillset to their geno-tools skills install. Two flavors:
 
 1. **Public** — adding a `geno-*` repo to the curated registry.
 2. **Enterprise** — admitting a `{company-slug}-*` repo into a private namespace, optionally via auto-discovery against GitHub Enterprise / GitLab / Bitbucket / Gitea.
@@ -26,11 +26,11 @@ Helps an operator onboard a new skillset to their geno-tools install. Two flavor
 
 ```
 1. Verify repo shape       → SKILL.md + commands/ at root, optional skills/<sub>/SKILL.md
-2. Self-test locally       → geno-tools dev <repo-name> ~/src/<repo-name>
+2. Self-test locally       → geno-tools skills install ~/src/<repo-name>
 3. Push to a public remote → git push -u origin main
 4. Register                → PR adding "<repo-name>": "<git-url>" to genotools/registry.py
 5. Audit                   → docs/onboarding/audit.md checklist
-6. Merge → install         → geno-tools install <repo-name>
+6. Merge → install         → geno-tools skills install <repo-name>
 ```
 
 ## Enterprise onboarding flow
@@ -41,12 +41,12 @@ Helps an operator onboard a new skillset to their geno-tools install. Two flavor
 3. Host privately          → GitHub Enterprise / GitLab / Bitbucket / Gitea
 4. Configure discovery     → ~/.geno/config.yaml → discovery.sources
 5. Audit                   → docs/onboarding/audit.md (run by platform team)
-6. Install                 → geno-tools install <repo-name>  (resolved via discovery)
+6. Install                 → geno-tools skills install <repo-name>  (resolved via discovery)
 ```
 
 ## Discovery configuration
 
-Edit `~/.geno/config.yaml` to declare where to look for candidate skillsets. Every source is queried by `geno-tools ls --available` and `geno-tools install <repo>`.
+Edit `~/.geno/config.yaml` to declare where to look for candidate skillsets. Every source is queried by `geno-tools skills discover` and `geno-tools skills install <repo>`.
 
 ```yaml
 discovery:
@@ -88,11 +88,11 @@ When the user invokes this skill:
 2. **Inspect the repo**. Run `git ls-tree -r --name-only HEAD` against the candidate repo and confirm `SKILL.md` is at root. If they pass a URL, clone shallow into `/tmp/` first.
 3. **Surface the audit checklist**. Read `docs/onboarding/audit.md` and walk the checklist with the user, capturing answers. Don't just dump it — ask one section at a time.
 4. **For enterprise discovery**: open `~/.geno/config.yaml`, add or update the `discovery.sources` block, validate the YAML, and verify the auth env var is set in the operator's shell.
-5. **Dry-run discovery**. `geno-tools discover --dry-run` lists candidates without installing.
+5. **Dry-run discovery**. `geno-tools skills discover --dry-run` lists candidates without installing.
 6. **Decide**. Either:
    - Public: open the registry PR (use the gh MCP if available, or print the patch for the user to apply).
    - Enterprise: add to the internal manifest / forked registry / leave to direct URL.
-7. **Verify by installing**. `geno-tools install <repo-name>`. Confirm slash commands appear in the agent.
+7. **Verify by installing**. `geno-tools skills install <repo-name>`. Confirm slash commands appear in the agent.
 
 Always log the audit decision somewhere durable (PR description, internal ticket, or platform-team doc). Don't sign off if the audit checklist has open red flags.
 

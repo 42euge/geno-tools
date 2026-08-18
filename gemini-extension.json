@@ -1,6 +1,0 @@
-{
-  "name": "geno-tools",
-  "description": "Meta-CLI for installing and managing geno-* skillsets",
-  "version": "0.8.0",
-  "contextFileName": "AGENTS.md"
-}

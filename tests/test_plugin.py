@@ -22,8 +22,8 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 class TestMarketplaceJson:
     @pytest.fixture()
     def manifest(self):
-        path = REPO_ROOT / ".claude-plugin" / "marketplace.json"
-        assert path.exists(), ".claude-plugin/marketplace.json missing"
+        path = REPO_ROOT / "marketplace.json"
+        assert path.exists(), "marketplace.json missing"
         return json.loads(path.read_text())
 
     def test_has_name(self, manifest):
@@ -52,8 +52,8 @@ class TestMarketplaceJson:
 class TestPluginJson:
     @pytest.fixture()
     def manifest(self):
-        path = REPO_ROOT / ".claude-plugin" / "plugin.json"
-        assert path.exists(), ".claude-plugin/plugin.json missing"
+        path = REPO_ROOT / "plugin.json"
+        assert path.exists(), "plugin.json missing"
         return json.loads(path.read_text())
 
     def test_has_name(self, manifest):
@@ -74,7 +74,7 @@ class TestPluginJson:
             assert skills_dir.is_dir(), f"skills dir {skills_dir} does not exist"
 
     def test_version_matches_marketplace(self, manifest):
-        mp = json.loads((REPO_ROOT / ".claude-plugin" / "marketplace.json").read_text())
+        mp = json.loads((REPO_ROOT / "marketplace.json").read_text())
         mp_version = mp["plugins"][0]["version"]
         assert manifest.get("version") == mp_version, "version mismatch between plugin.json and marketplace.json"
 
@@ -119,39 +119,6 @@ class TestSkills:
         assert "geno-tools" in names, "umbrella skill 'geno-tools' missing"
 
 
-class TestHooks:
-    def test_hooks_json_exists(self):
-        path = REPO_ROOT / "geno_tools" / "hooks" / "hooks.json"
-        assert path.exists(), "geno_tools/hooks/hooks.json missing"
-
-    def test_hooks_json_valid(self):
-        path = REPO_ROOT / "geno_tools" / "hooks" / "hooks.json"
-        data = json.loads(path.read_text())
-        assert "hooks" in data
-
-    def test_session_start_hook_script_exists(self):
-        """Every ${CLAUDE_PLUGIN_ROOT}-relative hook script must exist on disk.
-
-        SessionStart also carries inline shell one-liners (e.g. `geno-trace
-        health …`, the geno-iso inbox drain) — those are commands, not paths, so
-        only plugin-root-relative entries are path-checked.
-        """
-        path = REPO_ROOT / "geno_tools" / "hooks" / "hooks.json"
-        data = json.loads(path.read_text())
-        checked = 0
-        for hook in data["hooks"].get("SessionStart", []):
-            for h in hook.get("hooks", []):
-                cmd = h.get("command", "")
-                if "${CLAUDE_PLUGIN_ROOT}/" not in cmd:
-                    continue  # inline shell, not a script path
-                # take just the script path (first token after substitution)
-                script = cmd.replace("${CLAUDE_PLUGIN_ROOT}/", "").split()[0]
-                script_path = REPO_ROOT / script
-                assert script_path.exists(), f"hook script not found: {script_path}"
-                checked += 1
-        assert checked >= 1, "expected at least one plugin-root hook script"
-
-
 class TestConfigDefaults:
     def test_defaults_yaml_exists(self):
         path = REPO_ROOT / "geno_tools" / "config" / "defaults.yaml"
@@ -162,15 +129,3 @@ class TestConfigDefaults:
         data = yaml.safe_load(path.read_text())
         assert "aliases" in data
         assert "discovery" in data
-
-    def test_bootstrap_script_seeds_config(self):
-        """bootstrap.sh materializes ~/.geno/config.yaml from config/defaults.yaml.
-
-        (This consolidated the old init-geno-dir.sh; that script no longer
-        exists and is referenced nowhere.)
-        """
-        script = REPO_ROOT / "geno_tools" / "scripts" / "bootstrap.sh"
-        assert script.exists()
-        text = script.read_text()
-        assert "config.yaml" in text
-        assert "defaults.yaml" in text

@@ -77,7 +77,7 @@ hash -r 2>/dev/null || true
 if command -v geno-tools >/dev/null 2>&1; then
   ok "geno-tools installed: $(command -v geno-tools)"
   geno-tools --version 2>/dev/null || true
-  ok "setup complete — try: geno-tools ls --available"
+  ok "setup complete — try: geno-tools skills discover"
 else
   warn "geno-tools installed but not yet on PATH for this shell."
   warn "It's at ~/.local/bin/geno-tools. Add ~/.local/bin to PATH (pipx ensurepath)"

@@ -45,7 +45,7 @@ If `$ARGUMENTS` is freeform or empty, ask:
 Construct `geno-{slug}` from the answer. The slug must be:
 - Lowercase, hyphen-separated if multi-word
 - A noun or noun phrase (not a verb)
-- Not already taken — check with `geno-tools ls --available 2>/dev/null` and `ls ~/.geno-tools/`
+- Not already taken — check with `geno-tools skills discover 2>/dev/null` and `ls ~/.geno-tools/`
 
 Record:
 - `$NAME` — the bare slug (e.g. `career`)
@@ -186,7 +186,7 @@ Part of the [geno ecosystem](https://github.com/42euge/geno-tools).
 ## Installation
 
 ```bash
-geno-tools install $REPO
+geno-tools skills install $REPO
 ```
 ```
 
@@ -300,7 +300,7 @@ $DESCRIPTION
 ## Installation
 
 ```bash
-geno-tools install $REPO
+geno-tools skills install $REPO
 ```
 
 ## Quick Start
@@ -325,7 +325,7 @@ See [Getting Started](getting-started.md) for usage instructions.
 ## Installation
 
 ```bash
-geno-tools install $REPO
+geno-tools skills install $REPO
 ```
 
 ## Usage
@@ -526,7 +526,7 @@ Files:
 
 Next steps:
   1. Add skills:        /geno-skills-create (from inside the repo)
-  2. Install locally:   geno-tools install $TARGET_DIR/$REPO
+  2. Install locally:   geno-tools skills install $TARGET_DIR/$REPO
   3. Audit compliance:  /geno-audit (from inside the repo)
 ```
 

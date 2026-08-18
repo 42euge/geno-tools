@@ -1,4 +1,4 @@
-"""Tests for `geno-tools uninstall` — the inverse of install.
+"""Tests for `geno-tools skills uninstall` — the inverse of install.
 
 The central guarantee: it removes geno-tools' own footprint but NEVER deletes
 user data living in ~/.geno. All destructive ops target temp dirs.
@@ -16,13 +16,12 @@ from geno_tools import commands, paths
 
 @pytest.fixture()
 def fake_install(tmp_path, monkeypatch):
-    """Simulate a geno-tools install footprint under a temp HOME."""
+    """Simulate a geno-tools skills install footprint under a temp HOME."""
     home = tmp_path
     monkeypatch.setattr(Path, "home", staticmethod(lambda: home))
     # rebind module-level path constants derived from home
     monkeypatch.setattr(paths, "ROOT", home / ".geno-tools")
     monkeypatch.setattr(paths, "GENO_DIR", home / ".geno")
-    monkeypatch.setattr(paths, "PROFILES_DIR", home / ".geno" / "profiles")
     monkeypatch.setattr(commands, "SYSTEM_BIN", home / ".local" / "bin")
     monkeypatch.setattr(commands, "_AGENT_SKILL_DIRS",
                         [home / ".claude" / "skills", home / ".agents" / "skills"])
@@ -56,7 +55,7 @@ def fake_install(tmp_path, monkeypatch):
 
 
 def _args(**kw):
-    base = dict(dry_run=False, yes=True, purge_data=False)
+    base = dict(dry_run=False, yes=True)
     base.update(kw)
     return types.SimpleNamespace(**base)
 
@@ -79,21 +78,9 @@ def test_removes_skillsets_and_registrations(fake_install):
 
 def test_user_data_preserved_by_default(fake_install):
     commands._uninstall(_args())
-    # own-state kept without --purge-data
+    # own state is kept
     assert (fake_install / ".geno" / "config.yaml").exists()
     # user data always kept
-    assert (fake_install / ".geno" / "recordings").exists()
-    assert (fake_install / ".geno" / "vault").exists()
-    assert (fake_install / ".geno" / "my-notes.md").read_text() == "precious"
-
-
-def test_purge_data_removes_own_state_but_not_user_data(fake_install):
-    commands._uninstall(_args(purge_data=True))
-    # own state gone
-    assert not (fake_install / ".geno" / "config.yaml").exists()
-    assert not (fake_install / ".geno" / "traces").exists()
-    assert not (fake_install / ".geno" / "profiles").exists()
-    # USER DATA STILL THERE — the core guarantee
     assert (fake_install / ".geno" / "recordings").exists()
     assert (fake_install / ".geno" / "vault").exists()
     assert (fake_install / ".geno" / "my-notes.md").read_text() == "precious"
@@ -118,7 +105,6 @@ def test_nothing_installed_is_safe(tmp_path, monkeypatch):
     monkeypatch.setattr(Path, "home", staticmethod(lambda: home))
     monkeypatch.setattr(paths, "ROOT", home / ".geno-tools")
     monkeypatch.setattr(paths, "GENO_DIR", home / ".geno")
-    monkeypatch.setattr(paths, "PROFILES_DIR", home / ".geno" / "profiles")
     monkeypatch.setattr(commands, "SYSTEM_BIN", home / ".local" / "bin")
     monkeypatch.setattr(commands, "_AGENT_SKILL_DIRS", [])
     monkeypatch.setattr(commands, "_CC_PLUGIN_DIRS", [])

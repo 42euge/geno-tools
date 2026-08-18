@@ -39,7 +39,7 @@ The script (idempotent — safe to re-run):
 ## Verify
 
 ```
-geno-tools ls --available
+geno-tools skills discover
 ```
 
 If it still isn't found, the script printed the fix (add `~/.local/bin` to PATH

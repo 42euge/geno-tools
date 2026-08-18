@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 import shutil
 import yaml
 from pathlib import Path
@@ -10,7 +9,7 @@ from pathlib import Path
 CONFIG_DIR = Path.home() / ".geno"
 CONFIG_FILE = CONFIG_DIR / "config.yaml"
 
-_DEFAULTS_SOURCE = Path(__file__).resolve().parent.parent / "config" / "defaults.yaml"
+_DEFAULTS_SOURCE = Path(__file__).resolve().parent / "config" / "defaults.yaml"
 
 _DEFAULTS = {
     "aliases": {
@@ -21,27 +20,6 @@ _DEFAULTS = {
             {"kind": "github", "org": "42euge"},
         ],
     },
-    "llm": {
-        "endpoint": "",
-        "model": "",
-        "timeout": 10,
-        "settings_file": "~/.geno/settings.json",
-        "model_rankings": [],
-    },
-    # Profiles: named skills+MCP bundles live as standalone files in
-    # ~/.geno/profiles/*.yaml. This block holds profile-system settings only.
-    "profiles": {
-        "default": "",
-    },
-    # MCP catalog sources: pluggable providers that resolve catalog names
-    # (e.g. "core") to concrete MCP server specs. Mirrors discovery.sources.
-    # The public repo ships generic providers only; private catalogs (e.g.
-    # bluegt) self-register via a discovered provider module.
-    "mcp_catalogs": {
-        "sources": [],
-    },
-    "mode": "user",
-    "autonomy": 1,
 }
 
 _SETTINGS_FILE = Path.home() / ".geno" / "settings.json"
@@ -83,67 +61,8 @@ def command_prefix() -> str:
     return load().get("aliases", {}).get("command_prefix", "gt")
 
 
-def get_mode(cwd: Path | None = None) -> str:
-    """Return 'dev' or 'user'. Checks $GENO_MODE, then CWD heuristic, then config."""
-    env = os.environ.get("GENO_MODE", "").strip().lower()
-    if env in ("dev", "user"):
-        return env
-    if cwd is None:
-        cwd = Path.cwd()
-    for part in cwd.parts:
-        if part.startswith("geno-") and part.endswith("-ws"):
-            return "dev"
-    return load().get("mode", "user")
-
-
-def get_autonomy() -> int:
-    """Return autonomy level 0, 1, or 2. Checks $GENO_AUTONOMY, then config."""
-    env = os.environ.get("GENO_AUTONOMY", "").strip()
-    if env in ("0", "1", "2"):
-        return int(env)
-    return int(load().get("autonomy", 1))
-
-
-def get_llm() -> dict:
-    """Return merged llm config + token from settings.json.
-
-    The token lives in ~/.geno/settings.json so config.yaml can be
-    committed to version control without leaking credentials.
-    """
-    import json as _json
-    cfg = {**_DEFAULTS["llm"], **load().get("llm", {})}
-    settings_path = Path(cfg.get("settings_file", "~/.geno/settings.json")).expanduser()
-    token = ""
-    if settings_path.exists():
-        try:
-            token = _json.loads(settings_path.read_text()).get("llm", {}).get("token", "")
-        except Exception:  # noqa: BLE001
-            pass
-    return {**cfg, "token": token}
-
-
 def set_config(key: str, value: str) -> None:
-    """Set a dot-path key in config.yaml. Token keys are routed to settings.json."""
-    import json as _json
-    # Token is secret — route to settings.json
-    if key in ("llm.token",):
-        _SETTINGS_FILE.parent.mkdir(parents=True, exist_ok=True)
-        data: dict = {}
-        if _SETTINGS_FILE.exists():
-            try:
-                data = _json.loads(_SETTINGS_FILE.read_text())
-            except Exception:  # noqa: BLE001
-                pass
-        # Upsert nested key
-        parts = key.split(".")
-        cur = data
-        for p in parts[:-1]:
-            cur = cur.setdefault(p, {})
-        cur[parts[-1]] = value
-        _SETTINGS_FILE.write_text(_json.dumps(data, indent=2) + "\n")
-        return
-
-    # Everything else goes in config.yaml
+    """Set a dot-path key in config.yaml."""
     ensure_dir()
     try:
         data = yaml.safe_load(CONFIG_FILE.read_text()) or {}

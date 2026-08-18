@@ -34,12 +34,8 @@ class TestSkillsetPaths:
         assert p == paths.ROOT / "geno-dev" / ".git"
 
     def test_worktree_main(self):
-        p = paths.skillset_worktree("geno-dev", "main")
+        p = paths.skillset_worktree("geno-dev")
         assert p == paths.ROOT / "geno-dev" / "main"
-
-    def test_worktree_variant(self):
-        p = paths.skillset_worktree("geno-dev", "exp-1")
-        assert p == paths.ROOT / "geno-dev" / ".worktrees" / "exp-1"
 
     def test_active(self):
         p = paths.skillset_active("geno-dev")

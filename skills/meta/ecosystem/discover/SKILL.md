@@ -3,8 +3,8 @@ name: geno-tools-meta-ecosystem-discover
 description: >-
   Discover installable geno-* skillsets and write them to the geno-tools
   registry cache. Use when the user wants to find skillsets, when
-  `geno-tools install <name>` reports a name isn't in the registry, or when
-  `geno-tools ls --available` is empty. Read-only — finds repos, never installs.
+  `geno-tools skills install <name>` reports a name isn't in the registry, or when
+  `geno-tools skills discover` is empty. Read-only — finds repos, never installs.
 allowed-tools: "Bash(curl *) Bash(python3 *) Bash(mkdir *) WebSearch Read(*)"
 license: MIT
 metadata:
@@ -18,7 +18,7 @@ geno-tools is a **meta-ecosystem**: it does not ship a hardcoded list of
 skillsets. This skill goes and finds them, then writes a cache the CLI reads.
 It uses **only unauthenticated `curl` + web search** — no `gh`, no token, no
 MCP — so it works on any machine. It is **read-only**: it discovers and caches,
-it never clones or installs (that's `geno-tools install`).
+it never clones or installs (that's `geno-tools skills install`).
 
 ## What to do
 
@@ -61,10 +61,10 @@ python3 -c "from geno_tools import registry; registry.write_cache(<dict>)"
 
 ### 5. Report
 Print how many skillsets were discovered and that the user can now
-`geno-tools ls --available` / `geno-tools install <name>`.
+`geno-tools skills discover` / `geno-tools skills install <name>`.
 
 ## Boundaries
 - **Public repos only.** Unauthenticated curl can't see private repos. Private
-  skillsets are installed directly by git URL: `geno-tools install <git-url>`.
+  skillsets are installed directly by git URL: `geno-tools skills install <git-url>`.
 - **Never installs.** This skill only writes the cache. Installation is always a
-  separate, explicit `geno-tools install`.
+  separate, explicit `geno-tools skills install`.
