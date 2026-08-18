@@ -13,7 +13,6 @@ from . import config
 from .terminal import bold, dim, green, is_tty, red, rule, yellow
 
 REPO_URL = "https://github.com/42euge/geno-tools.git"
-_CC_MARKETPLACE = Path.home() / ".claude" / "plugins" / "marketplaces" / "geno-tools"
 
 
 def add_parser(subparsers: argparse._SubParsersAction) -> None:
@@ -69,24 +68,9 @@ def _self_update() -> int:
             ok = False
             print(yellow("  ! pipx not found — run /geno-tools-setup to install the CLI"))
 
-    if (_CC_MARKETPLACE / ".git").exists():
-        print(dim("  refreshing Claude Code marketplace clone …"))
-        rc = subprocess.call(
-            ["git", "-C", str(_CC_MARKETPLACE), "pull", "--quiet", "--ff-only"],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
-        print(
-            green("  ✓ marketplace refreshed")
-            if rc == 0
-            else yellow("  ! marketplace refresh skipped (diverged?)")
-        )
-
     print()
-    print(dim("  to load the new plugin in Claude Code, run:"))
-    print("    /plugin install geno-tools@geno-tools")
-    print("    /reload-plugins")
-    print(dim("  (Codex/Antigravity: re-run the plugin install for your agent)"))
+    print(dim("  installed skillsets are unaffected; re-register with:"))
+    print("    geno-tools skills upgrade")
     return 0 if ok else 1
 
 
