@@ -55,7 +55,7 @@ Write `~/.geno/registry.json` mapping each kept repo to its clone URL:
 ```
 Use the helper so the shape and path stay canonical:
 ```bash
-python3 -c "from geno_tools import registry; registry.write_cache(<dict>)"
+python3 -c "from geno_tools.skills_manager import registry; registry.write_cache(<dict>)"
 ```
 (or write the JSON directly to `~/.geno/registry.json`).
 

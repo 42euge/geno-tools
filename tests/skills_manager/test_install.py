@@ -1,4 +1,4 @@
-"""Tests for the install/remove/skills flow — the core of geno-tools.
+"""Tests for the skills-manager install/remove flow.
 
 These tests verify the documented install behavior:
   1. geno-tools skills install <name> clones, creates venv, symlinks bin, registers skills
@@ -9,13 +9,12 @@ These tests verify the documented install behavior:
 
 from __future__ import annotations
 
-import subprocess
 from pathlib import Path
-from unittest.mock import MagicMock, call, patch
 
 import pytest
 
-from geno_tools import commands, paths
+from geno_tools.skills_manager import paths
+from geno_tools.skills_manager.commands import install as commands
 
 
 # ── skill enumeration ─────────────────────────────────────────────────────
@@ -156,17 +155,17 @@ class TestUninstallSkillsViaNpx:
 
 class TestResolveSource:
     def test_registry_name(self, monkeypatch):
-        monkeypatch.setattr("geno_tools.registry._cache", {
+        monkeypatch.setattr("geno_tools.skills_manager.registry._cache", {
             "geno-dev": "https://github.com/42euge/geno-dev.git",
         })
-        monkeypatch.setattr("geno_tools.discovery.candidates_by_name", lambda: {})
+        monkeypatch.setattr("geno_tools.skills_manager.discovery.candidates_by_name", lambda: {})
         source, name = commands._resolve_source("geno-dev")
         assert source == "https://github.com/42euge/geno-dev.git"
         assert name == "geno-dev"
 
     def test_local_path(self, tmp_path, monkeypatch):
-        monkeypatch.setattr("geno_tools.registry._cache", {})
-        monkeypatch.setattr("geno_tools.discovery.candidates_by_name", lambda: {})
+        monkeypatch.setattr("geno_tools.skills_manager.registry._cache", {})
+        monkeypatch.setattr("geno_tools.skills_manager.discovery.candidates_by_name", lambda: {})
         local = tmp_path / "my-skillset"
         local.mkdir()
         source, name = commands._resolve_source(str(local))
@@ -174,29 +173,29 @@ class TestResolveSource:
         assert name is None
 
     def test_git_url(self, monkeypatch):
-        monkeypatch.setattr("geno_tools.registry._cache", {})
-        monkeypatch.setattr("geno_tools.discovery.candidates_by_name", lambda: {})
+        monkeypatch.setattr("geno_tools.skills_manager.registry._cache", {})
+        monkeypatch.setattr("geno_tools.skills_manager.discovery.candidates_by_name", lambda: {})
         url = "https://github.com/acme/acme-foo.git"
         source, name = commands._resolve_source(url)
         assert source == url
         assert name is None
 
     def test_ssh_url(self, monkeypatch):
-        monkeypatch.setattr("geno_tools.registry._cache", {})
-        monkeypatch.setattr("geno_tools.discovery.candidates_by_name", lambda: {})
+        monkeypatch.setattr("geno_tools.skills_manager.registry._cache", {})
+        monkeypatch.setattr("geno_tools.skills_manager.discovery.candidates_by_name", lambda: {})
         url = "git@github.com:acme/acme-foo.git"
         source, name = commands._resolve_source(url)
         assert source == url
 
     def test_unknown_name_points_at_discover_skill(self, monkeypatch):
         # Not in the cache, not a path, not a URL → error names the discover skill.
-        monkeypatch.setattr("geno_tools.registry._cache", {})
+        monkeypatch.setattr("geno_tools.skills_manager.registry._cache", {})
         with pytest.raises(SystemExit, match="discover"):
             commands._resolve_source("geno-nonexistent")
 
     def test_resolve_from_discovery_cache(self, monkeypatch):
         # A name written to the registry cache resolves to its URL.
-        monkeypatch.setattr("geno_tools.registry._cache", {
+        monkeypatch.setattr("geno_tools.skills_manager.registry._cache", {
             "geno-loops": "https://github.com/42euge/geno-loops.git",
         })
         source, name = commands._resolve_source("geno-loops")
@@ -204,8 +203,8 @@ class TestResolveSource:
         assert name == "geno-loops"
 
     def test_unknown_raises(self, monkeypatch):
-        monkeypatch.setattr("geno_tools.registry._cache", {})
-        monkeypatch.setattr("geno_tools.discovery.candidates_by_name", lambda: {})
+        monkeypatch.setattr("geno_tools.skills_manager.registry._cache", {})
+        monkeypatch.setattr("geno_tools.skills_manager.discovery.candidates_by_name", lambda: {})
         with pytest.raises(SystemExit, match="unknown skillset"):
             commands._resolve_source("totally-unknown")
 
@@ -246,10 +245,10 @@ class TestDependencyResolution:
         assert reqs == ["geno-b", "geno-c"]
 
     def test_circular_dependency_detected(self, tmp_root, monkeypatch, capsys):
-        monkeypatch.setattr("geno_tools.registry._cache", {
+        monkeypatch.setattr("geno_tools.skills_manager.registry._cache", {
             "geno-a": "https://example.com/geno-a.git",
         })
-        monkeypatch.setattr("geno_tools.discovery.candidates_by_name", lambda: {})
+        monkeypatch.setattr("geno_tools.skills_manager.discovery.candidates_by_name", lambda: {})
         installing = {"geno-a"}
         rc = commands._install_one("geno-a", installing=installing)
         assert rc == 1
@@ -283,8 +282,8 @@ class TestStatusAndDiscover:
 
     def test_discover_groups_by_category(self, fake_skillset, capsys, monkeypatch):
         # fresh cache → no network; read_full provides categorized entries.
-        monkeypatch.setattr("geno_tools.registry.is_stale", lambda *a, **k: False)
-        monkeypatch.setattr("geno_tools.registry.read_full", lambda: {
+        monkeypatch.setattr("geno_tools.skills_manager.registry.is_stale", lambda *a, **k: False)
+        monkeypatch.setattr("geno_tools.skills_manager.registry.read_full", lambda: {
             "geno-dev": {"url": "https://example.com/geno-dev.git",
                          "category": "Developer Tools"},
             "geno-media": {"url": "https://example.com/geno-media.git",
@@ -301,11 +300,11 @@ class TestStatusAndDiscover:
     def test_discover_refreshes_when_stale(self, capsys, monkeypatch):
         # stale cache → discover triggers a (mocked) network refresh.
         called = {"n": 0}
-        monkeypatch.setattr("geno_tools.registry.is_stale", lambda *a, **k: True)
-        monkeypatch.setattr("geno_tools.registry.cache_age_seconds", lambda: None)
-        monkeypatch.setattr("geno_tools.registry.discover_now",
+        monkeypatch.setattr("geno_tools.skills_manager.registry.is_stale", lambda *a, **k: True)
+        monkeypatch.setattr("geno_tools.skills_manager.registry.cache_age_seconds", lambda: None)
+        monkeypatch.setattr("geno_tools.skills_manager.registry.discover_now",
                             lambda *a, **k: called.__setitem__("n", called["n"] + 1) or {})
-        monkeypatch.setattr("geno_tools.registry.read_full", lambda: {})
+        monkeypatch.setattr("geno_tools.skills_manager.registry.read_full", lambda: {})
         from geno_tools.cli import main
         assert main(["skills", "discover"]) == 0
         assert called["n"] == 1
@@ -328,7 +327,7 @@ class TestRemove:
     def test_remove_cleans_up(self, fake_skillset, monkeypatch):
         fake_skillset("geno-dev", sub_skills=["geno-dev-a"])
         monkeypatch.setattr("subprocess.run", lambda *a, **kw: None)
-        monkeypatch.setattr("geno_tools.commands.SYSTEM_BIN", Path("/nonexistent"))
+        monkeypatch.setattr("geno_tools.skills_manager.commands.install.SYSTEM_BIN", Path("/nonexistent"))
 
         from geno_tools.cli import main
         rc = main(["skills", "remove", "geno-dev"])
@@ -343,7 +342,7 @@ class TestRemove:
         (venvs / "default").mkdir()
 
         monkeypatch.setattr("subprocess.run", lambda *a, **kw: None)
-        monkeypatch.setattr("geno_tools.commands.SYSTEM_BIN", Path("/nonexistent"))
+        monkeypatch.setattr("geno_tools.skills_manager.commands.install.SYSTEM_BIN", Path("/nonexistent"))
 
         from geno_tools.cli import main
         rc = main(["skills", "remove", "geno-dev", "--keep-data"])
@@ -365,7 +364,7 @@ class TestBinSymlinks:
         fake_skillset("geno-dev", has_pyproject=True)
         bin_dir = tmp_path / "bin"
         bin_dir.mkdir()
-        monkeypatch.setattr("geno_tools.commands.SYSTEM_BIN", bin_dir)
+        monkeypatch.setattr("geno_tools.skills_manager.commands.install.SYSTEM_BIN", bin_dir)
 
         venv_bin = paths.skillset_venvs("geno-dev") / "default" / "bin"
         venv_bin.mkdir(parents=True)
@@ -379,7 +378,7 @@ class TestBinSymlinks:
         fake_skillset("geno-dev", has_pyproject=True)
         bin_dir = tmp_path / "bin"
         bin_dir.mkdir()
-        monkeypatch.setattr("geno_tools.commands.SYSTEM_BIN", bin_dir)
+        monkeypatch.setattr("geno_tools.skills_manager.commands.install.SYSTEM_BIN", bin_dir)
 
         venv_bin = paths.skillset_venvs("geno-dev") / "default" / "bin"
         venv_bin.mkdir(parents=True)
@@ -397,7 +396,7 @@ class TestAgentScoping:
     def test_scopes_to_detected_agents(self, fake_skillset, monkeypatch):
         fake_skillset("geno-dev", sub_skills=["geno-dev-a"])
         monkeypatch.setattr(
-            "geno_tools.agents.detect_installed",
+            "geno_tools.skills_manager.agents.detect_installed",
             lambda: ["claude-code", "codex"],
         )
         calls = []
@@ -410,7 +409,7 @@ class TestAgentScoping:
 
     def test_falls_back_to_star_when_nothing_detected(self, fake_skillset, monkeypatch):
         fake_skillset("geno-dev", sub_skills=["geno-dev-a"])
-        monkeypatch.setattr("geno_tools.agents.detect_installed", lambda: [])
+        monkeypatch.setattr("geno_tools.skills_manager.agents.detect_installed", lambda: [])
         calls = []
         monkeypatch.setattr("subprocess.check_call", lambda cmd, **kw: calls.append(cmd))
         commands._install_skills_via_npx("geno-dev")
@@ -421,7 +420,7 @@ class TestAgentScoping:
         fake_skillset("geno-dev", sub_skills=["geno-dev-a"])
         def _boom():
             raise AssertionError("detection must not run for an explicit agent")
-        monkeypatch.setattr("geno_tools.agents.detect_installed", _boom)
+        monkeypatch.setattr("geno_tools.skills_manager.agents.detect_installed", _boom)
         calls = []
         monkeypatch.setattr("subprocess.check_call", lambda cmd, **kw: calls.append(cmd))
         commands._install_skills_via_npx("geno-dev", agent="cursor")
@@ -431,7 +430,7 @@ class TestAgentScoping:
 
 class TestDetectInstalledAgents:
     def test_detects_by_agent_home(self, tmp_path, monkeypatch):
-        from geno_tools import agents
+        from geno_tools.skills_manager import agents
         monkeypatch.setattr(agents, "_AGENT_HOMES", {
             "claude-code": str(tmp_path / ".claude"),
             "cursor": str(tmp_path / ".cursor"),
@@ -440,6 +439,6 @@ class TestDetectInstalledAgents:
         assert agents.detect_installed() == ["claude-code"]
 
     def test_none_installed(self, tmp_path, monkeypatch):
-        from geno_tools import agents
+        from geno_tools.skills_manager import agents
         monkeypatch.setattr(agents, "_AGENT_HOMES", {"x": str(tmp_path / "nope")})
         assert agents.detect_installed() == []

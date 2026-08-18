@@ -1,20 +1,18 @@
-"""Tests for geno-tools update — pull latest main for installed skillsets."""
+"""Tests for upgrading managed skillsets."""
 
 from __future__ import annotations
 
 import subprocess
 from pathlib import Path
-from unittest.mock import MagicMock, call, patch
 
-import pytest
-
-from geno_tools import commands, paths
+from geno_tools.skills_manager import paths
+from geno_tools.skills_manager.commands import upgrade as commands
 
 
 # ── _update_one ──────────────────────────────────────────────────────────
 
 
-class TestUpdateOne:
+class TestUpgradeOne:
     def test_up_to_date(self, fake_skillset, monkeypatch):
         fake_skillset("geno-dev")
         rev = "abc12345"
@@ -218,10 +216,10 @@ class TestMaybeReinstallVenv:
         assert len(pip_calls) == 0
 
 
-# ── _update (top-level) ─────────────────────────────────────────────────
+# ── upgrade command ─────────────────────────────────────────────────────
 
 
-class TestUpdateAll:
+class TestUpgradeAll:
     def test_updates_all_installed(self, fake_skillset, monkeypatch, capsys):
         fake_skillset("geno-agents")
         fake_skillset("geno-dev")
@@ -256,35 +254,6 @@ class TestUpdateAll:
         assert rc == 0
         assert "no skillsets" in capsys.readouterr().out
 
-
-# ── update = self-update geno-tools ──────────────────────────────────────
-
-
-class TestSelfUpdate:
-    def test_reinstalls_cli_and_prints_reload(self, monkeypatch, capsys):
-        calls = []
-        monkeypatch.setattr("shutil.which", lambda x: "/usr/bin/pipx")
-        monkeypatch.setattr("subprocess.call",
-                            lambda cmd, **kw: calls.append(cmd) or 0)
-        from geno_tools.cli import main
-        rc = main(["update"])
-        assert rc == 0
-        # pipx reinstall from the GitHub URL happened
-        assert any(c[0] == "/usr/bin/pipx" and "install" in c
-                   and any("github.com/42euge/geno-tools" in a for a in c)
-                   for c in calls)
-        out = capsys.readouterr().out
-        # the one in-session step a CLI can't do is surfaced
-        assert "/reload-plugins" in out
-
-    def test_no_pipx_points_at_setup(self, monkeypatch, capsys):
-        monkeypatch.setattr("shutil.which", lambda x: None)
-        monkeypatch.setattr("geno_tools.commands._find_pipx", lambda: None)
-        from geno_tools.cli import main
-        rc = main(["update"])
-        assert rc == 1
-        assert "geno-tools-setup" in capsys.readouterr().out
-
     def test_empty_install(self, tmp_root, capsys):
         from geno_tools.cli import main
         rc = main(["skills", "upgrade"])
@@ -292,7 +261,7 @@ class TestSelfUpdate:
         assert "no skillsets" in capsys.readouterr().out
 
 
-class TestUpdateCli:
+class TestUpgradeCli:
     def test_single_by_name(self, fake_skillset, monkeypatch, capsys):
         fake_skillset("geno-dev")
 

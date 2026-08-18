@@ -7,7 +7,7 @@ category-XOR-leaf invariant). geno-tools must register every leaf by its
 fully-qualified frontmatter `name:`, not the (colliding) leaf dir name.
 
 See `_walk_skill_dirs` / `_skill_name` / `_enumerate_skill_dirs` in
-geno_tools/commands.py.
+geno_tools/skills_manager/commands/install.py.
 """
 
 from __future__ import annotations
@@ -15,9 +15,8 @@ from __future__ import annotations
 import textwrap
 from pathlib import Path
 
-import pytest
-
-from geno_tools import commands, paths
+from geno_tools.skills_manager import paths
+from geno_tools.skills_manager.commands import install as commands
 
 
 def _skillset(tmp_root: Path, name: str, skills: dict[str, str]) -> Path:

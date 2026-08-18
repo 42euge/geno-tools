@@ -28,7 +28,7 @@ Helps an operator onboard a new skillset to their geno-tools skills install. Two
 1. Verify repo shape       → SKILL.md + commands/ at root, optional skills/<sub>/SKILL.md
 2. Self-test locally       → geno-tools skills install ~/src/<repo-name>
 3. Push to a public remote → git push -u origin main
-4. Register                → PR adding "<repo-name>": "<git-url>" to genotools/registry.py
+4. Register                → PR adding "<repo-name>": "<git-url>" to geno_tools/skills_manager/registry.py
 5. Audit                   → docs/onboarding/audit.md checklist
 6. Merge → install         → geno-tools skills install <repo-name>
 ```
@@ -36,7 +36,7 @@ Helps an operator onboard a new skillset to their geno-tools skills install. Two
 ## Enterprise onboarding flow
 
 ```
-1. Pick a namespace        → {company-slug}-* (e.g. acme-finance, acme-incident-response)
+1. Pick a namespace        → {your-slug}-*  (org: internal-finance · personal: yourname-notes)
 2. Mirror the skillset spec → identical SKILL.md + commands/ + optional venv layout
 3. Host privately          → GitHub Enterprise / GitLab / Bitbucket / Gitea
 4. Configure discovery     → ~/.geno/config.yaml → discovery.sources
@@ -54,27 +54,33 @@ discovery:
     - kind: github
       org: 42euge
 
+    # organizational namespace, self-hosted
     - kind: github
-      org: acme-corp
-      base_url: https://github.acme.com/api/v3
-      prefix: acme-
-      auth_env: ACME_GITHUB_TOKEN
+      org: platform
+      base_url: https://github.internal.example.com/api/v3
+      prefix: internal-
+      auth_env: INTERNAL_GITHUB_TOKEN
 
     - kind: gitlab
       group: platform/skillsets
-      base_url: https://gitlab.acme.com
-      prefix: acme-
-      auth_env: ACME_GITLAB_TOKEN
+      base_url: https://gitlab.internal.example.com
+      prefix: internal-
+      auth_env: INTERNAL_GITLAB_TOKEN
+
+    # personal namespace
+    - kind: github
+      org: yourname
+      prefix: yourname-
 ```
 
 **Common fields**
 - `kind` — provider (`github`, `gitlab`, `gitea`, `bitbucket`)
-- `prefix` — only repos whose name starts with this prefix are candidates (e.g. `geno-`, `acme-`)
+- `prefix` — only repos whose name starts with this prefix are candidates (e.g. `geno-`, `internal-`, `yourname-`)
 - `base_url` — for self-hosted instances; omit for public github.com / gitlab.com
 - `auth_env` — environment variable name holding a token; never paste the token itself
 
 **A repo is a candidate when:**
-1. Its name matches `{prefix}<something>` (e.g. starts with `acme-`).
+1. Its name matches `{prefix}<something>` (e.g. starts with `internal-`).
 2. It has a `SKILL.md` at the repo root.
 3. The platform team has signed off on the audit (enterprise only).
 
@@ -99,7 +105,7 @@ Always log the audit decision somewhere durable (PR description, internal ticket
 ## Don'ts
 
 - Don't paste tokens into `config.yaml`. Use `auth_env` and a secrets manager.
-- Don't modify `genotools/registry.py` for an enterprise skillset — that's the public registry. Use discovery sources or a forked registry instead.
+- Don't modify `geno_tools/skills_manager/registry.py` for an enterprise skillset — that's the public registry. Use discovery sources or a forked registry instead.
 - Don't bypass the audit, even for "trusted" internal authors. The checklist exists for the few times that trust is misplaced.
 - Don't auto-install everything discovery surfaces. Discovery only proposes; the operator (or the platform team) approves.
 
@@ -107,4 +113,4 @@ Always log the audit decision somewhere durable (PR description, internal ticket
 
 - `docs/onboarding/index.md` — full onboarding flow
 - `docs/onboarding/audit.md` — reviewer checklist
-- `genotools/discovery.py` — the pluggable provider layer
+- `geno_tools/skills_manager/discovery.py` — the pluggable provider layer

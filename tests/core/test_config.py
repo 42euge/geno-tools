@@ -1,8 +1,8 @@
-"""Tests for config loading and defaults."""
+"""Tests for core config loading and defaults."""
 
 import yaml
 
-from geno_tools import config
+from geno_tools.core import config
 
 
 class TestEnsureDir:

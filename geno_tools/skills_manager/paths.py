@@ -1,4 +1,4 @@
-"""On-disk layout for geno-tools state.
+"""On-disk layout for managed skillset state.
 
 Everything lives under ~/.geno-tools/. Each installed skillset gets its own
 directory named with the full `geno-{name}` form:
@@ -22,10 +22,6 @@ GENO_DIR = HOME / ".geno"
 def normalize(name: str) -> str:
     """Canonicalize to the `geno-{name}` form used on disk."""
     return name if name.startswith("geno-") else f"geno-{name}"
-
-
-def short(full_name: str) -> str:
-    return full_name.removeprefix("geno-")
 
 
 def skillset_root(name: str) -> Path:
