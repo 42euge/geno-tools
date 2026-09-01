@@ -41,6 +41,21 @@ export interface TtRegistry {
   workspaces: TtWorkspace[];
 }
 
+export interface TtDispatch {
+  name: string;
+  status: string;
+  session: string;
+  created_at: string;
+  source: {
+    workspace_view: string;
+  };
+  target: {
+    host_alias: string;
+    hostname: string;
+  };
+  return_file?: string;
+}
+
 export const TRACK_ORDER = ["crit", "explore", "chore", "side"] as const;
 
 export function parseHosts(output: string): TtHost[] {
@@ -89,6 +104,32 @@ export function parseRegistry(output: string): TtRegistry {
     generated_at: value.generated_at,
     workspaces
   };
+}
+
+export function parseDispatches(output: string): TtDispatch[] {
+  let value: unknown;
+  try {
+    value = JSON.parse(output);
+  } catch (error) {
+    throw new Error(`TT returned an invalid dispatch list: ${messageOf(error)}`);
+  }
+  if (!Array.isArray(value)) {
+    throw new Error("TT dispatch list is not an array.");
+  }
+  return value.map((record, index) => parseDispatch(record, index));
+}
+
+export function activeDispatchesForWorkspace(
+  dispatches: readonly TtDispatch[],
+  workspacePath: string
+): TtDispatch[] {
+  return dispatches
+    .filter(
+      (dispatch) =>
+        dispatch.status === "active" &&
+        pathIsInside(dispatch.source.workspace_view, workspacePath)
+    )
+    .sort((left, right) => right.created_at.localeCompare(left.created_at));
 }
 
 export function workspaceReference(workspace: TtWorkspace): string {
@@ -148,6 +189,36 @@ function parseWorkspace(value: unknown, index: number): TtWorkspace {
   };
 }
 
+function parseDispatch(value: unknown, index: number): TtDispatch {
+  if (
+    !isRecord(value) ||
+    typeof value.name !== "string" ||
+    typeof value.status !== "string" ||
+    typeof value.session !== "string" ||
+    typeof value.created_at !== "string" ||
+    !isRecord(value.source) ||
+    typeof value.source.workspace_view !== "string" ||
+    !isRecord(value.target) ||
+    typeof value.target.host_alias !== "string" ||
+    typeof value.target.hostname !== "string" ||
+    (value.return_file !== undefined && typeof value.return_file !== "string")
+  ) {
+    throw new Error(`TT dispatch entry ${index} is invalid.`);
+  }
+  return {
+    name: value.name,
+    status: value.status,
+    session: value.session,
+    created_at: value.created_at,
+    source: { workspace_view: value.source.workspace_view },
+    target: {
+      host_alias: value.target.host_alias,
+      hostname: value.target.hostname
+    },
+    return_file: value.return_file
+  };
+}
+
 function parseWorkspaceState(value: unknown, workspaceIndex: number): TtWorkspaceState {
   if (value === undefined) {
     return { tmux: { sessions: [] } };
@@ -201,6 +272,16 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function pathIsInside(candidate: string, parent: string): boolean {
+  const child = relative(parent, candidate);
+  return child === "" || (
+    child !== ".." &&
+    !child.startsWith(`..${sep}`) &&
+    !isAbsolute(child)
+  );
+}
+
 function messageOf(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
+import { isAbsolute, relative, sep } from "node:path";

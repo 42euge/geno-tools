@@ -16,6 +16,11 @@ import {
   agentResumeCommand,
   findAgentSessionMatches
 } from "./agentSessions";
+import { dispatchWorkspaceToHost, manageDispatches } from "./dispatchControls";
+import {
+  isRemoteDispatchNode,
+  RemoteDispatchTreeProvider
+} from "./dispatchTree";
 import { TRACK_ORDER, TtHost, TtWorkspace, workspaceReference } from "./model";
 import { TerminalLinkRegistry } from "./terminalLinks";
 import {
@@ -63,6 +68,10 @@ export function activate(context: vscode.ExtensionContext): void {
     terminalLinks,
     tmuxSessions
   );
+  const dispatchProvider = new RemoteDispatchTreeProvider(
+    cli,
+    () => currentProvider.currentWorkspace()
+  );
   const tree = vscode.window.createTreeView("genoTools.workspaces", {
     treeDataProvider: provider,
     showCollapseAll: true
@@ -70,22 +79,36 @@ export function activate(context: vscode.ExtensionContext): void {
   const currentTree = vscode.window.createTreeView("genoTools.currentWorkspace", {
     treeDataProvider: currentProvider
   });
+  const dispatchTree = vscode.window.createTreeView("genoTools.remoteDispatches", {
+    treeDataProvider: dispatchProvider
+  });
   const buildDescription = extensionBuildDescription(context);
   tree.description = buildDescription;
   currentTree.description = buildDescription;
+  dispatchTree.description = buildDescription;
   const refreshTerminalViews = (): void => {
     provider.refreshTerminals();
     currentProvider.refreshTerminals();
   };
+  const dispatchVisibility = currentTree.onDidChangeVisibility?.(({ visible }) => {
+    if (visible) {
+      void reloadDispatches(dispatchProvider, output);
+    }
+  });
 
   context.subscriptions.push(
     output,
     terminalLinks,
     provider,
     currentProvider,
+    dispatchProvider,
     tree,
     currentTree,
-    vscode.workspace.onDidChangeWorkspaceFolders(() => currentProvider.reload()),
+    dispatchTree,
+    vscode.workspace.onDidChangeWorkspaceFolders(() => {
+      currentProvider.reload();
+      void reloadDispatches(dispatchProvider, output);
+    }),
     vscode.window.onDidOpenTerminal(refreshTerminalViews),
     vscode.window.onDidCloseTerminal((terminal) => {
       terminalLinks.forget(terminal);
@@ -93,13 +116,21 @@ export function activate(context: vscode.ExtensionContext): void {
     }),
     vscode.window.onDidChangeTerminalShellIntegration(refreshTerminalViews)
   );
+  if (dispatchVisibility) {
+    context.subscriptions.push(dispatchVisibility);
+  }
+  if (currentTree.visible) {
+    void reloadDispatches(dispatchProvider, output);
+  }
   register(context, "genoTools.reloadWorkspaces", async () => {
     provider.reload();
     currentProvider.reload();
+    await dispatchProvider.reload();
   });
   register(context, "genoTools.refreshWorkspaces", async (node?: unknown) => {
     const host = isHostNode(node) ? node.host : undefined;
     await refreshWorkspaces(cli, [provider, currentProvider], host);
+    await dispatchProvider.reload();
   });
   register(context, "genoTools.refreshTerminals", async () => {
     refreshTerminalViews();
@@ -225,6 +256,25 @@ export function activate(context: vscode.ExtensionContext): void {
       await mirrorWorkspace(cli, provider, workspace);
     }
   });
+  register(context, "genoTools.dispatchWorkspace", async (node?: unknown) => {
+    const workspace = isWorkspaceNode(node)
+      ? node
+      : tree.selection.find(isWorkspaceNode) ??
+        currentTree.selection.find(isWorkspaceNode) ??
+        (await currentProvider.currentWorkspace()) ??
+        (await pickWorkspace(cli, provider));
+    if (workspace) {
+      await dispatchWorkspaceToHost(cli, provider, workspace);
+      await dispatchProvider.reload();
+    }
+  });
+  register(context, "genoTools.manageDispatches", async (node?: unknown) => {
+    await manageDispatches(
+      cli,
+      isRemoteDispatchNode(node) ? node.dispatch.name : undefined
+    );
+    await dispatchProvider.reload();
+  });
   register(context, "genoTools.createWorktree", async (node?: unknown) => {
     const workspace = isWorkspaceNode(node) ? node : await pickWorkspace(cli, provider);
     if (workspace) {
@@ -280,6 +330,19 @@ function register(
       }
     })
   );
+}
+
+async function reloadDispatches(
+  provider: RemoteDispatchTreeProvider,
+  output: vscode.OutputChannel
+): Promise<void> {
+  try {
+    await provider.reload();
+  } catch (error) {
+    output.appendLine(
+      `Remote dispatch view unavailable: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
 }
 
 async function refreshWorkspaces(
@@ -916,7 +979,7 @@ async function mirrorWorkspace(
     `Mirroring ${workspaceReference(source.workspace)} to ${picked.host.alias}`,
     // TT prefers the current workspace when invoked from inside one. Running
     // from home ensures the explicitly selected workspace remains authoritative.
-    homedir()
+    { cwd: homedir() }
   );
   await cli.refreshRegistry(picked.host);
   provider.invalidateHost(picked.host, true);

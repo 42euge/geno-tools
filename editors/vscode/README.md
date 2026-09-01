@@ -50,6 +50,10 @@ From the explorer you can:
   gone;
 - create TT workspaces from a host's context menu and rescan them;
 - mirror a workspace to another configured TT host;
+- dispatch a local workspace and an editor selection, active document, brief
+  instruction, or Markdown handoff to a normal remote agent session;
+- open remote dispatch sessions, safely recall completed work, and open the
+  returned `RETURN.md` handoff;
 - create, list, and remove whole-workspace worktrees; and
 - render TT's cross-host workspace report.
 
@@ -81,7 +85,7 @@ and other failures remain visible errors and preserve the managed record.
 
 ## Requirements
 
-Install `geno-tt` and configure at least one host:
+Install `geno-tt` 0.8.0 or newer and configure at least one remote host:
 
 ```sh
 geno-tools install geno-tt
@@ -122,6 +126,31 @@ created. Terminal history is limited to 60,000 characters sampled
 chronologically across the full available scrollback and is sent only after the
 confirmation dialog, which also identifies the resolved endpoint, model, and
 credential variable. Saved Claude and Codex transcripts stay local.
+
+## Remote dispatch
+
+Use **Dispatch Workspace to Remote Host** from a local workspace row or the
+Current Workspace toolbar. Choose a configured remote host and a durable name,
+then provide the remote agent's context from:
+
+- the active editor selection;
+- the complete active document;
+- a short instruction; or
+- a Markdown/text handoff file.
+
+The extension sends that text to `tt dispatch` over stdin. `geno-tt` remains
+responsible for Git-state transfer, the isolated remote worktree, tmux startup,
+local-drift detection, and recall safety.
+
+Use **Manage Remote Dispatches** to reopen an active tmux session, recall an
+already stopped session, stop and recall an active session, or open the returned
+`RETURN.md`. **Stop and Recall** terminates the remote tmux session and therefore
+always requires confirmation.
+
+When the current workspace has an active dispatch, a third **Remote
+Dispatches** sidebar section appears below the existing workspace sections.
+Selecting a dispatch opens its management actions. The section disappears once
+the dispatch is recalled.
 
 ## Development
 

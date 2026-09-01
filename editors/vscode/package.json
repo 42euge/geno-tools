@@ -25,7 +25,8 @@
   "main": "./dist/extension.js",
   "activationEvents": [
     "onView:genoTools.workspaces",
-    "onView:genoTools.currentWorkspace"
+    "onView:genoTools.currentWorkspace",
+    "onView:genoTools.remoteDispatches"
   ],
   "scripts": {
     "build": "node esbuild.js --production",
@@ -53,6 +54,11 @@
         {
           "id": "genoTools.workspaces",
           "name": "All Workspaces"
+        },
+        {
+          "id": "genoTools.remoteDispatches",
+          "name": "Remote Dispatches",
+          "when": "genoTools.hasCurrentWorkspaceDispatch"
         }
       ]
     },
@@ -140,6 +146,16 @@
         "title": "Geno Tools: Mirror Workspace to Host"
       },
       {
+        "command": "genoTools.dispatchWorkspace",
+        "title": "Geno Tools: Dispatch Workspace to Remote Host",
+        "icon": "$(remote)"
+      },
+      {
+        "command": "genoTools.manageDispatches",
+        "title": "Geno Tools: Manage Remote Dispatches",
+        "icon": "$(list-tree)"
+      },
+      {
         "command": "genoTools.createWorktree",
         "title": "Geno Tools: Create Whole-Workspace Worktree"
       },
@@ -186,6 +202,16 @@
           "command": "genoTools.showReport",
           "when": "view == genoTools.workspaces",
           "group": "navigation@3"
+        },
+        {
+          "command": "genoTools.dispatchWorkspace",
+          "when": "view == genoTools.currentWorkspace",
+          "group": "navigation@3"
+        },
+        {
+          "command": "genoTools.manageDispatches",
+          "when": "view == genoTools.workspaces || view == genoTools.currentWorkspace || view == genoTools.remoteDispatches",
+          "group": "navigation@4"
         }
       ],
       "view/item/context": [
@@ -278,6 +304,11 @@
           "command": "genoTools.mirrorWorkspace",
           "when": "(view == genoTools.workspaces || view == genoTools.currentWorkspace) && viewItem == workspace",
           "group": "remote@1"
+        },
+        {
+          "command": "genoTools.dispatchWorkspace",
+          "when": "(view == genoTools.workspaces || view == genoTools.currentWorkspace) && viewItem == workspace",
+          "group": "remote@2"
         }
       ]
     },

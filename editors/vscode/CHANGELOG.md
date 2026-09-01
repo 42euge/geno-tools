@@ -11,6 +11,12 @@
   authorization, executable, or cancellation failures.
 - Refresh live tmux state when the tree loads and after lifecycle actions
   without background polling.
+- Add workspace dispatch to configured remote hosts using editor selections,
+  documents, brief instructions, or handoff files.
+- Add a conditional Remote Dispatches sidebar section for active dispatches
+  originating from the current workspace.
+- Add dispatch management for reopening tmux, safe recall, stop-and-recall,
+  and opening the returned handoff.
 
 ## 0.2.3
 

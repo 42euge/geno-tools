@@ -6,12 +6,25 @@ import { delimiter, join, posix } from "node:path";
 
 import * as vscode from "vscode";
 
-import { parseHosts, parseRegistry, TtHost, TtRegistry } from "./model";
+import {
+  parseDispatches,
+  parseHosts,
+  parseRegistry,
+  TtDispatch,
+  TtHost,
+  TtRegistry
+} from "./model";
+
+interface RunOptions {
+  cwd?: string;
+  input?: string;
+}
 
 interface ExecuteOptions {
   showOutput?: boolean;
   token?: vscode.CancellationToken;
   cwd?: string;
+  input?: string;
   missingExecutableMessage?: string;
 }
 
@@ -67,7 +80,12 @@ export class TtCli {
     );
   }
 
-  async run(args: string[], title: string, cwd?: string): Promise<string> {
+  async dispatches(): Promise<TtDispatch[]> {
+    const result = await this.execute(["dispatch", "list", "--json"]);
+    return parseDispatches(result.stdout);
+  }
+
+  async run(args: string[], title: string, options: RunOptions = {}): Promise<string> {
     return vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
@@ -75,7 +93,12 @@ export class TtCli {
         cancellable: true
       },
       async (_progress, token) => {
-        const result = await this.execute(args, { showOutput: true, token, cwd });
+        const result = await this.execute(args, {
+          showOutput: true,
+          token,
+          cwd: options.cwd,
+          input: options.input
+        });
         return result.stdout;
       }
     );
@@ -213,6 +236,14 @@ export class TtCli {
     );
   }
 
+  async openDispatchCommand(host: TtHost, sessionName: string): Promise<string> {
+    const executable = await resolveExecutable();
+    return formatCommand(
+      executable,
+      this.forHost(host, ["tmux", sessionName])
+    );
+  }
+
   showOutput(): void {
     this.output.show(true);
   }
@@ -289,6 +320,8 @@ export class TtCli {
         cancelled = true;
         child.kill();
       });
+
+      child.stdin?.end(options.input);
 
       child.on("error", (error: NodeJS.ErrnoException) => {
         cancellation?.dispose();
