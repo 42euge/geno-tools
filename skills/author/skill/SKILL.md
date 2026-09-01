@@ -41,7 +41,7 @@ Check the current working directory for signs of a geno ecosystem repo:
 
 If inside a workspace (has `.geno/.workspace/workspace.yaml`), check `repos:` to find the target repo.
 
-If no geno repo is detected, use `AskUserQuestion` to ask which repo to target. Accept a path, a skillset name (resolved via `geno-tools skills discover`), or a GitHub URL.
+If no geno repo is detected, use `AskUserQuestion` to ask which repo to target. Accept a path, a skillset name (resolved via `geno-tools discover`), or a GitHub URL.
 
 Once identified, record:
 - `$REPO_ROOT` — absolute path to the repo root

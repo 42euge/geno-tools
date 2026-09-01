@@ -23,35 +23,49 @@ class GenoTools < Formula
 
   desc "Control plane for AI coding agents: resolve and scope skillset bundles"
   homepage "https://github.com/42euge/geno-tools"
+  version "0.9.0"
   license "MIT"
 
-  # TODO(release): pin a tagged tarball + sha256 once v0.8.0 is pushed/tagged.
-  #   url "https://github.com/42euge/geno-tools/archive/refs/tags/v0.8.0.tar.gz"
+  # TODO(release): pin a tagged tarball + sha256 once v0.9.0 is pushed/tagged.
+  #   url "https://github.com/42euge/geno-tools/archive/refs/tags/v0.9.0.tar.gz"
   #   sha256 "…"
   # Until then, build from the default branch:
   head "https://github.com/42euge/geno-tools.git", branch: "main"
-  version "0.8.0"
 
+  depends_on "libyaml"
+  depends_on "node"
   depends_on "python@3.12"
 
-  def install
-    # A single venv under the formula prefix (libexec) — persisted by brew,
-    # unlike ~/.local/pipx which the build sandbox redirects and discards.
-    #
-    # NOTE: deliberately NOT using `resource` blocks +
-    # virtualenv_install_with_resources. That path installs every dep with
-    # `--no-binary :all:`, which makes pip build pyyaml from its sdist — and
-    # pyyaml 6.x's sdist needs Cython as a build dep, which fails in the brew
-    # sandbox. pip_install on the source tree resolves pyyaml/click as wheels
-    # instead. (This formula lives in a personal tap, so the homebrew-core
-    # "all deps vendored as resources" rule doesn't bind.)
-    venv = virtualenv_create(libexec, "python3.12")
-    venv.pip_install buildpath
+  resource "pyyaml" do
+    url "https://files.pythonhosted.org/packages/05/8e/961c0007c59b8dd7729d542c61a4d537767a59645b82a0b521206e1e25c2/pyyaml-6.0.3.tar.gz"
+    sha256 "d76623373421df22fb4cf8817020cbb7ef15c725b9d5e45f17e189bfc384190f"
+  end
 
-    # pip_install leaves the console scripts in libexec/bin, which is NOT on
-    # PATH. virtualenv_install_with_resources would link them for us; since we
-    # can't use it (see above), link them ourselves.
-    bin.install_symlink libexec/"bin/geno-tools"
+  resource "mdurl" do
+    url "https://files.pythonhosted.org/packages/d6/54/cfe61301667036ec958cb99bd3efefba235e65cdeb9c84d24a8293ba1d90/mdurl-0.1.2.tar.gz"
+    sha256 "bb413d29f5eea38f31dd4754dd7377d4465116fb207585f97bf925588687c1ba"
+  end
+
+  resource "markdown-it-py" do
+    url "https://files.pythonhosted.org/packages/5b/f5/4ec618ed16cc4f8fb3b701563655a69816155e79e24a17b651541804721d/markdown_it_py-4.0.0.tar.gz"
+    sha256 "cb0a2b4aa34f932c007117b194e945bd74e0ec24133ceb5bac59009cda1cb9f3"
+  end
+
+  resource "pygments" do
+    url "https://files.pythonhosted.org/packages/b0/77/a5b8c569bf593b0140bde72ea885a803b82086995367bf2037de0159d924/pygments-2.19.2.tar.gz"
+    sha256 "636cb2477cec7f8952536970bc533bc43743542f70392ae026374600add5b887"
+  end
+
+  resource "rich" do
+    url "https://files.pythonhosted.org/packages/c0/8f/0722ca900cc807c13a6a0c696dacf35430f72e0ec571c4275d2371fca3e9/rich-15.0.0.tar.gz"
+    sha256 "edd07a4824c6b40189fb7ac9bc4c52536e9780fbbfbddf6f1e2502c31b068c36"
+  end
+
+  def install
+    # Keep the complete Python environment under the formula prefix. Vendored
+    # resources make installation reproducible and avoid resolving packages
+    # from PyPI while Homebrew is building the formula.
+    virtualenv_install_with_resources
   end
 
   def caveats
@@ -60,15 +74,15 @@ class GenoTools < Formula
         geno-tools   — resolve and scope skillset bundles (npx does registration)
 
       Installing a skillset is what registers skills with your agents:
-        geno-tools skills discover
-        geno-tools skills install <name>
+        geno-tools discover
+        geno-tools install <name>
         geno-tools status
 
       The rest of the geno ecosystem is packaged separately and is NOT
       installed by this formula — notably `tt` (geno-tt) and the `geno` binary.
 
       To remove:
-        geno-tools skills remove <name>   # unregisters skills; do this first
+        geno-tools system uninstall
         brew uninstall geno-tools
       Skillset state under ~/.geno is left in place either way.
     EOS

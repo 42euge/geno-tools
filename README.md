@@ -25,10 +25,10 @@ See [docs/skillsets.md](docs/skillsets.md) for the full contract.
 
 ## Onboarding a skillset
 
-Two ways to make a skillset installable through `geno-tools skills install`:
+Two ways to make a skillset installable through `geno-tools install`:
 
-1. **Direct git URL** — install any compliant repo with no registry entry anywhere: `geno-tools skills install https://github.com/you/your-skillset.git`. This is the path for private, internal, and experimental skillsets.
-2. **Discovery** — push to a host geno-tools is configured to scan. A repo becomes a candidate when its name matches the configured prefix and it exposes skills; after that `geno-tools skills install <repo-name>` resolves by bare name. There is no curated list to PR into — discovery is a cache, not a registry.
+1. **Direct git URL** — install any compliant repo with no registry entry anywhere: `geno-tools install https://github.com/you/your-skillset.git`. This is the path for private, internal, and experimental skillsets.
+2. **Discovery** — push to a host geno-tools is configured to scan. A repo becomes a candidate when its name matches the configured prefix and it exposes skills; after that `geno-tools install <repo-name>` resolves by bare name. There is no curated list to PR into — discovery is a cache, not a registry.
 
 ## Existing geno-* repos
 
@@ -60,7 +60,7 @@ How it works in practice:
 1. **Pick your namespace**. Use your org slug (`internal-`) or your own handle (`yourname-`) as the prefix. All skillsets under that namespace share the prefix the way public ones share `geno-`.
 2. **Host privately**. Put the repos in your own GitHub Enterprise / GitLab / Bitbucket / private mirror. geno-tools resolves any git URL — there is no central registry it has to call out to.
 3. **Run geno-tools internally**. Pin the upstream OSS release, fork it, or vendor it. The CLI is plain Python, has no telemetry, and the install flow only talks to the git remote you point it at.
-4. **Mix public and private freely**. A developer can run `geno-tools skills install geno-<name>` (public) alongside `geno-tools skills install git@github.internal.example.com:platform/internal-<name>.git` (private) on the same machine. They share `~/.geno-tools/`, the same venv strategy, and the same slash-command surface in Claude Code / Codex / Antigravity CLI.
+4. **Mix public and private freely**. A developer can run `geno-tools install geno-<name>` (public) alongside `geno-tools install git@github.internal.example.com:platform/internal-<name>.git` (private) on the same machine. They share `~/.geno-tools/`, the same venv strategy, and the same slash-command surface in Claude Code / Codex / Antigravity CLI.
 
 The result: sensitive prompts, datasets, and domain knowledge stay inside the company boundary, while the runtime, the file format, and the multi-agent integrations are the same fast-moving open-source code everyone else uses. You inherit upstream improvements without giving up control of your skill content.
 

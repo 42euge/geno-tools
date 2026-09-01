@@ -1,9 +1,9 @@
 """Tests for the skills-manager install/remove flow.
 
 These tests verify the documented install behavior:
-  1. geno-tools skills install <name> clones, creates venv, symlinks bin, registers skills
+  1. geno-tools install <name> clones, creates venv, symlinks bin, registers skills
   2. All sub-skills are enumerated and installed individually (not just the umbrella)
-  3. geno-tools skills remove <name> unregisters skills, removes bin symlinks, cleans up
+  3. geno-tools uninstall <name> unregisters skills, removes bin symlinks, cleans up
   4. Dependency resolution installs transitive requires
 """
 
@@ -254,12 +254,12 @@ class TestDependencyResolution:
         assert rc == 1
         assert "circular" in capsys.readouterr().err
 
-    def test_deps_command_shows_tree(self, fake_skillset, monkeypatch, capsys):
+    def test_dependency_tree_implementation_is_retained(self, fake_skillset, capsys):
         fake_skillset("geno-top", has_manifest=True, requires=["geno-child"])
         fake_skillset("geno-child")
-        from geno_tools.cli import main
-        rc = main(["skills", "deps", "geno-top"])
-        assert rc == 0
+        from geno_tools.skills_manager.commands import deps
+
+        deps._print_dep_tree("geno-top", indent=0, seen=set())
         out = capsys.readouterr().out
         assert "geno-top" in out
         assert "geno-child" in out
@@ -291,7 +291,7 @@ class TestStatusAndDiscover:
         })
         fake_skillset("geno-dev")  # installed
         from geno_tools.cli import main
-        assert main(["skills", "discover"]) == 0
+        assert main(["discover"]) == 0
         out = capsys.readouterr().out
         assert "Developer Tools" in out and "Modalities & Capabilities" in out
         assert "geno-dev" in out and "geno-media" in out
@@ -306,7 +306,7 @@ class TestStatusAndDiscover:
                             lambda *a, **k: called.__setitem__("n", called["n"] + 1) or {})
         monkeypatch.setattr("geno_tools.skills_manager.registry.read_full", lambda: {})
         from geno_tools.cli import main
-        assert main(["skills", "discover"]) == 0
+        assert main(["discover"]) == 0
         assert called["n"] == 1
         assert "discover" in capsys.readouterr().out
 
@@ -330,7 +330,7 @@ class TestRemove:
         monkeypatch.setattr("geno_tools.skills_manager.commands.install.SYSTEM_BIN", Path("/nonexistent"))
 
         from geno_tools.cli import main
-        rc = main(["skills", "remove", "geno-dev"])
+        rc = main(["uninstall", "geno-dev"])
         assert rc == 0
         assert not paths.skillset_root("geno-dev").exists()
 
@@ -345,13 +345,13 @@ class TestRemove:
         monkeypatch.setattr("geno_tools.skills_manager.commands.install.SYSTEM_BIN", Path("/nonexistent"))
 
         from geno_tools.cli import main
-        rc = main(["skills", "remove", "geno-dev", "--keep-data"])
+        rc = main(["uninstall", "geno-dev", "--keep-data"])
         assert rc == 0
         assert venvs.exists()
 
     def test_remove_nonexistent_fails(self, tmp_root, capsys):
         from geno_tools.cli import main
-        rc = main(["skills", "remove", "geno-nonexistent"])
+        rc = main(["uninstall", "geno-nonexistent"])
         assert rc == 1
         assert "not installed" in capsys.readouterr().err
 

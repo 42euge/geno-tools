@@ -4,13 +4,16 @@ A **skillset** is the unit geno-tools manages: a plain git repo named
 `{namespace}-{slug}` that it knows how to clone, sandbox, link, and register with
 any supported coding agent.
 
+For the normative audit checklist, see
+[Skillset Compliance Specification](skillset-compliance.md).
+
 ## Anatomy
 
 | Path | Role |
 |------|------|
 | `genotools.yaml` | the marker: this repo is a geno-tools skillset. Holds `requires:` and `version:` |
 | `skills/<name>/SKILL.md` | **subskillsets** — one focused capability each |
-| `AGENTS.md` (optional) | agent-facing instructions; read by agents, not by geno-tools |
+| `AGENTS.md` | agent-facing instructions; required for compliance, though not for installation |
 | `pyproject.toml` (optional) | Python runtime; `[project]` drives the venv and console scripts |
 | `layer.json` (optional) | ecosystem category, read remotely by discovery |
 
@@ -86,22 +89,23 @@ side by side, sharing one `~/.geno-tools/` and one venv strategy.
 
 Three paths, in increasing order of commitment:
 
-1. **Local dev link** — `geno-tools skills install ~/src/your-skillset` to
+1. **Local dev link** — `geno-tools install ~/src/your-skillset` to
    iterate on a checkout without committing anything.
-2. **Direct git URL** — `geno-tools skills install https://…/your-skillset.git`.
+2. **Direct git URL** — `geno-tools install https://…/your-skillset.git`.
    Works for any compliant repo, with no registry entry anywhere. This is the
    recommended path for private, internal, and experimental skillsets.
 3. **Discovery** — push to a host geno-tools is configured to scan (see
    `discovery.sources` in `~/.geno/config.yaml`). A repo becomes a candidate when
    its name matches the configured prefix and it exposes skills. After that,
-   `geno-tools skills install <repo-name>` resolves by bare name. Discovery is a
+   `geno-tools install <repo-name>` resolves by bare name. Discovery is a
    cache, not a curated list — there's nothing to PR into.
 
 ## Dependencies
 
 A skillset declares `requires:` in its `genotools.yaml`. On install, geno-tools
 resolves those recursively before finishing — so installing one skillset can
-pull in the graph beneath it. `geno-tools skills deps <name>` prints that tree.
+pull in the graph beneath it. Dependency resolution is part of installation,
+not a separate operator command.
 
 ## Variants
 

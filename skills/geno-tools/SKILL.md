@@ -23,7 +23,8 @@ which geno-tools >/dev/null 2>&1 || echo "geno-tools CLI not on PATH — run /ge
 
 | Category | Skills |
 |----------|--------|
-| **manager/** | `status` · `discover` · `install` · `remove` · `upgrade` · `update` · `deps` |
+| **manager/** | `status` · `discover` · `install` · `remove` · `upgrade` |
+| **system/** | `update` — manage the geno-tools installation itself |
 | **meta/ecosystem/** | `discover` · `scan` · `onboarding` — find/absorb new skillsets |
 | **author/** | `skill` · `repo` — scaffold a skill / a whole skillset repo |
 | **config/** | `show` · `set` — read/write `~/.geno/config.yaml` |
@@ -34,13 +35,12 @@ lifecycle and dependency resolution.
 ## CLI
 
 - `geno-tools status` — installed skillsets: version, commit, drift vs main
-- `geno-tools skills discover [--refresh]` — installable skillsets, grouped by category
-- `geno-tools skills install <repo|url|path>` — clone, venv, register with all agents
-- `geno-tools skills remove <repo> [--keep-data]` — uninstall from all agents
-- `geno-tools skills upgrade [repo]` — upgrade installed skillset(s): pull latest + re-register
-- `geno-tools update` — update geno-tools **itself** to the latest version
-- `geno-tools skills uninstall [--dry-run]` — fully remove geno-tools (inverse of install; keeps your data)
-- `geno-tools skills deps <repo>` — dependency tree
+- `geno-tools discover [--refresh]` — installable skillsets, grouped by category
+- `geno-tools install <repo|url|path>` — clone, venv, register with all agents
+- `geno-tools uninstall <repo> [--keep-data]` — uninstall from all agents
+- `geno-tools update [repo]` — update installed skillset(s): pull latest + re-register
+- `geno-tools system update` — update geno-tools **itself** to the latest version
+- `geno-tools system uninstall [--dry-run]` — guarded removal of all geno-tools-managed files; keeps user data
 
 ## Source resolution
 

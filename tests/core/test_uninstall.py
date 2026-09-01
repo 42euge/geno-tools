@@ -1,4 +1,4 @@
-"""Tests for `geno-tools skills uninstall` — the inverse of install.
+"""Tests for the guarded `geno-tools system uninstall` command.
 
 The central guarantee: it removes geno-tools' own footprint but NEVER deletes
 user data living in ~/.geno. All destructive ops target temp dirs.
@@ -11,13 +11,13 @@ from pathlib import Path
 
 import pytest
 
+from geno_tools.core import uninstall as commands
 from geno_tools.skills_manager import paths
-from geno_tools.skills_manager.commands import uninstall as commands
 
 
 @pytest.fixture()
 def fake_install(tmp_path, monkeypatch):
-    """Simulate a geno-tools skills install footprint under a temp HOME."""
+    """Simulate a geno-tools install footprint under a temp HOME."""
     home = tmp_path
     monkeypatch.setattr(Path, "home", staticmethod(lambda: home))
     # rebind module-level path constants derived from home
@@ -61,14 +61,24 @@ def _args(**kw):
 
 
 def test_dry_run_deletes_nothing(fake_install):
-    commands._uninstall(_args(dry_run=True))
+    commands.run(_args(dry_run=True))
     assert (fake_install / ".geno-tools" / "geno-notes").exists()
     assert (fake_install / ".claude" / "skills" / "geno-tools").exists()
     assert (fake_install / ".geno" / "config.yaml").exists()
 
 
+def test_confirmation_requires_exact_phrase(fake_install, monkeypatch):
+    monkeypatch.setattr("builtins.input", lambda _: "yes")
+    assert commands.run(_args(yes=False)) == 1
+    assert (fake_install / ".geno-tools" / "geno-notes").exists()
+
+    monkeypatch.setattr("builtins.input", lambda _: "uninstall geno-tools")
+    assert commands.run(_args(yes=False)) == 0
+    assert not (fake_install / ".geno-tools").exists()
+
+
 def test_removes_skillsets_and_registrations(fake_install):
-    commands._uninstall(_args())
+    commands.run(_args())
     assert not (fake_install / ".geno-tools").exists()  # emptied → removed
     assert not (fake_install / ".claude" / "skills" / "geno-notes").exists()
     assert not (fake_install / ".claude" / "skills" / "geno-tools").exists()
@@ -77,7 +87,7 @@ def test_removes_skillsets_and_registrations(fake_install):
 
 
 def test_user_data_preserved_by_default(fake_install):
-    commands._uninstall(_args())
+    commands.run(_args())
     # own state is kept
     assert (fake_install / ".geno" / "config.yaml").exists()
     # user data always kept
@@ -95,7 +105,7 @@ def test_only_managed_bin_symlinks_removed(fake_install, monkeypatch):
     # an UNRELATED symlink that must be left alone
     other = binp / "ripgrep"
     other.symlink_to(fake_install / "somewhere" / "rg")
-    commands._uninstall(_args())
+    commands.run(_args())
     assert not managed.exists()
     assert other.is_symlink()  # untouched
 
@@ -109,5 +119,5 @@ def test_nothing_installed_is_safe(tmp_path, monkeypatch):
     monkeypatch.setattr(commands, "_AGENT_SKILL_DIRS", [])
     monkeypatch.setattr(commands, "_CC_PLUGIN_DIRS", [])
     monkeypatch.setattr(commands, "_clean_agent_json_configs", lambda: None)
-    rc = commands._uninstall(_args())
+    rc = commands.run(_args())
     assert rc == 0

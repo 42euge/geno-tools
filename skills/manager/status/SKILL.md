@@ -30,7 +30,7 @@ geno-tools
 
 States: `● in-sync` · `▼ behind <sha>` · `▲ ahead` · `✗ diverged` · `✎ dirty`
 · `· offline`. Anything behind is summarized with a hint to run
-`geno-tools skills upgrade`. Output is colorized on a terminal and plain ASCII when
+`geno-tools update`. Output is colorized on a terminal and plain ASCII when
 piped or under `NO_COLOR`.
 
-To browse what you *can* install, use `geno-tools skills discover`.
+To browse what you *can* install, use `geno-tools discover`.
