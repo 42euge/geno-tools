@@ -57,6 +57,13 @@ class TestEnumerateSkills:
         assert "geno-dev-bogus" not in names
         assert "geno-dev-real" in names
 
+    def test_registered_skills_exclude_shadowed_umbrella(self, fake_skillset):
+        fake_skillset("geno-dev", sub_skills=["geno-dev-open"])
+
+        names = commands._enumerate_registered_skills("geno-dev")
+
+        assert names == ["geno-dev-open"]
+
 
 class TestEnumerateSkillDirs:
     def test_returns_paths(self, fake_skillset):
@@ -148,6 +155,17 @@ class TestUninstallSkillsViaNpx:
         assert "geno-dev" in cmd
         assert "geno-dev-a" in cmd
         assert "geno-dev-b" in cmd
+
+    def test_uninstalls_only_named_skills(self, monkeypatch):
+        calls = []
+        monkeypatch.setattr("subprocess.run", lambda cmd, **kw: calls.append(cmd))
+
+        commands._uninstall_skill_names_via_npx(["geno-dev-old"])
+
+        assert len(calls) == 1
+        cmd = calls[0]
+        assert "geno-dev-old" in cmd
+        assert "geno-dev" not in cmd
 
 
 # ── source resolution ─────────────────────────────────────────────────────

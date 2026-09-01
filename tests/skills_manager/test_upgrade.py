@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -66,6 +67,44 @@ class TestUpgradeOne:
         assert result.old_rev == "old12345"
         assert result.new_rev == "new56789"
         assert len(npx_calls) == 1  # 1 sub-skill (umbrella root skipped)
+
+    def test_updated_prunes_skills_removed_by_pull(self, fake_skillset, monkeypatch):
+        root = fake_skillset(
+            "geno-dev", sub_skills=["geno-dev-keep", "geno-dev-retired"]
+        )
+        call_count = {"rev": 0}
+        remove_calls = []
+
+        def fake_check_output(cmd, **kw):
+            if "status" in cmd and "--porcelain" in cmd:
+                return ""
+            if "branch" in cmd and "--show-current" in cmd:
+                return "main"
+            if "rev-parse" in cmd:
+                call_count["rev"] += 1
+                return "old12345678" if call_count["rev"] == 1 else "new56789abc"
+            if "symbolic-ref" in cmd:
+                return "main"
+            if "diff" in cmd and "--name-only" in cmd:
+                return "skills/geno-dev-retired/SKILL.md"
+            return ""
+
+        def fake_check_call(cmd, **kw):
+            if "pull" in cmd:
+                shutil.rmtree(root / "main" / "skills" / "geno-dev-retired")
+
+        monkeypatch.setattr("subprocess.check_output", fake_check_output)
+        monkeypatch.setattr("subprocess.check_call", fake_check_call)
+        monkeypatch.setattr(
+            "subprocess.run", lambda cmd, **kw: remove_calls.append(cmd)
+        )
+
+        result = commands._update_one("geno-dev")
+
+        assert result.status == "updated"
+        assert len(remove_calls) == 1
+        assert "geno-dev-retired" in remove_calls[0]
+        assert "geno-dev-keep" not in remove_calls[0]
 
     def test_dirty_worktree_skipped(self, fake_skillset, monkeypatch):
         fake_skillset("geno-dev")

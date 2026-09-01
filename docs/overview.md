@@ -40,8 +40,9 @@ every skill with every known agent. Declared `requires:` are installed
 recursively.
 
 **Maintain** — `status` shows version, commit, and drift against remote main.
-`upgrade` fast-forwards worktrees and rebuilds venvs only when dependencies
-actually changed. Dependency resolution is automatic during install.
+`upgrade` fast-forwards worktrees, removes retired skill registrations, and
+rebuilds venvs only when dependencies actually changed. Dependency resolution
+is automatic during install.
 `uninstall` is the inverse of installing one skillset. The guarded
 `system uninstall` command removes the entire geno-tools-managed footprint,
 with a dry run and explicit confirmation, while preserving user data under
