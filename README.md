@@ -2,6 +2,9 @@
 
 geno-tools is skillset managment tool for agentic meta-ecosystems.
 
+The repository also includes a [VS Code extension](editors/vscode/README.md)
+for browsing and managing local and remote TT workspaces.
+
 ## What it does
 
 
