@@ -8,6 +8,13 @@ import * as vscode from "vscode";
 
 import { parseHosts, parseRegistry, TtHost, TtRegistry } from "./model";
 
+interface ExecuteOptions {
+  showOutput?: boolean;
+  token?: vscode.CancellationToken;
+  cwd?: string;
+  missingExecutableMessage?: string;
+}
+
 export class TtCommandError extends Error {
   constructor(
     message: string,
@@ -64,12 +71,108 @@ export class TtCli {
     return ["-H", host.alias, ...args];
   }
 
-  async resumeTmuxCommand(host: TtHost, workspace: string): Promise<string> {
-    const executable = await resolveExecutable();
-    return formatCommand(
-      executable,
-      this.forHost(host, ["tmux", "resume", workspace])
+  async createTmuxSession(
+    host: TtHost,
+    registryHost: string,
+    workspacePath: string,
+    sessionName: string
+  ): Promise<void> {
+    const tmuxArgs = [
+      "new-session",
+      "-d",
+      "-s",
+      sessionName,
+      "-c",
+      workspacePath
+    ];
+    const title = `Creating tmux session ${sessionName}`;
+    if (host.hostname === "localhost" || registryHost === "localhost") {
+      await this.runExecutable("tmux", tmuxArgs, title);
+      return;
+    }
+    await this.runExecutable(
+      "ssh",
+      [host.hostname, formatCommand("tmux", tmuxArgs)],
+      title
     );
+  }
+
+  async killTmuxSession(
+    host: TtHost,
+    registryHost: string,
+    sessionName: string
+  ): Promise<void> {
+    const tmuxArgs = ["kill-session", "-t", sessionName];
+    const title = `Deleting tmux session ${sessionName}`;
+    if (host.hostname === "localhost" || registryHost === "localhost") {
+      await this.runExecutable("tmux", tmuxArgs, title);
+      return;
+    }
+    await this.runExecutable(
+      "ssh",
+      [host.hostname, formatCommand("tmux", tmuxArgs)],
+      title
+    );
+  }
+
+  async sendTmuxCommand(
+    host: TtHost,
+    registryHost: string,
+    sessionName: string,
+    command: string
+  ): Promise<void> {
+    const literalKeys = [
+      "send-keys",
+      "-t",
+      sessionName,
+      "-l",
+      "--",
+      command
+    ];
+    const enterKey = ["send-keys", "-t", sessionName, "Enter"];
+    const title = `Starting recovered work in ${sessionName}`;
+    if (host.hostname === "localhost" || registryHost === "localhost") {
+      await this.runExecutable("tmux", literalKeys, title);
+      await this.runExecutable("tmux", enterKey, title);
+      return;
+    }
+    await this.runExecutable(
+      "ssh",
+      [
+        host.hostname,
+        `${formatCommand("tmux", literalKeys)} && ${formatCommand("tmux", enterKey)}`
+      ],
+      title
+    );
+  }
+
+  async createRepository(
+    host: TtHost,
+    registryHost: string,
+    workspacePath: string,
+    name: string
+  ): Promise<string> {
+    const repoPath = posix.join(workspacePath, name);
+    const title = `Creating repository ${name}`;
+    if (host.hostname === "localhost" || registryHost === "localhost") {
+      if (await pathExists(repoPath)) {
+        throw new TtCommandError(
+          `Repository path already exists: ${repoPath}`,
+          ["git", "init", "--", repoPath]
+        );
+      }
+      await this.runExecutable("git", ["init", "--", repoPath], title);
+      return repoPath;
+    }
+
+    const message = `Repository path already exists: ${repoPath}`;
+    const command = [
+      `[ ! -e ${shellQuote(repoPath)} ]`,
+      `|| { echo ${shellQuote(message)} >&2; exit 1; }`,
+      `&& ${formatCommand("git", ["init", "--", repoPath])}`
+    ].join(" ");
+    await this.runExecutable("ssh", [host.hostname, command], title);
+    return repoPath;
   }
 
   async openTmuxCommand(
@@ -94,13 +197,42 @@ export class TtCli {
 
   private async execute(
     args: string[],
-    options: {
-      showOutput?: boolean;
-      token?: vscode.CancellationToken;
-      cwd?: string;
-    } = {}
+    options: ExecuteOptions = {}
   ): Promise<{ stdout: string; stderr: string }> {
     const executable = await resolveExecutable();
+    return this.executeProgram(executable, args, {
+      ...options,
+      missingExecutableMessage:
+        `TT executable not found at '${executable}'. Install geno-tt or set genoTools.ttPath.`
+    });
+  }
+
+  private async runExecutable(
+    executable: string,
+    args: string[],
+    title: string
+  ): Promise<string> {
+    return vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title,
+        cancellable: true
+      },
+      async (_progress, token) => {
+        const result = await this.executeProgram(executable, args, {
+          showOutput: true,
+          token
+        });
+        return result.stdout;
+      }
+    );
+  }
+
+  private async executeProgram(
+    executable: string,
+    args: string[],
+    options: ExecuteOptions = {}
+  ): Promise<{ stdout: string; stderr: string }> {
     if (options.showOutput) {
       this.output.appendLine(`\n$ ${formatCommand(executable, args)}`);
       this.output.show(true);
@@ -141,7 +273,8 @@ export class TtCli {
         if (error.code === "ENOENT") {
           reject(
             new TtCommandError(
-              `TT executable not found at '${executable}'. Install geno-tt or set genoTools.ttPath.`,
+              options.missingExecutableMessage ??
+                `Executable not found: '${executable}'.`,
               args
             )
           );
@@ -167,6 +300,20 @@ export class TtCli {
         resolve({ stdout, stderr });
       });
     });
+  }
+}
+
+async function pathExists(path: string): Promise<boolean> {
+  try {
+    await access(path);
+    return true;
+  } catch (error) {
+    return !(
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === "ENOENT"
+    );
   }
 }
 

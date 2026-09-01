@@ -10,6 +10,7 @@ import {
   TtWorkspace,
   workspaceReference
 } from "./model";
+import { TerminalLinkRegistry } from "./terminalLinks";
 import { TtCli } from "./ttCli";
 
 export type WorkspaceTreeNode =
@@ -17,8 +18,12 @@ export type WorkspaceTreeNode =
   | TrackNode
   | DomainNode
   | WorkspaceNode
+  | RepoGroupNode
+  | TmuxSessionGroupNode
+  | TerminalGroupNode
   | RepoNode
   | TmuxSessionNode
+  | TerminalNode
   | MessageNode;
 
 export interface HostNode {
@@ -48,6 +53,27 @@ export interface WorkspaceNode {
   workspace: TtWorkspace;
 }
 
+export interface RepoGroupNode {
+  kind: "repoGroup";
+  host: TtHost;
+  registry: TtRegistry;
+  workspace: TtWorkspace;
+}
+
+export interface TmuxSessionGroupNode {
+  kind: "tmuxSessionGroup";
+  host: TtHost;
+  registry: TtRegistry;
+  workspace: TtWorkspace;
+}
+
+export interface TerminalGroupNode {
+  kind: "terminalGroup";
+  host: TtHost;
+  registry: TtRegistry;
+  workspace: TtWorkspace;
+}
+
 export interface RepoNode {
   kind: "repo";
   host: TtHost;
@@ -62,6 +88,15 @@ export interface TmuxSessionNode {
   registry: TtRegistry;
   workspace: TtWorkspace;
   session: TtTmuxSession;
+}
+
+export interface TerminalNode {
+  kind: "terminal";
+  host: TtHost;
+  registry: TtRegistry;
+  workspace: TtWorkspace;
+  terminal: vscode.Terminal;
+  cwd?: string;
 }
 
 export interface MessageNode {
@@ -79,8 +114,22 @@ export function isRepoNode(value: unknown): value is RepoNode {
   return isNode(value) && value.kind === "repo";
 }
 
+export function isRepoGroupNode(value: unknown): value is RepoGroupNode {
+  return isNode(value) && value.kind === "repoGroup";
+}
+
 export function isTmuxSessionNode(value: unknown): value is TmuxSessionNode {
   return isNode(value) && value.kind === "tmuxSession";
+}
+
+export function isTmuxSessionGroupNode(
+  value: unknown
+): value is TmuxSessionGroupNode {
+  return isNode(value) && value.kind === "tmuxSessionGroup";
+}
+
+export function isTerminalNode(value: unknown): value is TerminalNode {
+  return isNode(value) && value.kind === "terminal";
 }
 
 export function isHostNode(value: unknown): value is HostNode {
@@ -98,7 +147,8 @@ export class WorkspaceTreeProvider
 
   constructor(
     private readonly cli: TtCli,
-    private readonly scope: "all" | "current" = "all"
+    private readonly scope: "all" | "current" = "all",
+    private readonly terminalLinks = new TerminalLinkRegistry()
   ) {}
 
   async hosts(reload = false): Promise<TtHost[]> {
@@ -111,6 +161,10 @@ export class WorkspaceTreeProvider
   reload(): void {
     this.hostsCache = undefined;
     this.registryCache.clear();
+    this.changed.fire(undefined);
+  }
+
+  refreshTerminals(): void {
     this.changed.fire(undefined);
   }
 
@@ -165,10 +219,18 @@ export class WorkspaceTreeProvider
         return domainItem(node);
       case "workspace":
         return workspaceItem(node);
+      case "repoGroup":
+        return repoGroupItem(node);
+      case "tmuxSessionGroup":
+        return tmuxSessionGroupItem(node);
+      case "terminalGroup":
+        return terminalGroupItem(node, this.terminalLinks);
       case "repo":
         return repoItem(node);
       case "tmuxSession":
-        return tmuxSessionItem(node);
+        return tmuxSessionItem(node, this.terminalLinks);
+      case "terminal":
+        return terminalItem(node, this.terminalLinks);
       case "message":
         return messageItem(node);
     }
@@ -199,9 +261,16 @@ export class WorkspaceTreeProvider
           return domainChildren(node);
         case "workspace":
           return workspaceChildren(node);
+        case "repoGroup":
+          return repoGroupChildren(node);
+        case "tmuxSessionGroup":
+          return tmuxSessionGroupChildren(node);
+        case "terminalGroup":
+          return terminalGroupChildren(node, this.terminalLinks);
         case "repo":
-          return repoChildren(node);
+          return [];
         case "tmuxSession":
+        case "terminal":
         case "message":
           return [];
       }
@@ -349,9 +418,7 @@ function workspaceItem(node: WorkspaceNode): vscode.TreeItem {
   const tmuxSessions = node.workspace.state.tmux.sessions;
   const item = new vscode.TreeItem(
     reference,
-    node.workspace.repos.length > 0 || tmuxSessions.length > 0
-      ? vscode.TreeItemCollapsibleState.Collapsed
-      : vscode.TreeItemCollapsibleState.None
+    vscode.TreeItemCollapsibleState.Collapsed
   );
   item.contextValue = "workspace";
   item.description = `${node.workspace.repos.length} repo${
@@ -373,24 +440,63 @@ function workspaceItem(node: WorkspaceNode): vscode.TreeItem {
   return item;
 }
 
-function repoItem(node: RepoNode): vscode.TreeItem {
-  const tmuxSessions = sessionsForRepo(node.workspace, node.repo);
+function repoGroupItem(node: RepoGroupNode): vscode.TreeItem {
+  const count = node.workspace.repos.length;
   const item = new vscode.TreeItem(
-    node.repo.name,
-    tmuxSessions.length > 0
+    "Repositories",
+    count > 0
       ? vscode.TreeItemCollapsibleState.Collapsed
       : vscode.TreeItemCollapsibleState.None
   );
+  item.contextValue = "repoGroup";
+  item.description = `${count}`;
+  item.tooltip = `${count} repositor${count === 1 ? "y" : "ies"}`;
+  item.iconPath = new vscode.ThemeIcon("repo");
+  return item;
+}
+
+function tmuxSessionGroupItem(node: TmuxSessionGroupNode): vscode.TreeItem {
+  const count = node.workspace.state.tmux.sessions.length;
+  const item = new vscode.TreeItem(
+    "tmux Sessions",
+    count > 0
+      ? vscode.TreeItemCollapsibleState.Collapsed
+      : vscode.TreeItemCollapsibleState.None
+  );
+  item.contextValue = "tmuxSessionGroup";
+  item.description = `${count}`;
+  item.tooltip = `${count} tmux session${count === 1 ? "" : "s"}`;
+  item.iconPath = new vscode.ThemeIcon("terminal-tmux");
+  return item;
+}
+
+function terminalGroupItem(
+  node: TerminalGroupNode,
+  terminalLinks: TerminalLinkRegistry
+): vscode.TreeItem {
+  const count = terminalsForWorkspace(node, terminalLinks).length;
+  const item = new vscode.TreeItem(
+    "VS Code Terminals",
+    count > 0
+      ? vscode.TreeItemCollapsibleState.Collapsed
+      : vscode.TreeItemCollapsibleState.None
+  );
+  item.contextValue = "terminalGroup";
+  item.description = `${count}`;
+  item.tooltip = `${count} open VS Code terminal${count === 1 ? "" : "s"}`;
+  item.iconPath = new vscode.ThemeIcon("terminal");
+  return item;
+}
+
+function repoItem(node: RepoNode): vscode.TreeItem {
+  const item = new vscode.TreeItem(
+    node.repo.name,
+    vscode.TreeItemCollapsibleState.None
+  );
   item.contextValue = "repo";
-  item.description = `${relativeAge(node.repo.last_accessed)}${
-    tmuxSessions.length > 0 ? ` · ${tmuxSessions.length} tmux` : ""
-  }`;
+  item.description = relativeAge(node.repo.last_accessed);
   item.tooltip = new vscode.MarkdownString(
-    `**${node.repo.name}**  \n${node.host.alias}:${node.repo.path}  \nLast accessed ${relativeAge(node.repo.last_accessed)}${
-      tmuxSessions.length > 0
-        ? `  \ntmux: ${tmuxSessions.map((session) => session.session_name).join(", ")}`
-        : ""
-    }`
+    `**${node.repo.name}**  \n${node.host.alias}:${node.repo.path}  \nLast accessed ${relativeAge(node.repo.last_accessed)}`
   );
   item.iconPath = new vscode.ThemeIcon("repo");
   item.command = {
@@ -401,20 +507,63 @@ function repoItem(node: RepoNode): vscode.TreeItem {
   return item;
 }
 
-function tmuxSessionItem(node: TmuxSessionNode): vscode.TreeItem {
+function tmuxSessionItem(
+  node: TmuxSessionNode,
+  terminalLinks: TerminalLinkRegistry
+): vscode.TreeItem {
+  const openInVsCode = terminalLinks.hasAttachedTerminal(
+    node.host.alias,
+    node.session.session_name
+  );
   const item = new vscode.TreeItem(
     node.session.session_name,
     vscode.TreeItemCollapsibleState.None
   );
   item.contextValue = "tmuxSession";
-  item.description = node.session.pane_current_command;
+  item.description = `${node.session.pane_current_command}${
+    openInVsCode ? " · VS Code" : ""
+  }`;
   item.tooltip = new vscode.MarkdownString(
-    `**${node.session.session_name}**  \n${node.host.alias}:${node.session.pane_current_path}  \nRunning ${node.session.pane_current_command}`
+    `**${node.session.session_name}**  \n${node.host.alias}:${node.session.pane_current_path}  \nRunning ${node.session.pane_current_command}${
+      openInVsCode ? "  \nAttached in a VS Code terminal" : ""
+    }`
   );
   item.iconPath = new vscode.ThemeIcon("terminal-tmux");
   item.command = {
     command: "genoTools.openTmuxSession",
     title: "Reopen tmux Session",
+    arguments: [node]
+  };
+  return item;
+}
+
+function terminalItem(
+  node: TerminalNode,
+  terminalLinks: TerminalLinkRegistry
+): vscode.TreeItem {
+  const link = terminalLinks.linkFor(node.terminal);
+  const location = node.cwd ?? "working directory unavailable";
+  const item = new vscode.TreeItem(
+    node.terminal.name,
+    vscode.TreeItemCollapsibleState.None
+  );
+  item.contextValue = link ? "terminalLinked" : "terminal";
+  item.description = link
+    ? `${location} · tmux: ${link.sessionName}`
+    : location;
+  item.tooltip = new vscode.MarkdownString(
+    `**${node.terminal.name}**  \n${node.cwd ?? "Working directory unavailable"}${
+      link
+        ? `  \nLinked to ${link.hostAlias}/${link.sessionName}${
+            link.kind === "attached" ? " (attached)" : " (recovery source)"
+          }`
+        : "  \nNot linked to tmux"
+    }`
+  );
+  item.iconPath = new vscode.ThemeIcon(link ? "link" : "terminal");
+  item.command = {
+    command: "genoTools.focusTerminal",
+    title: "Focus VS Code Terminal",
     arguments: [node]
   };
   return item;
@@ -463,12 +612,31 @@ function domainChildren(node: DomainNode): WorkspaceNode[] {
 
 function workspaceChildren(
   node: WorkspaceNode
-): Array<TmuxSessionNode | RepoNode> {
-  const sessions = node.workspace.state.tmux.sessions
-    .filter((session) => !repoForSession(node.workspace, session))
-    .sort((left, right) => left.session_name.localeCompare(right.session_name))
-    .map((session) => tmuxSessionNode(node, session));
-  const repos = [...node.workspace.repos]
+): Array<RepoGroupNode | TmuxSessionGroupNode | TerminalGroupNode> {
+  return [
+    {
+      kind: "repoGroup",
+      host: node.host,
+      registry: node.registry,
+      workspace: node.workspace
+    },
+    {
+      kind: "tmuxSessionGroup",
+      host: node.host,
+      registry: node.registry,
+      workspace: node.workspace
+    },
+    {
+      kind: "terminalGroup",
+      host: node.host,
+      registry: node.registry,
+      workspace: node.workspace
+    }
+  ];
+}
+
+function repoGroupChildren(node: RepoGroupNode): RepoNode[] {
+  return [...node.workspace.repos]
     .sort((left, right) => left.name.localeCompare(right.name))
     .map((repo) => ({
       kind: "repo" as const,
@@ -477,35 +645,85 @@ function workspaceChildren(
       workspace: node.workspace,
       repo
     }));
-  return [...sessions, ...repos];
 }
 
-function repoChildren(node: RepoNode): TmuxSessionNode[] {
-  return sessionsForRepo(node.workspace, node.repo)
+function tmuxSessionGroupChildren(
+  node: TmuxSessionGroupNode
+): TmuxSessionNode[] {
+  return [...node.workspace.state.tmux.sessions]
     .sort((left, right) => left.session_name.localeCompare(right.session_name))
     .map((session) => tmuxSessionNode(node, session));
 }
 
-function sessionsForRepo(
-  workspace: TtWorkspace,
-  repo: TtRepo
-): TtTmuxSession[] {
-  return workspace.state.tmux.sessions.filter(
-    (session) => repoForSession(workspace, session)?.path === repo.path
-  );
+function terminalGroupChildren(
+  node: TerminalGroupNode,
+  terminalLinks: TerminalLinkRegistry
+): TerminalNode[] {
+  return terminalsForWorkspace(node, terminalLinks)
+    .sort((left, right) =>
+      left.terminal.name.localeCompare(right.terminal.name) ||
+      (left.cwd ?? "").localeCompare(right.cwd ?? "")
+    )
+    .map(({ terminal, cwd }) => ({
+      kind: "terminal",
+      host: node.host,
+      registry: node.registry,
+      workspace: node.workspace,
+      terminal,
+      cwd
+    }));
 }
 
-function repoForSession(
-  workspace: TtWorkspace,
-  session: TtTmuxSession
-): TtRepo | undefined {
-  return workspace.repos
-    .filter((repo) => pathIsInside(session.pane_current_path, repo.path))
-    .sort((left, right) => right.path.length - left.path.length)[0];
+function terminalsForWorkspace(
+  node: TerminalGroupNode,
+  terminalLinks: TerminalLinkRegistry
+): Array<{ terminal: vscode.Terminal; cwd?: string }> {
+  const currentLocations = currentWorkspaceLocations();
+  return vscode.window.terminals.flatMap((terminal) => {
+    const location = terminalLocation(terminal);
+    const link = terminalLinks.linkFor(terminal);
+    const linkedToWorkspace = link?.hostAlias === node.host.alias &&
+      node.workspace.state.tmux.sessions.some(
+        ({ session_name }) => session_name === link.sessionName
+      );
+    const belongs = linkedToWorkspace || (location
+      ? locationMatchesHost(location, node.host, node.registry) &&
+        pathIsInside(location.path, node.workspace.path)
+      : currentLocations.some(
+          (current) =>
+            locationMatchesHost(current, node.host, node.registry) &&
+            pathIsInside(current.path, node.workspace.path)
+        ));
+    return belongs ? [{ terminal, cwd: location?.path }] : [];
+  });
+}
+
+function terminalLocation(terminal: vscode.Terminal): WorkspaceLocation | undefined {
+  const shellCwd = terminal.shellIntegration?.cwd;
+  if (shellCwd) {
+    return uriLocation(shellCwd);
+  }
+  const options = terminal.creationOptions;
+  if (!("cwd" in options) || options.cwd === undefined) {
+    return undefined;
+  }
+  return typeof options.cwd === "string"
+    ? {
+        path: options.cwd,
+        remote: currentWorkspaceLocations().find(({ remote }) => remote)?.remote
+      }
+    : uriLocation(options.cwd);
+}
+
+function uriLocation(uri: vscode.Uri): WorkspaceLocation {
+  return {
+    path: uri.scheme === "file" ? uri.fsPath : uri.path,
+    remote: remoteName(uri)
+  };
 }
 
 function tmuxSessionNode(
-  parent: WorkspaceNode | RepoNode,
+  parent: TmuxSessionGroupNode,
   session: TtTmuxSession
 ): TmuxSessionNode {
   return {
