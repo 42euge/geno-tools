@@ -3,8 +3,8 @@ name: geno-tools-manager-upgrade
 description: >-
   Upgrade installed geno-* skillsets to their latest main and re-register with
   all agents. Use when the user wants to update/pull the latest skillsets. For
-  updating geno-tools itself, see `update`.
-allowed-tools: "Bash(geno-tools upgrade *)"
+  updating geno-tools itself, see `system update`.
+allowed-tools: "Bash(geno-tools update *)"
 license: MIT
 metadata:
   author: 42euge
@@ -14,7 +14,7 @@ metadata:
 # manager/upgrade — upgrade installed skillsets
 
 ```
-geno-tools upgrade [name]   # one skillset, or all if omitted
+geno-tools update [name]   # one skillset, or all if omitted
 ```
 
 `git pull --ff-only` on each installed skillset's main worktree, then re-register
@@ -23,4 +23,4 @@ worktrees are skipped (reported, not clobbered).
 
 Run `geno-tools status` first to see which skillsets are behind.
 
-> `upgrade` = installed skillsets · `update` = geno-tools itself.
+> `upgrade` = installed skillsets · `system update` = geno-tools itself.

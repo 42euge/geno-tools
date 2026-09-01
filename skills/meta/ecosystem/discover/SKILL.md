@@ -4,7 +4,7 @@ description: >-
   Discover installable geno-* skillsets and write them to the geno-tools
   registry cache. Use when the user wants to find skillsets, when
   `geno-tools install <name>` reports a name isn't in the registry, or when
-  `geno-tools ls --available` is empty. Read-only — finds repos, never installs.
+  `geno-tools discover` is empty. Read-only — finds repos, never installs.
 allowed-tools: "Bash(curl *) Bash(python3 *) Bash(mkdir *) WebSearch Read(*)"
 license: MIT
 metadata:
@@ -55,13 +55,13 @@ Write `~/.geno/registry.json` mapping each kept repo to its clone URL:
 ```
 Use the helper so the shape and path stay canonical:
 ```bash
-python3 -c "from geno_tools import registry; registry.write_cache(<dict>)"
+python3 -c "from geno_tools.skills_manager import registry; registry.write_cache(<dict>)"
 ```
 (or write the JSON directly to `~/.geno/registry.json`).
 
 ### 5. Report
 Print how many skillsets were discovered and that the user can now
-`geno-tools ls --available` / `geno-tools install <name>`.
+`geno-tools discover` / `geno-tools install <name>`.
 
 ## Boundaries
 - **Public repos only.** Unauthenticated curl can't see private repos. Private
