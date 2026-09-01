@@ -152,6 +152,9 @@ Dispatches** sidebar section appears below the existing workspace sections.
 Selecting a dispatch opens its management actions. The section disappears once
 the dispatch is recalled.
 
+See [Remote dispatch manual test](DISPATCH_MANUAL_TEST.md) for a VS Code-only
+dispatch, management, and recall walkthrough.
+
 ## Development
 
 ```sh
