@@ -23,13 +23,10 @@ class GenoTools < Formula
 
   desc "Control plane for AI coding agents: resolve and scope skillset bundles"
   homepage "https://github.com/42euge/geno-tools"
-  version "0.9.0"
+  url "https://github.com/42euge/geno-tools/archive/refs/tags/v0.9.0.tar.gz"
+  sha256 "3d1b741a491d2f23720b7c818ebfd512af9f700b79e67ca985ebd670d40add60"
   license "MIT"
 
-  # TODO(release): pin a tagged tarball + sha256 once v0.9.0 is pushed/tagged.
-  #   url "https://github.com/42euge/geno-tools/archive/refs/tags/v0.9.0.tar.gz"
-  #   sha256 "…"
-  # Until then, build from the default branch:
   head "https://github.com/42euge/geno-tools.git", branch: "main"
 
   depends_on "libyaml"
