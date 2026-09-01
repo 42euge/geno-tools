@@ -3,8 +3,8 @@ name: geno-tools-manager-status
 description: >-
   Show installed geno-* skillsets with version, commit, and drift vs remote
   main. Use when the user asks what's installed, what version, or whether
-  skillsets are out of date. Replaces the old `geno-tools ls`.
-allowed-tools: "Bash(geno-tools status *) Bash(geno-tools ls *)"
+  skillsets are out of date.
+allowed-tools: "Bash(geno-tools status *)"
 license: MIT
 metadata:
   author: 42euge
@@ -33,5 +33,4 @@ States: `● in-sync` · `▼ behind <sha>` · `▲ ahead` · `✗ diverged` · 
 `geno-tools update`. Output is colorized on a terminal and plain ASCII when
 piped or under `NO_COLOR`.
 
-To browse what you *can* install, use `geno-tools available`. (`geno-tools ls`
-is a deprecated alias for `status`.)
+To browse what you *can* install, use `geno-tools discover`.

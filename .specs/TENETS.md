@@ -1,3 +1,0 @@
-# Tenets
-
-> To be defined.

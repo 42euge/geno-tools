@@ -2,7 +2,7 @@
 name: geno-tools-author-skill
 description: >-
   Scaffold a new skill in a geno ecosystem repo. Creates the SKILL.md with
-  proper frontmatter, updates the umbrella skill table and GENO.md skills
+  proper frontmatter, updates the umbrella skill table and AGENTS.md skills
   table. Use when user says /geno-skills-create, wants to add a new skill
   to a geno-* repo, or scaffold a SKILL.md.
 argument-hint: "[skill-name|freeform description]"
@@ -15,7 +15,7 @@ metadata:
 
 # geno-skills-create — Skill Scaffolder
 
-Creates a new skill in a geno ecosystem repo. Handles naming, SKILL.md generation, and updating the umbrella skill and GENO.md so the new skill is wired into the repo.
+Creates a new skill in a geno ecosystem repo. Handles naming, SKILL.md generation, and updating the umbrella skill and AGENTS.md so the new skill is wired into the repo.
 
 ## When to invoke
 
@@ -37,11 +37,11 @@ Creates a new skill in a geno ecosystem repo. Handles naming, SKILL.md generatio
 Check the current working directory for signs of a geno ecosystem repo:
 - Look for `genotools.yaml` at the repo root (or workspace root)
 - Look for a `skills/` directory
-- Look for `GENO.md` or `SKILL.md` at root
+- Look for `AGENTS.md` or `SKILL.md` at root
 
 If inside a workspace (has `.geno/.workspace/workspace.yaml`), check `repos:` to find the target repo.
 
-If no geno repo is detected, use `AskUserQuestion` to ask which repo to target. Accept a path, a skillset name (resolved via `geno-tools ls`), or a GitHub URL.
+If no geno repo is detected, use `AskUserQuestion` to ask which repo to target. Accept a path, a skillset name (resolved via `geno-tools discover`), or a GitHub URL.
 
 Once identified, record:
 - `$REPO_ROOT` — absolute path to the repo root
@@ -57,7 +57,7 @@ ls "$REPO_ROOT/skills/"
 
 For each existing skill directory, read its SKILL.md frontmatter to extract `name` and `description`. Build a table of existing skills for reference.
 
-Also read `$REPO_ROOT/GENO.md` (if it exists) to find the skills table.
+Also read `$REPO_ROOT/AGENTS.md` (if it exists) to find the skills table.
 
 ### 3. Determine skill type
 
@@ -200,9 +200,9 @@ If the umbrella doesn't have a skills table, add one:
 
 If it already has a table, append the new row in alphabetical order by skill name.
 
-### 8. Update GENO.md
+### 8. Update AGENTS.md
 
-If `$REPO_ROOT/GENO.md` exists:
+If `$REPO_ROOT/AGENTS.md` exists:
 - Find the skills table (look for a table with columns like "Skill", "Sub-skillset", "Slash command")
 - Add a row for the new skill:
   ```
@@ -210,7 +210,7 @@ If `$REPO_ROOT/GENO.md` exists:
   ```
 - Insert in alphabetical order within the sub-skillset group
 
-If `GENO.md` doesn't exist, skip this step and note it in the report.
+If `AGENTS.md` doesn't exist, skip this step and note it in the report.
 
 ### 9. Update the umbrella SKILL.md description
 
@@ -222,7 +222,7 @@ Tell the user:
 
 - Created `skills/{skill-name}/SKILL.md`
 - Updated umbrella skill at `skills/{skillset}/SKILL.md`
-- Updated `GENO.md` skills table (or "GENO.md not found — update manually")
+- Updated `AGENTS.md` skills table (or "AGENTS.md not found — update manually")
 - Reminder: after fleshing out the skill body, re-register with `geno-tools update {skillset}` or reinstall to pick up the new skill in agent sessions
 
 ## Don'ts

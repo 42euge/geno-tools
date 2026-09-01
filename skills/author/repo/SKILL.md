@@ -2,7 +2,7 @@
 name: geno-tools-author-repo
 description: >-
   Scaffold a new geno ecosystem skillset repo from scratch. Creates the full
-  directory structure (genotools.yaml, GENO.md, CLAUDE.md, umbrella SKILL.md,
+  directory structure (genotools.yaml, AGENTS.md, umbrella SKILL.md,
   docs, specs, CI) and initializes git. Use when user says
   /geno-tools-create-skillset-repo, wants to create a new geno-* repo, or
   bootstrap a new skillset from scratch.
@@ -45,7 +45,7 @@ If `$ARGUMENTS` is freeform or empty, ask:
 Construct `geno-{slug}` from the answer. The slug must be:
 - Lowercase, hyphen-separated if multi-word
 - A noun or noun phrase (not a verb)
-- Not already taken — check with `geno-tools ls --available 2>/dev/null` and `ls ~/.geno-tools/`
+- Not already taken — check with `geno-tools discover 2>/dev/null` and `ls ~/.geno-tools/`
 
 Record:
 - `$NAME` — the bare slug (e.g. `career`)
@@ -59,7 +59,7 @@ Use `AskUserQuestion` to collect:
 
 From the description, draft:
 - `$DESCRIPTION` — one-line description for genotools.yaml and README
-- `$LONG_DESCRIPTION` — opening paragraph for GENO.md
+- `$LONG_DESCRIPTION` — opening paragraph for AGENTS.md
 
 Ask the user to confirm or edit.
 
@@ -110,8 +110,7 @@ $REPO/
 │   └── $REPO/
 │       └── SKILL.md          # umbrella skill
 ├── .gitignore
-├── CLAUDE.md
-├── GENO.md
+├── AGENTS.md
 ├── README.md
 ├── SKILL.md                  # symlink -> skills/$REPO/SKILL.md
 ├── genotools.yaml
@@ -140,7 +139,7 @@ requires:
   - $DEP2
 ```
 
-#### 5b. `GENO.md`
+#### 5b. `AGENTS.md`
 
 ```markdown
 # $REPO — $TITLE
@@ -157,7 +156,7 @@ $LONG_DESCRIPTION
 
 ```
 $REPO/
-├── GENO.md
+├── AGENTS.md
 ├── SKILL.md -> skills/$REPO/SKILL.md
 ├── genotools.yaml
 └── skills/
@@ -165,13 +164,7 @@ $REPO/
 ```
 ```
 
-#### 5c. `CLAUDE.md`
-
-```
-@./GENO.md
-```
-
-#### 5d. `.gitignore`
+#### 5c. `.gitignore`
 
 ```
 __pycache__/
@@ -179,7 +172,7 @@ __pycache__/
 .geno/
 ```
 
-#### 5e. `README.md`
+#### 5d. `README.md`
 
 ```markdown
 # $REPO
@@ -197,7 +190,7 @@ geno-tools install $REPO
 ```
 ```
 
-#### 5f. `skills/$REPO/SKILL.md` (umbrella)
+#### 5e. `skills/$REPO/SKILL.md` (umbrella)
 
 ```markdown
 ---
@@ -220,13 +213,13 @@ $LONG_DESCRIPTION
 | $REPO | /$REPO | Umbrella — lists available skills |
 ```
 
-#### 5g. `SKILL.md` (root symlink)
+#### 5f. `SKILL.md` (root symlink)
 
 ```bash
 ln -s skills/$REPO/SKILL.md SKILL.md
 ```
 
-#### 5h. `mkdocs.yml`
+#### 5g. `mkdocs.yml`
 
 ```yaml
 site_name: $REPO
@@ -297,7 +290,7 @@ extra:
   generator: false
 ```
 
-#### 5i. `docs/index.md`
+#### 5h. `docs/index.md`
 
 ```markdown
 # $REPO
@@ -320,7 +313,7 @@ See [Getting Started](getting-started.md) for usage instructions.
 - [Docs](https://42euge.github.io/$REPO/)
 ```
 
-#### 5j. `docs/getting-started.md`
+#### 5i. `docs/getting-started.md`
 
 ```markdown
 # Getting Started
@@ -340,7 +333,7 @@ geno-tools install $REPO
 Run `/$REPO` in Claude Code to get started.
 ```
 
-#### 5k. `docs/stylesheets/extra.css`
+#### 5j. `docs/stylesheets/extra.css`
 
 ```css
 :root {
@@ -365,7 +358,7 @@ Run `/$REPO` in Claude Code to get started.
 }
 ```
 
-#### 5l. `.specs/VISION.md`
+#### 5k. `.specs/VISION.md`
 
 ```markdown
 # Vision
@@ -381,7 +374,7 @@ $DESCRIPTION
 <!-- What does the world look like when $REPO succeeds? -->
 ```
 
-#### 5m. `.specs/GOALS.md`
+#### 5l. `.specs/GOALS.md`
 
 ```markdown
 # Goals
@@ -401,7 +394,7 @@ Current goals for $REPO. Review and update regularly.
 - <!-- Moved here when deprioritized -->
 ```
 
-#### 5n. `.specs/TENETS.md`
+#### 5m. `.specs/TENETS.md`
 
 ```markdown
 # Tenets
@@ -413,7 +406,7 @@ Architectural principles that guide development decisions in $REPO. When tenets 
 3. **<!-- Tenet 3 -->** — <!-- Description -->
 ```
 
-#### 5o. `.specs/features/` (empty directory)
+#### 5n. `.specs/features/` (empty directory)
 
 Create with a `.gitkeep`:
 
@@ -421,7 +414,7 @@ Create with a `.gitkeep`:
 mkdir -p .specs/features && touch .specs/features/.gitkeep
 ```
 
-#### 5p. `.github/workflows/docs.yml`
+#### 5o. `.github/workflows/docs.yml`
 
 ```yaml
 name: Deploy docs to GitHub Pages
@@ -465,7 +458,7 @@ jobs:
         id: deployment
 ```
 
-#### 5q. `pyproject.toml` (only if `$HAS_PYTHON`)
+#### 5p. `pyproject.toml` (only if `$HAS_PYTHON`)
 
 ```toml
 [build-system]
@@ -481,7 +474,7 @@ license = "MIT"
 authors = [{ name = "42euge" }]
 ```
 
-#### 5r. Python package (only if `$HAS_PYTHON`)
+#### 5q. Python package (only if `$HAS_PYTHON`)
 
 Create `${REPO_UNDERSCORE}/__init__.py` where `$REPO_UNDERSCORE` is `$REPO` with hyphens replaced by underscores (e.g. `geno_career`):
 
@@ -520,8 +513,7 @@ Created $REPO at $TARGET_DIR/$REPO
 
 Files:
   genotools.yaml          — install manifest
-  GENO.md                 — agent instructions
-  CLAUDE.md               — Claude Code pointer
+  AGENTS.md               — agent instructions (read by every agent)
   SKILL.md                — symlink to umbrella skill
   skills/$REPO/SKILL.md   — umbrella skill definition
   mkdocs.yml              — documentation site config
@@ -544,7 +536,7 @@ Next steps:
 - Don't scaffold skills beyond the umbrella — use `/geno-skills-create` for that.
 - Don't overwrite an existing repo directory without asking.
 - Don't commit `.geno/` or `CLAUDE.local.md` in the initial commit.
-- Don't create GEMINI.md or AGENTS.md — these are not currently used in the ecosystem and would be stale pointers.
+- Don't create GENO.md, CLAUDE.md, or GEMINI.md — `AGENTS.md` is the single instruction file every agent reads; pointer stubs are retired.
 - Don't invent skill content in the umbrella — it should just list available skills (which starts as just itself).
 - Don't hardcode a GitHub org other than `42euge` without asking.
 

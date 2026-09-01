@@ -4,7 +4,7 @@ description: >-
   Find and list installable geno-* skillsets, grouped by category, with
   ✓ installed markers. Use when the user wants to browse, find, or discover
   skillsets to install. Replaces `geno-tools available`.
-allowed-tools: "Bash(geno-tools discover *) Bash(geno-tools ls *)"
+allowed-tools: "Bash(geno-tools discover *)"
 license: MIT
 metadata:
   author: 42euge
