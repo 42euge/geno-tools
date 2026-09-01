@@ -2,7 +2,8 @@
 name: geno-tools
 description: >-
   Geno skillset lifecycle and dependency manager. Use when the user asks about
-  discovering, installing, removing, or updating geno skillsets.
+  discovering, installing, removing, or updating geno skillsets, or making the
+  current coding-agent session persistent in tmux.
 allowed-tools: "Bash(geno-tools *) Bash(python3 -m geno_tools *)"
 metadata:
   author: 42euge
@@ -25,6 +26,7 @@ which geno-tools >/dev/null 2>&1 || echo "geno-tools CLI not on PATH — run /ge
 |----------|--------|
 | **manager/** | `status` · `discover` · `install` · `remove` · `upgrade` |
 | **system/** | `update` — manage the geno-tools installation itself |
+| **session/** | `persist` — resume the current agent conversation inside tmux |
 | **meta/ecosystem/** | `discover` · `scan` · `onboarding` — find/absorb new skillsets |
 | **author/** | `skill` · `repo` — scaffold a skill / a whole skillset repo |
 | **config/** | `show` · `set` — read/write `~/.geno/config.yaml` |
