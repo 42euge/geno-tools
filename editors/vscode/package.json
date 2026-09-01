@@ -1,0 +1,232 @@
+{
+  "name": "geno-tools-tt-workspaces",
+  "displayName": "Geno Tools: TT Workspaces",
+  "description": "Browse and manage local and remote TT workspaces from VS Code.",
+  "version": "0.1.0",
+  "publisher": "42euge",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "geno-tools",
+    "tt",
+    "workspace",
+    "worktree",
+    "remote ssh"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/42euge/geno-tools.git"
+  },
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onView:genoTools.workspaces",
+    "onView:genoTools.currentWorkspace"
+  ],
+  "scripts": {
+    "build": "node esbuild.js --production",
+    "check": "tsc --noEmit",
+    "dev": "node esbuild.js --watch",
+    "test": "tsx --test src/test/*.test.ts",
+    "package": "npm run check && npm test && npm run build && vsce package --no-dependencies"
+  },
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "genoTools",
+          "title": "Geno Tools",
+          "icon": "resources/geno-tools.svg"
+        }
+      ]
+    },
+    "views": {
+      "genoTools": [
+        {
+          "id": "genoTools.currentWorkspace",
+          "name": "Current Workspace"
+        },
+        {
+          "id": "genoTools.workspaces",
+          "name": "All Workspaces"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "genoTools.refreshWorkspaces",
+        "title": "Geno Tools: Rescan TT Workspaces",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "genoTools.reloadWorkspaces",
+        "title": "Geno Tools: Reload TT Workspace View"
+      },
+      {
+        "command": "genoTools.createWorkspace",
+        "title": "Geno Tools: Create TT Workspace"
+      },
+      {
+        "command": "genoTools.createTmuxSession",
+        "title": "Geno Tools: Resume tmux Session in Workspace",
+        "icon": "$(add)"
+      },
+      {
+        "command": "genoTools.openTmuxSession",
+        "title": "Geno Tools: Reopen tmux Session",
+        "icon": "$(terminal-tmux)"
+      },
+      {
+        "command": "genoTools.openWorkspace",
+        "title": "Geno Tools: Open Workspace",
+        "icon": "$(folder-opened)"
+      },
+      {
+        "command": "genoTools.openRepo",
+        "title": "Geno Tools: Open Repository",
+        "icon": "$(folder-opened)"
+      },
+      {
+        "command": "genoTools.copyPath",
+        "title": "Geno Tools: Copy Path"
+      },
+      {
+        "command": "genoTools.mirrorWorkspace",
+        "title": "Geno Tools: Mirror Workspace to Host"
+      },
+      {
+        "command": "genoTools.createWorktree",
+        "title": "Geno Tools: Create Whole-Workspace Worktree"
+      },
+      {
+        "command": "genoTools.listWorktrees",
+        "title": "Geno Tools: List Whole-Workspace Worktrees"
+      },
+      {
+        "command": "genoTools.removeWorktree",
+        "title": "Geno Tools: Remove Whole-Workspace Worktree"
+      },
+      {
+        "command": "genoTools.showReport",
+        "title": "Geno Tools: Show Cross-Host TT Report"
+      },
+      {
+        "command": "genoTools.showOutput",
+        "title": "Geno Tools: Show TT Output"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "genoTools.createTmuxSession",
+          "when": "view == genoTools.workspaces",
+          "group": "navigation@1"
+        },
+        {
+          "command": "genoTools.createTmuxSession",
+          "when": "view == genoTools.currentWorkspace",
+          "group": "navigation@1"
+        },
+        {
+          "command": "genoTools.refreshWorkspaces",
+          "when": "view == genoTools.workspaces",
+          "group": "navigation@2"
+        },
+        {
+          "command": "genoTools.refreshWorkspaces",
+          "when": "view == genoTools.currentWorkspace",
+          "group": "navigation@2"
+        },
+        {
+          "command": "genoTools.showReport",
+          "when": "view == genoTools.workspaces",
+          "group": "navigation@3"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "genoTools.createTmuxSession",
+          "when": "(view == genoTools.workspaces || view == genoTools.currentWorkspace) && viewItem == workspace",
+          "group": "inline@1"
+        },
+        {
+          "command": "genoTools.openWorkspace",
+          "when": "(view == genoTools.workspaces || view == genoTools.currentWorkspace) && viewItem == workspace",
+          "group": "inline@2"
+        },
+        {
+          "command": "genoTools.openRepo",
+          "when": "(view == genoTools.workspaces || view == genoTools.currentWorkspace) && viewItem == repo",
+          "group": "inline@1"
+        },
+        {
+          "command": "genoTools.openTmuxSession",
+          "when": "(view == genoTools.workspaces || view == genoTools.currentWorkspace) && viewItem == tmuxSession",
+          "group": "inline@1"
+        },
+        {
+          "command": "genoTools.refreshWorkspaces",
+          "when": "view == genoTools.workspaces && viewItem == host",
+          "group": "inline@2"
+        },
+        {
+          "command": "genoTools.createWorkspace",
+          "when": "view == genoTools.workspaces && viewItem == host",
+          "group": "navigation@1"
+        },
+        {
+          "command": "genoTools.copyPath",
+          "when": "(view == genoTools.workspaces || view == genoTools.currentWorkspace) && (viewItem == workspace || viewItem == repo)",
+          "group": "navigation@1"
+        },
+        {
+          "command": "genoTools.createWorktree",
+          "when": "(view == genoTools.workspaces || view == genoTools.currentWorkspace) && viewItem == workspace",
+          "group": "worktrees@1"
+        },
+        {
+          "command": "genoTools.listWorktrees",
+          "when": "(view == genoTools.workspaces || view == genoTools.currentWorkspace) && viewItem == workspace",
+          "group": "worktrees@2"
+        },
+        {
+          "command": "genoTools.removeWorktree",
+          "when": "(view == genoTools.workspaces || view == genoTools.currentWorkspace) && viewItem == workspace",
+          "group": "worktrees@3"
+        },
+        {
+          "command": "genoTools.mirrorWorkspace",
+          "when": "(view == genoTools.workspaces || view == genoTools.currentWorkspace) && viewItem == workspace",
+          "group": "remote@1"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Geno Tools",
+      "properties": {
+        "genoTools.ttPath": {
+          "type": "string",
+          "default": "tt",
+          "description": "Path to the TT executable. The extension also checks ~/.local/bin/tt when the default is not on VS Code's PATH."
+        },
+        "genoTools.openInNewWindow": {
+          "type": "boolean",
+          "default": true,
+          "description": "Open TT workspaces and repositories in a new VS Code window."
+        }
+      }
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/vscode": "^1.96.0",
+    "@vscode/vsce": "^3.2.1",
+    "esbuild": "^0.25.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}
