@@ -17,9 +17,9 @@ metadata:
 geno-tools update [name]   # one skillset, or all if omitted
 ```
 
-`git pull --ff-only` on each installed skillset's main worktree, then re-register
-its skills with every agent so new/renamed skills surface. Dirty or diverged
-worktrees are skipped (reported, not clobbered).
+`git pull --ff-only` on each installed skillset's main worktree, removes skill
+registrations retired by the update, then re-registers the current skills with
+every agent. Dirty or diverged worktrees are skipped (reported, not clobbered).
 
 Run `geno-tools status` first to see which skillsets are behind.
 

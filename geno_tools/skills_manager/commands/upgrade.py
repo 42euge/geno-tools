@@ -11,7 +11,9 @@ from .. import paths
 from .install import (
     _create_venv_if_needed,
     _detect_default_branch,
+    _enumerate_registered_skills,
     _install_skills_via_npx,
+    _uninstall_skill_names_via_npx,
 )
 
 
@@ -80,6 +82,8 @@ def _update_one(full: str) -> _UpdateResult:
             f"on branch '{current_branch}', not '{default_branch}'",
         )
 
+    old_skills = set(_enumerate_registered_skills(full))
+
     try:
         old_rev = subprocess.check_output(
             ["git", "-C", str(worktree), "rev-parse", "HEAD"], text=True
@@ -118,6 +122,10 @@ def _update_one(full: str) -> _UpdateResult:
         return _UpdateResult(full, "up-to-date", old_rev=old_rev[:8])
 
     _maybe_reinstall_venv(full, old_rev, new_rev)
+    retired_skills = sorted(
+        old_skills - set(_enumerate_registered_skills(full))
+    )
+    _uninstall_skill_names_via_npx(retired_skills)
     _install_skills_via_npx(full)
     return _UpdateResult(
         full, "updated", old_rev=old_rev[:8], new_rev=new_rev[:8]

@@ -257,7 +257,11 @@ def _install_skills_via_npx(full: str, agent: str = "*") -> None:
 
 
 def _uninstall_skills_via_npx(full: str) -> None:
-    skill_names = _enumerate_skills(full)
+    _uninstall_skill_names_via_npx(_enumerate_skills(full))
+
+
+def _uninstall_skill_names_via_npx(skill_names: list[str]) -> None:
+    skill_names = sorted(set(skill_names))
     if not skill_names:
         return
     print(f"  uninstalling {len(skill_names)} skill(s) via npx skills")
@@ -311,10 +315,16 @@ def _enumerate_skill_dirs(full: str) -> list[Path]:
 def _enumerate_skills(full: str) -> list[str]:
     active = paths.skillset_active(full)
     directories = _enumerate_skill_dirs(full)
-    names = [
-        _skill_name(directory, full if directory == active else directory.name)
-        for directory in directories
-    ]
+    names = _enumerate_registered_skills(full)
     if (active / "SKILL.md").exists() and active not in directories:
         names.insert(0, full)
     return names
+
+
+def _enumerate_registered_skills(full: str) -> list[str]:
+    """Return exactly the names registered by `_install_skills_via_npx`."""
+    active = paths.skillset_active(full)
+    return [
+        _skill_name(directory, full if directory == active else directory.name)
+        for directory in _enumerate_skill_dirs(full)
+    ]
