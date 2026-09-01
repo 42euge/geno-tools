@@ -4,28 +4,50 @@ import { basename, join } from "node:path";
 
 import * as vscode from "vscode";
 
+import { loadAgentRuntimeConfig } from "./agentConfig";
+import {
+  captureTerminalHistory,
+  proposeRecovery,
+  RecoveryContext,
+  RecoveryProposal
+} from "./agentRecovery";
+import {
+  AgentSessionMatch,
+  agentResumeCommand,
+  findAgentSessionMatches
+} from "./agentSessions";
 import { TRACK_ORDER, TtHost, TtWorkspace, workspaceReference } from "./model";
+import { TerminalLinkRegistry } from "./terminalLinks";
 import { TtCli } from "./ttCli";
 import {
   HostNode,
   isHostNode,
+  isRepoGroupNode,
   isRepoNode,
+  isTerminalNode,
+  isTmuxSessionGroupNode,
   isTmuxSessionNode,
   isWorkspaceNode,
+  RepoGroupNode,
   RepoNode,
+  TmuxSessionGroupNode,
   TmuxSessionNode,
+  TerminalNode,
   WorkspaceNode,
   WorkspaceTreeProvider
 } from "./workspaceTree";
 
 const SAFE_SEGMENT = /^[a-z0-9][a-z0-9-]*$/;
+const SAFE_REPO = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
 const SAFE_WORKTREE = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
+const SAFE_TMUX_SESSION = /^[A-Za-z0-9][A-Za-z0-9_-]*$/;
 
 export function activate(context: vscode.ExtensionContext): void {
   const output = vscode.window.createOutputChannel("Geno Tools: TT");
   const cli = new TtCli(output);
-  const provider = new WorkspaceTreeProvider(cli);
-  const currentProvider = new WorkspaceTreeProvider(cli, "current");
+  const terminalLinks = new TerminalLinkRegistry();
+  const provider = new WorkspaceTreeProvider(cli, "all", terminalLinks);
+  const currentProvider = new WorkspaceTreeProvider(cli, "current", terminalLinks);
   const tree = vscode.window.createTreeView("genoTools.workspaces", {
     treeDataProvider: provider,
     showCollapseAll: true
@@ -33,14 +55,28 @@ export function activate(context: vscode.ExtensionContext): void {
   const currentTree = vscode.window.createTreeView("genoTools.currentWorkspace", {
     treeDataProvider: currentProvider
   });
+  const buildDescription = extensionBuildDescription(context);
+  tree.description = buildDescription;
+  currentTree.description = buildDescription;
+  const refreshTerminalViews = (): void => {
+    provider.refreshTerminals();
+    currentProvider.refreshTerminals();
+  };
 
   context.subscriptions.push(
     output,
+    terminalLinks,
     provider,
     currentProvider,
     tree,
     currentTree,
-    vscode.workspace.onDidChangeWorkspaceFolders(() => currentProvider.reload())
+    vscode.workspace.onDidChangeWorkspaceFolders(() => currentProvider.reload()),
+    vscode.window.onDidOpenTerminal(refreshTerminalViews),
+    vscode.window.onDidCloseTerminal((terminal) => {
+      terminalLinks.forget(terminal);
+      refreshTerminalViews();
+    }),
+    vscode.window.onDidChangeTerminalShellIntegration(refreshTerminalViews)
   );
   register(context, "genoTools.reloadWorkspaces", async () => {
     provider.reload();
@@ -50,6 +86,9 @@ export function activate(context: vscode.ExtensionContext): void {
     const host = isHostNode(node) ? node.host : undefined;
     await refreshWorkspaces(cli, [provider, currentProvider], host);
   });
+  register(context, "genoTools.refreshTerminals", async () => {
+    refreshTerminalViews();
+  });
   register(context, "genoTools.createWorkspace", async (node?: unknown) => {
     await createWorkspace(
       cli,
@@ -58,25 +97,74 @@ export function activate(context: vscode.ExtensionContext): void {
     );
   });
   register(context, "genoTools.createTmuxSession", async (node?: unknown) => {
-    const workspace = isWorkspaceNode(node)
+    const selected = isTmuxSessionGroupNode(node) || isWorkspaceNode(node)
       ? node
-      : tree.selection.find(isWorkspaceNode) ??
-        currentTree.selection.find(isWorkspaceNode) ??
-        (await currentProvider.currentWorkspace()) ??
-        (await pickWorkspace(cli, provider));
+      : undefined;
+    const workspace = selected ??
+      tree.selection.find(isWorkspaceNode) ??
+      currentTree.selection.find(isWorkspaceNode) ??
+      (await currentProvider.currentWorkspace()) ??
+      (await pickWorkspace(cli, provider));
     if (workspace) {
-      await resumeTmuxSession(cli, workspace);
+      await createTmuxSession(
+        cli,
+        [provider, currentProvider],
+        terminalLinks,
+        workspace
+      );
+    }
+  });
+  register(context, "genoTools.createRepo", async (node?: unknown) => {
+    const workspace = (isRepoGroupNode(node) ? node : undefined) ??
+      tree.selection.find(isRepoGroupNode) ??
+      currentTree.selection.find(isRepoGroupNode) ??
+      (await currentProvider.currentWorkspace()) ??
+      (await pickWorkspace(cli, provider));
+    if (workspace) {
+      await createRepo(cli, [provider, currentProvider], workspace);
     }
   });
   register(context, "genoTools.openTmuxSession", async (node?: unknown) => {
     if (isTmuxSessionNode(node)) {
-      await openTmuxSession(cli, node);
+      await openTmuxSession(cli, terminalLinks, node);
+      refreshTerminalViews();
+    }
+  });
+  register(context, "genoTools.deleteTmuxSession", async (node?: unknown) => {
+    if (isTmuxSessionNode(node)) {
+      await deleteTmuxSession(
+        cli,
+        [provider, currentProvider],
+        terminalLinks,
+        node
+      );
+    }
+  });
+  register(context, "genoTools.focusTerminal", async (node?: unknown) => {
+    if (isTerminalNode(node)) {
+      node.terminal.show();
+    }
+  });
+  register(context, "genoTools.recoverTerminalInTmux", async (node?: unknown) => {
+    if (isTerminalNode(node)) {
+      await recoverTerminalInTmux(
+        cli,
+        [provider, currentProvider],
+        terminalLinks,
+        node
+      );
     }
   });
   register(context, "genoTools.openWorkspace", async (node?: unknown) => {
     const workspace = isWorkspaceNode(node) ? node : await pickWorkspace(cli, provider);
     if (workspace) {
-      await openWorkspace(workspace);
+      await openWorkspace(workspace, false);
+    }
+  });
+  register(context, "genoTools.openWorkspaceInNewWindow", async (node?: unknown) => {
+    const workspace = isWorkspaceNode(node) ? node : await pickWorkspace(cli, provider);
+    if (workspace) {
+      await openWorkspace(workspace, true);
     }
   });
   register(context, "genoTools.openRepo", async (node?: unknown) => {
@@ -128,6 +216,16 @@ export function activate(context: vscode.ExtensionContext): void {
 }
 
 export function deactivate(): void {}
+
+function extensionBuildDescription(context: vscode.ExtensionContext): string {
+  const version = typeof __GENO_TOOLS_VERSION__ === "string"
+    ? __GENO_TOOLS_VERSION__
+    : String(context.extension?.packageJSON?.version ?? "development");
+  const builtAt = typeof __GENO_TOOLS_BUILD_DATETIME__ === "string"
+    ? __GENO_TOOLS_BUILD_DATETIME__
+    : "development";
+  return `v${version} · built ${builtAt}`;
+}
 
 function register(
   context: vscode.ExtensionContext,
@@ -221,21 +319,120 @@ async function createWorkspace(
   }
 }
 
-async function resumeTmuxSession(cli: TtCli, node: WorkspaceNode): Promise<void> {
-  const reference = workspaceReference(node.workspace);
-  const terminal = vscode.window.createTerminal({
-    name: `TT: ${node.host.alias}/${reference}`,
-    cwd: homedir()
+async function createRepo(
+  cli: TtCli,
+  providers: readonly WorkspaceTreeProvider[],
+  node: WorkspaceNode | RepoGroupNode
+): Promise<void> {
+  const name = await vscode.window.showInputBox({
+    title: `Create Repository in ${workspaceReference(node.workspace)}`,
+    prompt: "Enter a name for the empty Git repository",
+    placeHolder: node.workspace.name,
+    validateInput: (value) => {
+      const candidate = value.trim();
+      if (!SAFE_REPO.test(candidate)) {
+        return "Use letters, digits, periods, hyphens, or underscores.";
+      }
+      return node.workspace.repos.some((repo) => repo.name === candidate)
+        ? `Repository '${candidate}' already exists in this workspace.`
+        : undefined;
+    }
   });
-  terminal.show();
-  terminal.sendText(await cli.resumeTmuxCommand(node.host, node.workspace.id));
+  if (!name) {
+    return;
+  }
+  await cli.createRepository(
+    node.host,
+    node.registry.host,
+    node.workspace.path,
+    name.trim()
+  );
+  await cli.refreshRegistry(node.host);
+  for (const provider of providers) {
+    provider.invalidateHost(node.host);
+  }
 }
 
-async function openTmuxSession(cli: TtCli, node: TmuxSessionNode): Promise<void> {
+async function createTmuxSession(
+  cli: TtCli,
+  providers: readonly WorkspaceTreeProvider[],
+  terminalLinks: TerminalLinkRegistry,
+  node: WorkspaceNode | TmuxSessionGroupNode
+): Promise<void> {
+  const reference = workspaceReference(node.workspace);
+  const input = await vscode.window.showInputBox({
+    title: `New tmux Session in ${reference}`,
+    prompt: "Enter a session name, or leave blank to generate the next available name",
+    placeHolder: nextTmuxSessionName(node.workspace),
+    validateInput: (value) => {
+      const name = value.trim();
+      return name.length === 0 || SAFE_TMUX_SESSION.test(name)
+        ? undefined
+        : "Use letters, digits, hyphens, or underscores; periods and colons are not allowed.";
+    }
+  });
+  if (input === undefined) {
+    return;
+  }
+  const sessionName = input.trim() || nextTmuxSessionName(node.workspace);
+  await cli.createTmuxSession(
+    node.host,
+    node.registry.host,
+    node.workspace.path,
+    sessionName
+  );
+  await cli.refreshRegistry(node.host);
+  for (const provider of providers) {
+    provider.invalidateHost(node.host);
+  }
+  const terminal = vscode.window.createTerminal({
+    name: `TT: ${node.host.alias}/${sessionName}`,
+    cwd: homedir()
+  });
+  terminalLinks.markAttached(terminal, node.host.alias, sessionName);
+  for (const provider of providers) {
+    provider.refreshTerminals();
+  }
+  terminal.show();
+  terminal.sendText(
+    await cli.openTmuxCommand(
+      node.host,
+      node.workspace.path,
+      sessionName
+    )
+  );
+}
+
+function nextTmuxSessionName(workspace: TtWorkspace): string {
+  const base = `ws-${workspace.name}`;
+  const existing = new Set(
+    workspace.state.tmux.sessions.map((session) => session.session_name)
+  );
+  if (!existing.has(base)) {
+    return base;
+  }
+  for (let index = 2; ; index += 1) {
+    const candidate = `${base}-${index}`;
+    if (!existing.has(candidate)) {
+      return candidate;
+    }
+  }
+}
+
+async function openTmuxSession(
+  cli: TtCli,
+  terminalLinks: TerminalLinkRegistry,
+  node: TmuxSessionNode
+): Promise<void> {
   const terminal = vscode.window.createTerminal({
     name: `TT: ${node.host.alias}/${node.session.session_name}`,
     cwd: homedir()
   });
+  terminalLinks.markAttached(
+    terminal,
+    node.host.alias,
+    node.session.session_name
+  );
   terminal.show();
   terminal.sendText(
     await cli.openTmuxCommand(
@@ -244,6 +441,247 @@ async function openTmuxSession(cli: TtCli, node: TmuxSessionNode): Promise<void>
       node.session.session_name
     )
   );
+}
+
+async function deleteTmuxSession(
+  cli: TtCli,
+  providers: readonly WorkspaceTreeProvider[],
+  terminalLinks: TerminalLinkRegistry,
+  node: TmuxSessionNode
+): Promise<void> {
+  const confirmation = await vscode.window.showWarningMessage(
+    `Delete tmux session '${node.session.session_name}'?`,
+    {
+      modal: true,
+      detail:
+        `This stops every process running in the session on ${node.host.alias}. This cannot be undone.`
+    },
+    "Delete tmux Session"
+  );
+  if (confirmation !== "Delete tmux Session") {
+    return;
+  }
+
+  await cli.killTmuxSession(
+    node.host,
+    node.registry.host,
+    node.session.session_name
+  );
+  terminalLinks.unlinkSession(node.host.alias, node.session.session_name);
+  await cli.refreshRegistry(node.host);
+  for (const provider of providers) {
+    provider.invalidateHost(node.host);
+  }
+}
+
+async function recoverTerminalInTmux(
+  cli: TtCli,
+  providers: readonly WorkspaceTreeProvider[],
+  terminalLinks: TerminalLinkRegistry,
+  node: TerminalNode
+): Promise<void> {
+  if (terminalLinks.linkFor(node.terminal)) {
+    void vscode.window.showInformationMessage(
+      `${node.terminal.name} is already linked to a tmux session.`
+    );
+    return;
+  }
+
+  const extensionConfig = vscode.workspace.getConfiguration("genoTools");
+  const runtime = await loadAgentRuntimeConfig({
+    configPath: extensionConfig.get<string>(
+      "agentConfigPath",
+      "~/.geno/config.yaml"
+    ),
+    modelOverride: extensionConfig.get<string>("agentModel", "")
+  });
+  const endpointLabel = runtime.endpoint ?? "https://api.openai.com/v1";
+
+  const consent = await vscode.window.showWarningMessage(
+    "Send this terminal's recent history to OpenAI for tmux recovery?",
+    {
+      modal: true,
+      detail:
+        `Geno Tools will select at most 60,000 characters spanning the full available scrollback, match it locally against saved Claude and Codex sessions, ask an OpenAI Agents SDK planner only for a name and summary, and restore your clipboard. No tmux session is created without a verified saved session. Review or rename the proposal before anything is created.\n\nEndpoint: ${endpointLabel}\nModel: ${runtime.model}\nCredential: ${runtime.apiKeyEnv}`
+    },
+    "Scan History"
+  );
+  if (consent !== "Scan History") {
+    return;
+  }
+
+  const history = await captureTerminalHistory(node.terminal);
+  const recoveryContext: RecoveryContext = {
+    terminalName: node.terminal.name,
+    hostAlias: node.host.alias,
+    workspacePath: node.workspace.path,
+    currentDirectory: node.cwd,
+    existingSessionNames: node.workspace.state.tmux.sessions.map(
+      ({ session_name }) => session_name
+    )
+  };
+  const matches = await vscode.window.withProgress(
+    {
+      location: vscode.ProgressLocation.Notification,
+      title: `Finding the saved agent session for ${node.terminal.name}`,
+      cancellable: false
+    },
+    async () => findAgentSessionMatches(history, {
+      workspacePath: node.workspace.path,
+      currentDirectory: node.cwd
+    })
+  );
+  const matchedSession = matches[0];
+  if (!matchedSession) {
+    void vscode.window.showErrorMessage(
+      "No saved Claude or Codex session confidently matched this terminal history. No tmux session was created."
+    );
+    return;
+  }
+  const resumeCommand = agentResumeCommand(matchedSession);
+  const proposed = await vscode.window.withProgress(
+    {
+      location: vscode.ProgressLocation.Notification,
+      title: `Analyzing ${node.terminal.name} with ${runtime.model}`,
+      cancellable: false
+    },
+    async () => proposeRecovery(history, recoveryContext, runtime)
+  );
+
+  const proposal = await reviewRecoveryProposal(
+    { ...proposed, workingDirectory: matchedSession.workingDirectory },
+    recoveryContext.existingSessionNames,
+    matchedSession,
+    resumeCommand
+  );
+  if (!proposal) {
+    return;
+  }
+
+  await cli.createTmuxSession(
+    node.host,
+    node.registry.host,
+    proposal.workingDirectory,
+    proposal.sessionName
+  );
+
+  let resumeFailure: string | undefined;
+  try {
+    await cli.sendTmuxCommand(
+      node.host,
+      node.registry.host,
+      proposal.sessionName,
+      resumeCommand
+    );
+  } catch (error) {
+    resumeFailure = error instanceof Error ? error.message : String(error);
+  }
+
+  await cli.refreshRegistry(node.host);
+  for (const provider of providers) {
+    provider.invalidateHost(node.host);
+  }
+
+  terminalLinks.markOrigin(
+    node.terminal,
+    node.host.alias,
+    proposal.sessionName
+  );
+  const attached = vscode.window.createTerminal({
+    name: `TT: ${node.host.alias}/${proposal.sessionName}`,
+    cwd: homedir()
+  });
+  terminalLinks.markAttached(
+    attached,
+    node.host.alias,
+    proposal.sessionName
+  );
+  for (const provider of providers) {
+    provider.refreshTerminals();
+  }
+  attached.show();
+  attached.sendText(
+    await cli.openTmuxCommand(
+      node.host,
+      proposal.workingDirectory,
+      proposal.sessionName
+    )
+  );
+
+  if (resumeFailure) {
+    void vscode.window.showWarningMessage(
+      `Created ${proposal.sessionName}, but its agent resume command failed: ${resumeFailure}`
+    );
+  }
+}
+
+async function reviewRecoveryProposal(
+  proposal: RecoveryProposal,
+  existingSessionNames: readonly string[],
+  matchedSession: AgentSessionMatch,
+  resumeCommand: string
+): Promise<RecoveryProposal | undefined> {
+  let reviewed = proposal;
+  while (true) {
+    const confirmation = await vscode.window.showInformationMessage(
+      `Create recovered tmux session '${reviewed.sessionName}'?`,
+      {
+        modal: true,
+        detail: [
+          reviewed.summary,
+          `Directory: ${reviewed.workingDirectory}`,
+          `Saved agent: ${agentDisplayName(matchedSession.agent)} ${matchedSession.sessionId}`,
+          `History match score: ${matchedSession.score.toFixed(1)}`,
+          `Resume command: ${resumeCommand}`
+        ].join("\n\n")
+      },
+      "Create tmux Session",
+      "Edit Name…"
+    );
+    if (confirmation === "Create tmux Session") {
+      return reviewed;
+    }
+    if (confirmation !== "Edit Name…") {
+      return undefined;
+    }
+
+    const sessionName = await vscode.window.showInputBox({
+      title: "Name Recovered tmux Session",
+      prompt: "Use a short task-focused name.",
+      value: reviewed.sessionName,
+      valueSelection: [0, reviewed.sessionName.length],
+      validateInput: (value) => validateRecoverySessionName(
+        value,
+        existingSessionNames
+      )
+    });
+    if (sessionName !== undefined) {
+      reviewed = { ...reviewed, sessionName: sessionName.trim() };
+    }
+  }
+}
+
+function agentDisplayName(agent: AgentSessionMatch["agent"]): string {
+  return agent === "claude" ? "Claude" : "Codex";
+}
+
+function validateRecoverySessionName(
+  value: string,
+  existingSessionNames: readonly string[]
+): string | undefined {
+  const name = value.trim();
+  if (!name) {
+    return "Enter a session name.";
+  }
+  if (name.length > 80) {
+    return "Use 80 characters or fewer.";
+  }
+  if (!SAFE_TMUX_SESSION.test(name)) {
+    return "Use letters, digits, hyphens, and underscores only.";
+  }
+  return existingSessionNames.includes(name)
+    ? `A tmux session named '${name}' already exists.`
+    : undefined;
 }
 
 async function mirrorWorkspace(
@@ -348,19 +786,31 @@ async function removeWorktree(cli: TtCli, node: WorkspaceNode): Promise<void> {
   );
 }
 
-async function openWorkspace(node: WorkspaceNode): Promise<void> {
+async function openWorkspace(
+  node: WorkspaceNode,
+  forceNewWindow: boolean
+): Promise<void> {
   if (isLocal(node.host, node.registry.host)) {
     const workspaceFile = await findWorkspaceFile(node.workspace);
-    await openUri(vscode.Uri.file(workspaceFile ?? node.workspace.path));
+    await openUri(
+      vscode.Uri.file(workspaceFile ?? node.workspace.path),
+      forceNewWindow
+    );
     return;
   }
-  await openPath(node.host, node.registry.host, node.workspace.path);
+  await openPath(
+    node.host,
+    node.registry.host,
+    node.workspace.path,
+    forceNewWindow
+  );
 }
 
 async function openPath(
   host: TtHost,
   registryHost: string,
-  path: string
+  path: string,
+  forceNewWindow?: boolean
 ): Promise<void> {
   const uri = isLocal(host, registryHost)
     ? vscode.Uri.file(path)
@@ -369,16 +819,17 @@ async function openPath(
         authority: `ssh-remote+${host.hostname}`,
         path
       });
-  await openUri(uri);
+  await openUri(uri, forceNewWindow);
 }
 
-async function openUri(uri: vscode.Uri): Promise<void> {
-  const forceNewWindow = vscode.workspace
+async function openUri(
+  uri: vscode.Uri,
+  forceNewWindow?: boolean
+): Promise<void> {
+  const newWindow = forceNewWindow ?? vscode.workspace
     .getConfiguration("genoTools")
     .get<boolean>("openInNewWindow", true);
-  await vscode.commands.executeCommand("vscode.openFolder", uri, {
-    forceNewWindow
-  });
+  await vscode.commands.executeCommand("vscode.openFolder", uri, newWindow);
 }
 
 async function findWorkspaceFile(workspace: TtWorkspace): Promise<string | undefined> {

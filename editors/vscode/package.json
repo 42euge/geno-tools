@@ -2,7 +2,7 @@
   "name": "geno-tools-tt-workspaces",
   "displayName": "Geno Tools: TT Workspaces",
   "description": "Browse and manage local and remote TT workspaces from VS Code.",
-  "version": "0.1.0",
+  "version": "0.2.3",
   "publisher": "42euge",
   "license": "MIT",
   "engines": {
@@ -63,16 +63,27 @@
         "icon": "$(refresh)"
       },
       {
+        "command": "genoTools.refreshTerminals",
+        "title": "Geno Tools: Refresh Open VS Code Terminals",
+        "icon": "$(refresh)"
+      },
+      {
         "command": "genoTools.reloadWorkspaces",
         "title": "Geno Tools: Reload TT Workspace View"
       },
       {
         "command": "genoTools.createWorkspace",
-        "title": "Geno Tools: Create TT Workspace"
+        "title": "Geno Tools: Create TT Workspace",
+        "icon": "$(add)"
+      },
+      {
+        "command": "genoTools.createRepo",
+        "title": "Geno Tools: Create Repository in Workspace",
+        "icon": "$(add)"
       },
       {
         "command": "genoTools.createTmuxSession",
-        "title": "Geno Tools: Resume tmux Session in Workspace",
+        "title": "Geno Tools: Create tmux Session in Workspace",
         "icon": "$(add)"
       },
       {
@@ -81,9 +92,29 @@
         "icon": "$(terminal-tmux)"
       },
       {
+        "command": "genoTools.deleteTmuxSession",
+        "title": "Geno Tools: Delete tmux Session",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "genoTools.focusTerminal",
+        "title": "Geno Tools: Focus VS Code Terminal",
+        "icon": "$(terminal)"
+      },
+      {
+        "command": "genoTools.recoverTerminalInTmux",
+        "title": "Geno Tools: Recover Terminal in tmux with OpenAI",
+        "icon": "$(robot)"
+      },
+      {
         "command": "genoTools.openWorkspace",
         "title": "Geno Tools: Open Workspace",
         "icon": "$(folder-opened)"
+      },
+      {
+        "command": "genoTools.openWorkspaceInNewWindow",
+        "title": "Geno Tools: Open Workspace in New Window",
+        "icon": "$(multiple-windows)"
       },
       {
         "command": "genoTools.openRepo",
@@ -122,12 +153,12 @@
     "menus": {
       "view/title": [
         {
-          "command": "genoTools.createTmuxSession",
+          "command": "genoTools.createWorkspace",
           "when": "view == genoTools.workspaces",
           "group": "navigation@1"
         },
         {
-          "command": "genoTools.createTmuxSession",
+          "command": "genoTools.createWorkspace",
           "when": "view == genoTools.currentWorkspace",
           "group": "navigation@1"
         },
@@ -149,14 +180,34 @@
       ],
       "view/item/context": [
         {
+          "command": "genoTools.createRepo",
+          "when": "(view == genoTools.workspaces || view == genoTools.currentWorkspace) && viewItem == repoGroup",
+          "group": "inline@1"
+        },
+        {
           "command": "genoTools.createTmuxSession",
-          "when": "(view == genoTools.workspaces || view == genoTools.currentWorkspace) && viewItem == workspace",
+          "when": "(view == genoTools.workspaces || view == genoTools.currentWorkspace) && viewItem == tmuxSessionGroup",
+          "group": "inline@1"
+        },
+        {
+          "command": "genoTools.refreshTerminals",
+          "when": "(view == genoTools.workspaces || view == genoTools.currentWorkspace) && viewItem == terminalGroup",
+          "group": "inline@1"
+        },
+        {
+          "command": "genoTools.recoverTerminalInTmux",
+          "when": "(view == genoTools.workspaces || view == genoTools.currentWorkspace) && viewItem == terminal",
           "group": "inline@1"
         },
         {
           "command": "genoTools.openWorkspace",
           "when": "(view == genoTools.workspaces || view == genoTools.currentWorkspace) && viewItem == workspace",
           "group": "inline@2"
+        },
+        {
+          "command": "genoTools.openWorkspaceInNewWindow",
+          "when": "(view == genoTools.workspaces || view == genoTools.currentWorkspace) && viewItem == workspace",
+          "group": "inline@3"
         },
         {
           "command": "genoTools.openRepo",
@@ -167,6 +218,11 @@
           "command": "genoTools.openTmuxSession",
           "when": "(view == genoTools.workspaces || view == genoTools.currentWorkspace) && viewItem == tmuxSession",
           "group": "inline@1"
+        },
+        {
+          "command": "genoTools.deleteTmuxSession",
+          "when": "(view == genoTools.workspaces || view == genoTools.currentWorkspace) && viewItem == tmuxSession",
+          "group": "inline@2"
         },
         {
           "command": "genoTools.refreshWorkspaces",
@@ -216,10 +272,25 @@
         "genoTools.openInNewWindow": {
           "type": "boolean",
           "default": true,
-          "description": "Open TT workspaces and repositories in a new VS Code window."
+          "description": "Open TT repositories in a new VS Code window. Workspace rows provide separate current-window and new-window actions."
+        },
+        "genoTools.agentModel": {
+          "type": "string",
+          "default": "",
+          "description": "Optional model override for tmux recovery. When empty, use llm.model from the Geno agent config."
+        },
+        "genoTools.agentConfigPath": {
+          "type": "string",
+          "default": "~/.geno/config.yaml",
+          "description": "Path to the Geno YAML config containing llm.endpoint, llm.model, llm.api_key_env, and llm.api."
         }
       }
     }
+  },
+  "dependencies": {
+    "@openai/agents": "^0.17.0",
+    "yaml": "^2.9.0",
+    "zod": "^4.5.4"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
