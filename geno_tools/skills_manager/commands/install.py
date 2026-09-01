@@ -104,7 +104,7 @@ def _resolve_source(name_or_source: str) -> tuple[str, str | None]:
         f"unknown skillset: {name_or_source}\n"
         "  not in the discovery cache, not a local path, not a git URL.\n"
         "  run /geno-tools-meta-ecosystem-discover to refresh the cache,\n"
-        "  or install directly: geno-tools skills install <git-url>"
+        "  or install directly: geno-tools install <git-url>"
     )
 
 

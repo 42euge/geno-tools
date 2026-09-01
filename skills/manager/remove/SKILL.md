@@ -3,7 +3,7 @@ name: geno-tools-manager-remove
 description: >-
   Uninstall a geno-* skillset from all agents (exact-removal). Use when the user
   wants to remove or uninstall a geno ecosystem skillset.
-allowed-tools: "Bash(geno-tools skills remove *)"
+allowed-tools: "Bash(geno-tools uninstall *)"
 metadata:
   author: 42euge
   version: "0.1.0"
@@ -12,7 +12,7 @@ metadata:
 # manager/remove — uninstall a skillset
 
 ```
-geno-tools skills remove <repo> [--keep-data]
+geno-tools uninstall <repo> [--keep-data]
 ```
 
 Replays install in reverse: unregisters every skill via `npx skills remove`,

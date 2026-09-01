@@ -7,11 +7,15 @@ import json
 import shutil
 from pathlib import Path
 
-from geno_tools.core.terminal import bold, dim, green, red, rule
+from geno_tools.skills_manager import paths
+from geno_tools.skills_manager.commands.install import (
+    SYSTEM_BIN,
+    _remove_bin_symlinks,
+    _uninstall_skills_via_npx,
+)
+from geno_tools.skills_manager.commands.status import _installed_skillsets
 
-from .. import paths
-from .install import SYSTEM_BIN, _remove_bin_symlinks, _uninstall_skills_via_npx
-from .status import _installed_skillsets
+from .terminal import bold, dim, green, red, rule
 
 _CC_MARKETPLACE = Path.home() / ".claude" / "plugins" / "marketplaces" / "geno-tools"
 _AGENT_SKILL_DIRS = [
@@ -68,7 +72,7 @@ def run(args: argparse.Namespace) -> int:
         else []
     )
 
-    print(bold("geno-tools skills uninstall"))
+    print(bold("geno-tools system uninstall"))
     print(rule("plan"))
     _print_section(
         f"skillsets under {paths.ROOT}",
@@ -96,10 +100,12 @@ def run(args: argparse.Namespace) -> int:
         return 0
     if total > 0 and not args.yes:
         try:
-            response = input(f"remove {total} item(s)? [y/N] ").strip().lower()
+            response = input(
+                f"remove {total} item(s)? Type 'uninstall geno-tools' to continue: "
+            ).strip().lower()
         except EOFError:
             response = ""
-        if response not in ("y", "yes"):
+        if response != "uninstall geno-tools":
             print("aborted.")
             return 1
 
@@ -141,9 +147,9 @@ def _print_section(title, items, render=str) -> None:
 def _print_pkg_removal_hint() -> None:
     print()
     print(bold("last step — remove the CLI package (a process can't delete itself):"))
-    print("  pipx uninstall geno-tools        # if installed via pipx")
+    print("  pipx uninstall geno-tools  # if installed via pipx")
     print(dim("  # or, if installed via Homebrew:"))
-    print("  brew uninstall 42euge/geno/geno  # NOTE: may cascade shared deps; check `brew uses`")
+    print("  brew uninstall geno-tools")
 
 
 def _clean_agent_json_configs() -> None:
@@ -166,6 +172,3 @@ def _clean_agent_json_configs() -> None:
         if changed:
             path.write_text(json.dumps(data, indent=2) + "\n")
             print(f"  cleaned geno entries from {path}")
-
-
-_uninstall = run

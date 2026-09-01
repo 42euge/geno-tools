@@ -7,7 +7,7 @@ name = "geno-tools"
 version = "0.9.0"
 description = "Unified geno control plane: resolve, scope, and launch skillset bundles"
 requires-python = ">=3.11"
-dependencies = ["pyyaml>=6.0", "click>=8.0"]
+dependencies = ["pyyaml>=6.0", "rich>=13.0"]
 
 [project.optional-dependencies]
 test = ["pytest>=8.0"]

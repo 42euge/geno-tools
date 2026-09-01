@@ -35,8 +35,8 @@ def run(args: argparse.Namespace) -> int:
     if not entries:
         print(rule("discover"))
         print(dim("  no skillsets found (no network, empty cache)."))
-        print(dim("  retry:  geno-tools skills discover --refresh"))
-        print(dim("  or install directly:  geno-tools skills install <git-url>"))
+        print(dim("  retry:  geno-tools discover --refresh"))
+        print(dim("  or install directly:  geno-tools install <git-url>"))
         return 0
 
     installed = set(_installed_skillsets())

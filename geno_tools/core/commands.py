@@ -9,17 +9,60 @@ from pathlib import Path
 
 import yaml
 
-from . import config
+from . import config, uninstall
 from .terminal import bold, dim, green, is_tty, red, rule, yellow
 
 REPO_URL = "https://github.com/42euge/geno-tools.git"
 
+SYSTEM_HELP_EPILOG = """\
+common tasks:
+  geno-tools system update               Update geno-tools itself
+
+safety workflow:
+  geno-tools system uninstall --dry-run  Preview everything that would be removed
+  geno-tools system uninstall            Review the plan and confirm explicitly
+
+User data under ~/.geno is always preserved.
+"""
+
 
 def add_parser(subparsers: argparse._SubParsersAction) -> None:
-    update = subparsers.add_parser(
+    system_parser = subparsers.add_parser(
+        "system",
+        help="update, inspect, or remove the geno-tools installation",
+        description=(
+            "Manage the geno-tools installation. Commands here can affect every "
+            "installed skillset."
+        ),
+        epilog=SYSTEM_HELP_EPILOG,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    system_parser.set_defaults(_dispatch=dispatch, _system_parser=system_parser)
+    system_commands = system_parser.add_subparsers(
+        dest="system_cmd", title="commands", metavar="COMMAND"
+    )
+    system_commands.add_parser(
         "update", help="update geno-tools itself to the latest version"
     )
-    update.set_defaults(_dispatch=dispatch)
+    uninstall_parser = system_commands.add_parser(
+        "uninstall",
+        help="remove all geno-tools-managed skillsets and registrations",
+        description=(
+            "Remove all geno-tools-managed skillsets, agent registrations, and "
+            "legacy installation files. User data under ~/.geno is preserved."
+        ),
+    )
+    uninstall_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="show exactly what would be removed and kept, without deleting",
+    )
+    uninstall_parser.add_argument(
+        "--yes",
+        "-y",
+        action="store_true",
+        help="skip explicit confirmation (for automation)",
+    )
 
     parser = subparsers.add_parser(
         "config", help="show or set geno ecosystem config values"
@@ -33,15 +76,19 @@ def add_parser(subparsers: argparse._SubParsersAction) -> None:
 
 
 def dispatch(args: argparse.Namespace) -> int:
-    if args.cmd == "update":
-        return _self_update()
+    if args.cmd == "system":
+        if args.system_cmd is None:
+            args._system_parser.print_help()
+            return 0
+        handlers = {"update": _self_update, "uninstall": uninstall.run}
+        return handlers[args.system_cmd](args)
     if args.config_cmd == "show":
         return _config_show()
     return _config_set(args.key, args.value)
 
 
-def _self_update() -> int:
-    print(bold("geno-tools update"))
+def _self_update(_: argparse.Namespace) -> int:
+    print(bold("geno-tools system update"))
     print(rule("self-update"))
     ok = True
 
@@ -70,7 +117,7 @@ def _self_update() -> int:
 
     print()
     print(dim("  installed skillsets are unaffected; re-register with:"))
-    print("    geno-tools skills upgrade")
+    print("    geno-tools update")
     return 0 if ok else 1
 
 

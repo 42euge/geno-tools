@@ -41,8 +41,11 @@ recursively.
 
 **Maintain** — `status` shows version, commit, and drift against remote main.
 `upgrade` fast-forwards worktrees and rebuilds venvs only when dependencies
-actually changed. `deps` prints the dependency tree. `uninstall` is the exact
-inverse of install, with `--dry-run`.
+actually changed. Dependency resolution is automatic during install.
+`uninstall` is the inverse of installing one skillset. The guarded
+`system uninstall` command removes the entire geno-tools-managed footprint,
+with a dry run and explicit confirmation, while preserving user data under
+`~/.geno/`.
 
 ## On-disk layout
 
@@ -84,14 +87,13 @@ upstream open source.
 
 ```
 geno-tools status                 # installed skillsets, versions, drift
-geno-tools skills install <ref>   # name | git URL | local path
-geno-tools skills upgrade [name]  # one, or all
-geno-tools skills remove <name> [--keep-data]
-geno-tools skills discover [--refresh]
-geno-tools skills deps <name>
-geno-tools skills scan [--namespace X] [--dry-run]
-geno-tools skills uninstall [--dry-run] [--yes]
-geno-tools update                 # update geno-tools itself
+geno-tools install <ref>   # name | git URL | local path
+geno-tools update [name]  # one, or all
+geno-tools uninstall <name> [--keep-data]
+geno-tools discover [--refresh]
+geno-tools scan [--namespace X] [--dry-run]
+geno-tools system uninstall [--dry-run] [--yes]
+geno-tools system update          # update geno-tools itself
 geno-tools config show | set <dot.path> <value>
 ```
 

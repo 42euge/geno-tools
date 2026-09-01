@@ -4,14 +4,14 @@ from geno_tools.cli import main
 
 
 class TestSelfUpdate:
-    def test_reinstalls_cli_and_points_at_skills_upgrade(self, monkeypatch, capsys):
+    def test_reinstalls_cli_and_points_at_skillset_update(self, monkeypatch, capsys):
         calls = []
         monkeypatch.setattr("shutil.which", lambda _: "/usr/bin/pipx")
         monkeypatch.setattr(
             "subprocess.call", lambda cmd, **kwargs: calls.append(cmd) or 0
         )
 
-        assert main(["update"]) == 0
+        assert main(["system", "update"]) == 0
         assert any(
             call[0] == "/usr/bin/pipx"
             and "install" in call
@@ -19,7 +19,7 @@ class TestSelfUpdate:
             for call in calls
         )
         out = capsys.readouterr().out
-        assert "geno-tools skills upgrade" in out
+        assert "geno-tools update" in out
         # Homebrew is the only install path; no plugin/marketplace channel.
         assert "/plugin" not in out
 
@@ -27,5 +27,5 @@ class TestSelfUpdate:
         monkeypatch.setattr("shutil.which", lambda _: None)
         monkeypatch.setattr("geno_tools.core.commands._find_pipx", lambda: None)
 
-        assert main(["update"]) == 1
+        assert main(["system", "update"]) == 1
         assert "geno-tools-setup" in capsys.readouterr().out

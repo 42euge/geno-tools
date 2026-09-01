@@ -55,7 +55,7 @@ def run(_: argparse.Namespace) -> int:
     if not installed:
         print(rule("installed"))
         print(dim("  no skillsets installed."))
-        print(dim("  geno-tools skills discover   # see what you can install"))
+        print(dim("  geno-tools discover   # see what you can install"))
         return 0
 
     print(rule(f"installed · {len(installed)}"))
@@ -75,7 +75,7 @@ def run(_: argparse.Namespace) -> int:
     behind = [row for row in rows if row["state"].startswith("behind")]
     if behind:
         print()
-        print(dim(f"  {len(behind)} behind remote — geno-tools skills upgrade"))
+        print(dim(f"  {len(behind)} behind remote — geno-tools update"))
     return 0
 
 
