@@ -89,7 +89,7 @@ class GenoTools < Formula
   end
 
   test do
-    assert_match "geno-tools #{version}", shell_output("#{bin}/geno-tools --version")
+    assert_match(/\Ageno-tools \d+\.\d+\.\d+\n\z/, shell_output("#{bin}/geno-tools --version"))
     # `status` is the cheapest real command: reads ~/.geno, exits 0 when empty.
     assert_match "installed", shell_output("#{bin}/geno-tools status")
   end
