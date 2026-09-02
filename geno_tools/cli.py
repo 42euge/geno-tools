@@ -14,6 +14,7 @@ SKILLSET_LIFECYCLE_COMMANDS = [
     ("install REF", "Install by name, git URL, or local path"),
     ("uninstall NAME", "Uninstall one skillset"),
     ("update [NAME]", "Update one installed skillset, or all"),
+    ("dev COMMAND", "Activate or restore a local development checkout"),
 ]
 
 SKILLSET_INSPECTION_COMMANDS = [

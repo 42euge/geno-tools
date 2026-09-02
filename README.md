@@ -7,6 +7,20 @@ for browsing and managing local and remote TT workspaces.
 
 ## What it does
 
+geno-tools installs skillset repositories into isolated managed runtimes,
+registers their agent skills, exposes their console commands, and keeps the
+installed copies current. For local feature work, dev mode can select a checkout
+without replacing the stable installed copy:
+
+```zsh
+geno-tools dev activate /path/to/geno-tt
+geno-tools dev status geno-tt
+tt windows arrange geno.geno-tt --dry-run
+geno-tools dev deactivate geno-tt
+```
+
+The activation command creates the editable runtime under `~/.geno-tools`; the
+source checkout does not need its own `.venv`.
 
 ## Skillsets and subskillsets
 

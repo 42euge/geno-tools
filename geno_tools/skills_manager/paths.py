@@ -8,6 +8,8 @@ directory named with the full `geno-{name}` form:
         ├── .git/                      # bare repo
         ├── main/                      # primary worktree
         ├── venvs/default/             # isolated Python runtime
+        ├── venvs/dev-<checkout-hash>/ # cached editable dev runtime
+        ├── dev-state.json             # present only while dev mode is active
         └── active -> main             # active skillset worktree symlink
 """
 
@@ -42,3 +44,7 @@ def skillset_active(name: str) -> Path:
 
 def skillset_venvs(name: str) -> Path:
     return skillset_root(name) / "venvs"
+
+
+def skillset_dev_state(name: str) -> Path:
+    return skillset_root(name) / "dev-state.json"

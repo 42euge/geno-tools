@@ -18,19 +18,21 @@ geno-tools status
 ```
 
 No flags — the daily view. Per installed skillset it shows the declared version
-(`genotools.yaml`), active `variant@commit`, and a drift state vs its remote
+(`genotools.yaml` or `pyproject.toml`), active `stable|dev@commit`, and a drift state vs its remote
 main:
 
 ```
 geno-tools
 ── installed · 2 ───────────────────────────────
-  geno-loops  0.2.0  main@94eba89  ● in-sync
-  geno-notes  0.1.0  main@5f3fb1f  ▼ behind e84fa17
+  geno-loops  0.2.0  stable@94eba89  ● in-sync
+  geno-notes  0.1.0  dev@5f3fb1f+dirty
 ```
 
 States: `● in-sync` · `▼ behind <sha>` · `▲ ahead` · `✗ diverged` · `✎ dirty`
-· `· offline`. Anything behind is summarized with a hint to run
+· `· offline` · `! dev-drift`. Anything behind is summarized with a hint to run
 `geno-tools update`. Output is colorized on a terminal and plain ASCII when
 piped or under `NO_COLOR`.
 
 To browse what you *can* install, use `geno-tools discover`.
+To inspect the selected source path and runtime consistency, use
+`geno-tools dev status [name]`.

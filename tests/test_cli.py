@@ -9,6 +9,7 @@ EXPECTED_COMMANDS = [
     "install",
     "uninstall",
     "update",
+    "dev",
     "status",
     "discover",
     "scan",
@@ -48,6 +49,14 @@ class TestCliHelp:
         assert "affect every installed skillset" in captured.out
         assert "geno-tools system uninstall --dry-run" in captured.out
         assert "User data under ~/.geno is always preserved" in captured.out
+
+    def test_dev_without_command_prints_help(self, capsys):
+        assert main(["dev"]) == 0
+
+        captured = capsys.readouterr()
+        assert captured.err == ""
+        assert "activate" in captured.out
+        assert "deactivate" in captured.out
 
     def test_version(self, capsys):
         with pytest.raises(SystemExit) as exc:

@@ -407,6 +407,24 @@ class TestBinSymlinks:
         commands._remove_bin_symlinks("geno-dev")
         assert not (bin_dir / "geno-dev").exists()
 
+    def test_remove_cleans_active_dev_runtime_symlinks(
+        self, fake_skillset, tmp_path, monkeypatch,
+    ):
+        fake_skillset("geno-dev", has_pyproject=True)
+        bin_dir = tmp_path / "bin"
+        bin_dir.mkdir()
+        monkeypatch.setattr("geno_tools.skills_manager.commands.install.SYSTEM_BIN", bin_dir)
+
+        dev_bin = paths.skillset_venvs("geno-dev") / "dev-checkout" / "bin"
+        dev_bin.mkdir(parents=True)
+        executable = dev_bin / "geno-dev"
+        executable.write_text("#!/bin/sh")
+        (bin_dir / "geno-dev").symlink_to(executable)
+
+        commands._remove_bin_symlinks("geno-dev")
+
+        assert not (bin_dir / "geno-dev").exists()
+
 
 class TestAgentScoping:
     """npx --agent is scoped to detected agents, not '*' (avoids ~76-agent spam)."""

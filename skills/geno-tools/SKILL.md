@@ -2,12 +2,13 @@
 name: geno-tools
 description: >-
   Geno skillset lifecycle and dependency manager. Use when the user asks about
-  discovering, installing, removing, or updating geno skillsets, or making the
-  current coding-agent session persistent in tmux.
+  discovering, installing, removing, updating, or selecting a development
+  checkout for geno skillsets, or making the current coding-agent session
+  persistent in tmux.
 allowed-tools: "Bash(geno-tools *) Bash(python3 -m geno_tools *)"
 metadata:
   author: 42euge
-  version: "0.9.0"
+  version: "0.10.0"
 ---
 
 # geno-tools — Skillset Manager
@@ -24,7 +25,7 @@ which geno-tools >/dev/null 2>&1 || echo "geno-tools CLI not on PATH — run /ge
 
 | Category | Skills |
 |----------|--------|
-| **manager/** | `status` · `discover` · `install` · `remove` · `upgrade` |
+| **manager/** | `status` · `discover` · `install` · `remove` · `upgrade` · `dev` |
 | **system/** | `update` — manage the geno-tools installation itself |
 | **session/** | `persist` — resume the current agent conversation inside tmux |
 | **meta/ecosystem/** | `discover` · `scan` · `onboarding` — find/absorb new skillsets |
@@ -41,6 +42,9 @@ lifecycle and dependency resolution.
 - `geno-tools install <repo|url|path>` — clone, venv, register with all agents
 - `geno-tools uninstall <repo> [--keep-data]` — uninstall from all agents
 - `geno-tools update [repo]` — update installed skillset(s): pull latest + re-register
+- `geno-tools dev activate <checkout>` — select local source, runtime, commands, and skills
+- `geno-tools dev status [repo]` — show stable/dev selection and detect drift
+- `geno-tools dev deactivate <repo>` — restore the managed stable checkout
 - `geno-tools system update` — update geno-tools **itself** to the latest version
 - `geno-tools system uninstall [--dry-run]` — guarded removal of all geno-tools-managed files; keeps user data
 
