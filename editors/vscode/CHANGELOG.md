@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.1
+
+- Make workspace mirroring the lightweight primary remote action
+- Replace the task-scoped Remote Dispatches view with persistent Remote Mirrors
+- Allow work to be dispatched directly from a remote mirror row
+
 ## 0.3.0
 
 - Persist explicit ownership for tmux sessions created or adopted in the VS

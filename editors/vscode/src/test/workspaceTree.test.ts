@@ -14,6 +14,7 @@ interface TreeNode {
 interface TreeProvider {
   getChildren(node?: TreeNode): Promise<TreeNode[]>;
   invalidateHost(host: unknown, liveStateAlreadyRefreshed?: boolean): void;
+  remoteMirrorsFor(source: TreeNode): Promise<TreeNode[]>;
   getTreeItem(node: TreeNode): {
     label: string;
     description?: string;
@@ -21,6 +22,47 @@ interface TreeProvider {
     command?: { command: string; arguments?: unknown[] };
   };
 }
+
+test("remote mirrors are the same stable workspace on another host", async () => {
+  const WorkspaceTreeProvider = await loadWorkspaceTreeProvider();
+  const local = { alias: "local", hostname: "localhost", isDefault: true };
+  const build = { alias: "build", hostname: "build.example.com", isDefault: false };
+  const lab = { alias: "lab", hostname: "lab.example.com", isDefault: false };
+  const workspace = {
+    id: "chore.geno.demo.2026.q3",
+    track: "chore",
+    domain: "geno",
+    name: "demo",
+    born: "2026.q3",
+    path: "/tmp/demo.2026.q3",
+    repos: [],
+    state: { tmux: { sessions: [] } }
+  };
+  const registry = (host: string, workspaces: object[]) => ({
+    schema_version: 1,
+    host,
+    generated_at: "2026-09-01T00:00:00Z",
+    workspaces
+  });
+  const provider = new WorkspaceTreeProvider({
+    hosts: async () => [local, lab, build],
+    registry: async (host: { alias: string }) => host.alias === "build"
+      ? registry("build.example.com", [{ ...workspace, path: "/home/dev/code/chore/geno/demo.2026.q3" }])
+      : registry("lab.example.com", [{ ...workspace, id: "chore.geno.other.2026.q3" }])
+  });
+  const source = {
+    kind: "workspace",
+    host: local,
+    registry: registry("localhost", [workspace]),
+    workspace
+  };
+
+  const mirrors = await provider.remoteMirrorsFor(source);
+
+  assert.deepEqual(Array.from(mirrors, (node) => (node.host as { alias: string }).alias), [
+    "build"
+  ]);
+});
 
 test("repositories, tmux sessions, and VS Code terminals have separate folders", async () => {
   const WorkspaceTreeProvider = await loadWorkspaceTreeProvider();

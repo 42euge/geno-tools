@@ -49,9 +49,9 @@ From the explorer you can:
   destructive operation, even when the tmux session or entire server is already
   gone;
 - create TT workspaces from a host's context menu and rescan them;
-- mirror a workspace to another configured TT host;
-- dispatch a local workspace and an editor selection, active document, brief
-  instruction, or Markdown handoff to a normal remote agent session;
+- mirror a workspace to another configured TT host with one host choice;
+- dispatch work from an existing mirror using an editor selection, active
+  document, brief instruction, or Markdown handoff;
 - open remote dispatch sessions, safely recall completed work, and open the
   returned `RETURN.md` handoff;
 - create, list, and remove whole-workspace worktrees; and
@@ -127,11 +127,19 @@ chronologically across the full available scrollback and is sent only after the
 confirmation dialog, which also identifies the resolved endpoint, model, and
 credential variable. Saved Claude and Codex transcripts stay local.
 
-## Remote dispatch
+## Remote mirrors and dispatch
 
-Use **Dispatch Workspace to Remote Host** from a local workspace row or the
-Current Workspace toolbar. Choose a configured remote host and a durable name,
-then provide the remote agent's context from:
+Use **Mirror Workspace to Host** from the Current Workspace toolbar or a local
+workspace row. Choose a configured host and the extension creates the same
+workspace on that host. No task name or agent handoff is needed.
+
+When the current workspace exists on another configured host, a third **Remote
+Mirrors** sidebar section appears. Each row represents the same stable TT
+workspace ID on a different host. Select a row to open that mirror in a new VS
+Code window, or use its rocket action to **Dispatch Work to This Mirror**.
+
+Dispatch is the separate task-level operation. It asks for a durable task name
+and the remote agent's context from:
 
 - the active editor selection;
 - the complete active document;
@@ -146,11 +154,6 @@ Use **Manage Remote Dispatches** to reopen an active tmux session, recall an
 already stopped session, stop and recall an active session, or open the returned
 `RETURN.md`. **Stop and Recall** terminates the remote tmux session and therefore
 always requires confirmation.
-
-When the current workspace has an active dispatch, a third **Remote
-Dispatches** sidebar section appears below the existing workspace sections.
-Selecting a dispatch opens its management actions. The section disappears once
-the dispatch is recalled.
 
 See [Remote dispatch manual test](DISPATCH_MANUAL_TEST.md) for a VS Code-only
 dispatch, management, and recall walkthrough.

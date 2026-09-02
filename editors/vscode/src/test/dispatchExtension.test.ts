@@ -19,6 +19,7 @@ interface VscodeStub {
   errors: string[];
   editorText: string;
   inputValues: string[];
+  quickPickTitles?: string[];
   spawnCalls: SpawnCall[];
   warningValues: Array<string | undefined>;
   workspaceFolders: string[];
@@ -66,7 +67,72 @@ test("dispatch control sends the active document to tt over stdin", async () => 
   assert.equal(dispatchCall.input, stub.editorText);
 });
 
-test("manifest exposes dispatch and management controls", () => {
+test("dispatching a mirror reuses its host instead of asking again", async () => {
+  const stub: VscodeStub = {
+    commands: new Map(),
+    errors: [],
+    editorText: "# Build on the mirror\n",
+    inputValues: ["parser-fix"],
+    quickPickTitles: [],
+    spawnCalls: [],
+    warningValues: ["Dispatch"],
+    workspaceFolders: ["/tmp/parser.2026.q3"]
+  };
+  const extension = await loadExtension(stub);
+  extension.activate({ subscriptions: [] });
+  const command = stub.commands.get("genoTools.dispatchMirror");
+  assert.ok(command, "dispatch mirror command should be registered");
+  const source = localWorkspaceNode();
+  const mirror = {
+    ...localWorkspaceNode(),
+    host: { alias: "build", hostname: "build.example.com", isDefault: false },
+    registry: {
+      schema_version: 1,
+      host: "build.example.com",
+      generated_at: "2026-09-01T00:00:00Z",
+      workspaces: []
+    }
+  };
+
+  await command({ kind: "remoteMirror", source, mirror });
+
+  assert.ok(!stub.quickPickTitles?.some((title) => title.startsWith("Dispatch parser")));
+  assert.ok(stub.quickPickTitles?.includes("Dispatch Context"));
+  const dispatchCall = stub.spawnCalls.find(
+    ({ args }) => args[0] === "dispatch" && args[1] !== "list"
+  );
+  assert.equal(dispatchCall?.args[1], "build");
+});
+
+test("mirror control only asks for a host before mirroring", async () => {
+  const stub: VscodeStub = {
+    commands: new Map(),
+    errors: [],
+    editorText: "",
+    inputValues: [],
+    spawnCalls: [],
+    warningValues: [],
+    workspaceFolders: []
+  };
+  const extension = await loadExtension(stub);
+  extension.activate({ subscriptions: [] });
+  const command = stub.commands.get("genoTools.mirrorWorkspace");
+  assert.ok(command, "mirror command should be registered");
+
+  await command(localWorkspaceNode());
+
+  assert.deepEqual(stub.errors, []);
+  assert.equal(stub.warningValues.length, 0, "mirror should not ask for confirmation");
+  assert.ok(
+    stub.spawnCalls.some(({ executable, args }) =>
+      executable === "tt-test" &&
+      Array.from(args).join(" ") ===
+        "-H local mirror chore.geno.parser.2026.q3 build"
+    )
+  );
+});
+
+test("manifest makes mirror primary and dispatch an action on a mirror", () => {
   const manifest = JSON.parse(
     readFileSync(join(__dirname, "..", "..", "package.json"), "utf8")
   ) as {
@@ -83,12 +149,13 @@ test("manifest exposes dispatch and management controls", () => {
   };
   const commands = manifest.contributes.commands.map(({ command }) => command);
   assert.ok(commands.includes("genoTools.dispatchWorkspace"));
+  assert.ok(commands.includes("genoTools.dispatchMirror"));
   assert.ok(commands.includes("genoTools.manageDispatches"));
   assert.ok(
     manifest.contributes.views.genoTools.some(
       ({ id, when }) =>
-        id === "genoTools.remoteDispatches" &&
-        when === "genoTools.hasCurrentWorkspaceDispatch"
+        id === "genoTools.remoteMirrors" &&
+        when === "genoTools.hasCurrentWorkspaceMirror"
     )
   );
   assert.ok(
@@ -99,7 +166,14 @@ test("manifest exposes dispatch and management controls", () => {
   );
   assert.ok(
     manifest.contributes.menus["view/title"].some(
-      ({ command }) => command === "genoTools.manageDispatches"
+      ({ command, group }) =>
+        command === "genoTools.mirrorWorkspace" && group === "navigation@3"
+    )
+  );
+  assert.ok(
+    manifest.contributes.menus["view/item/context"].some(
+      ({ command, group }) =>
+        command === "genoTools.dispatchMirror" && group === "inline@1"
     )
   );
 });
@@ -214,7 +288,9 @@ async function loadExtension(
                 createTerminal: () => ({ show() {}, sendText() {} }),
                 showInputBox: async () => state.inputValues.shift(),
                 showQuickPick: async (items, options) => {
+                  state.quickPickTitles?.push(options?.title ?? "");
                   if (options?.title?.startsWith("Dispatch parser")) return items.find((item) => item.label === "build");
+                  if (options?.title?.startsWith("Mirror parser")) return items.find((item) => item.label === "build");
                   if (options?.title === "Dispatch Context") return items.find((item) => item.label === "Use Active Document");
                   if (options?.title === "Manage Remote Dispatches") return items[0];
                   if (options?.title === "parser-fix") return items.find((item) => item.label === "Stop and Recall");

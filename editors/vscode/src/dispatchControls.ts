@@ -12,7 +12,8 @@ const SAFE_DISPATCH_NAME = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
 export async function dispatchWorkspaceToHost(
   cli: TtCli,
   provider: WorkspaceTreeProvider,
-  source: WorkspaceNode
+  source: WorkspaceNode,
+  destinationHost?: TtHost
 ): Promise<void> {
   if (!isLocal(source.host, source.registry.host)) {
     throw new Error(
@@ -25,18 +26,29 @@ export async function dispatchWorkspaceToHost(
   if (hosts.length === 0) {
     throw new Error("Configure a remote TT host before dispatching a workspace.");
   }
-  const destination = await vscode.window.showQuickPick(
-    hosts.map((host) => ({
-      label: host.alias,
-      description: host.hostname,
-      host
-    })),
-    {
-      title: `Dispatch ${workspaceReference(source.workspace)}`,
-      placeHolder: "Choose the remote host"
-    }
-  );
+  const destination = destinationHost
+    ? hosts
+        .filter((host) => host.alias === destinationHost.alias)
+        .map((host) => ({
+          label: host.alias,
+          description: host.hostname,
+          host
+        }))[0]
+    : await vscode.window.showQuickPick(
+        hosts.map((host) => ({
+          label: host.alias,
+          description: host.hostname,
+          host
+        })),
+        {
+          title: `Dispatch ${workspaceReference(source.workspace)}`,
+          placeHolder: "Choose the remote host"
+        }
+      );
   if (!destination) {
+    if (destinationHost) {
+      throw new Error("The selected remote mirror is no longer configured.");
+    }
     return;
   }
   const name = await dispatchNameInput(source.workspace.name);

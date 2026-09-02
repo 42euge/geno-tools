@@ -1,12 +1,12 @@
-# Manual test: remote dispatch from VS Code
+# Manual test: mirror and dispatch from VS Code
 
-This runbook validates remote dispatch and recall through the Geno Tools VS
-Code extension. Do not invoke `tt` directly during this test.
+This runbook validates the distinction between a persistent remote workspace
+mirror and a task dispatch. Do not invoke `tt` directly during this test.
 
 ## Preconditions
 
-- Geno Tools TT Workspaces `0.3.0` is installed.
-- `Geno Tools: TT Path` points to the dispatch-capable `tt` installation.
+- Geno Tools TT Workspaces `0.3.1` is installed.
+- `Geno Tools: TT Path` points to the mirror/dispatch-capable `tt` installation.
 - At least one remote TT host is configured and has Git, tmux, and Claude.
 - The current window contains a local TT workspace with no important
   uncommitted changes.
@@ -17,16 +17,42 @@ Run **Developer: Reload Window** from the Command Palette before starting.
 
 1. Open the Geno Tools activity-bar view.
 2. Confirm that **Current Workspace** identifies the local workspace.
-3. Confirm that **Remote Dispatches** is absent when this workspace has no
-   active dispatch.
+3. If the workspace does not yet exist on another host, confirm that **Remote
+   Mirrors** is absent.
 
-The extension intentionally hides the third section when there is nothing to
-manage.
+The third section is based on workspace presence in the host registries, not on
+whether an agent task is running.
 
-## 2. Prepare the handoff
+## 2. Mirror the workspace
 
-Create or open a Markdown file in the workspace with a small, reversible task.
-For example:
+1. In **Current Workspace**, select **Mirror Workspace to Host** from the
+   toolbar.
+2. Choose the remote host.
+
+There should be no task name, context picker, or confirmation dialog. Expected
+results:
+
+- VS Code reports that the workspace was mirrored.
+- A third **Remote Mirrors** section appears.
+- The section contains the selected host and repository count.
+- The row tooltip shows the stable workspace name, host, and remote path.
+
+Canceling the host picker must leave the workspace unchanged.
+
+## 3. Open the mirror
+
+Select the remote host under **Remote Mirrors**. A new VS Code window should
+open over Remote SSH at the mirrored workspace. The original local window must
+remain open.
+
+An unrelated workspace must not show this mirror. A window opened inside one
+of the canonical workspace's `.wt` worktrees should show the same mirrors
+because worktrees share the stable workspace identity.
+
+## 4. Prepare a dispatch handoff
+
+In the local window, create or open a Markdown file with a small, reversible
+task. For example:
 
 ```markdown
 # VS Code dispatch smoke test
@@ -38,54 +64,37 @@ wait for recall. Do not push, deploy, or contact external services.
 
 Keep that document active in the editor.
 
-## 3. Dispatch from VS Code
+## 5. Dispatch work from the mirror
 
-1. In **Current Workspace**, select **Dispatch Workspace to Remote Host** from
-   the toolbar or the workspace row's context menu.
-2. Choose the remote host.
-3. Accept or edit the generated durable dispatch name.
-4. Choose **Use Active Document** as the dispatch context.
-5. Review the modal confirmation and select **Dispatch**.
+1. Use the rocket action on the host row under **Remote Mirrors**.
+2. Accept or edit the generated durable dispatch name.
+3. Choose **Use Active Document** as the dispatch context.
+4. Review the task-level confirmation and select **Dispatch**.
 
-Expected results:
+The destination-host picker should not appear because the mirror row already
+identifies the host. VS Code should report that the dispatch was created.
 
-- VS Code reports that the dispatch was created.
-- A third **Remote Dispatches** section appears.
-- The section contains the dispatch name with an arrow to the selected host.
-- The item tooltip shows its host, tmux session, and source workspace path.
+## 6. Observe and recall the task
 
-Canceling any prompt must leave the sidebar and workspace unchanged.
-
-## 4. Exercise the third section
-
-1. Select the dispatch item under **Remote Dispatches**.
-2. Choose **Open Remote Session**.
-3. Confirm that an integrated terminal opens the remote tmux session.
-4. Observe the agent completing the handoff, then detach from tmux without
-   closing VS Code.
-
-Open an unrelated local workspace in another VS Code window. Its Geno Tools
-sidebar must not show this dispatch. Return to the source workspace; the third
-section must still be present. A dispatch originating from a `.wt` worktree is
-also considered part of its canonical workspace.
-
-## 5. Recall from VS Code
-
-1. Select the dispatch item again.
-2. Choose **Stop and Recall**.
-3. Review the destructive-action confirmation and select **Stop and Recall**.
-4. If offered, select **Open Return Handoff**.
+1. Run **Geno Tools: Manage Remote Dispatches** from the Command Palette or the
+   Remote Mirrors toolbar.
+2. Choose the new dispatch, then **Open Remote Session**.
+3. Observe the agent in the integrated terminal and detach from tmux when it is
+   ready for recall.
+4. Manage the dispatch again and choose **Stop and Recall**.
+5. Review the destructive-action confirmation and select **Stop and Recall**.
+6. If offered, select **Open Return Handoff**.
 
 Expected results:
 
-- The remote tmux session stops.
-- The remote changes return to the original local workspace.
+- The remote task tmux session stops.
+- The dispatched changes return to the original local workspace.
 - `RETURN.md` opens in VS Code when requested.
-- **Remote Dispatches** disappears because the workspace no longer has an
-  active dispatch.
-- The returned files and Git state are visible in Explorer and Source Control.
+- Returned files and Git state are visible in Explorer and Source Control.
+- **Remote Mirrors remains visible** because recalling a task does not remove
+  the mirrored workspace.
 
-## 6. Safety checks
+## 7. Safety checks
 
 Repeat with a disposable dispatch if you want to validate the guards:
 
@@ -93,14 +102,14 @@ Repeat with a disposable dispatch if you want to validate the guards:
   must fail without changing local files.
 - After dispatching, make a local edit and choose **Stop and Recall**. Recall
   must reject the locally drifted workspace and preserve the remote session.
-- Cancel the **Stop and Recall** confirmation. The dispatch must remain active
-  and listed in the third section.
+- Cancel the **Stop and Recall** confirmation. The dispatch must remain active.
 
 Use **Geno Tools: Show TT Output** from the Command Palette to inspect a failed
 operation without leaving VS Code.
 
 ## Pass criteria
 
-The test passes when the third section appears only for an active dispatch from
-the current canonical workspace or one of its `.wt` worktrees, opens the
-correct remote session, and disappears after a successful recall.
+The test passes when mirroring requires only a host choice, **Remote Mirrors**
+tracks durable cross-host workspace presence, dispatching from a mirror asks
+for task context without asking for the host again, and recall leaves the
+mirror available for later work.

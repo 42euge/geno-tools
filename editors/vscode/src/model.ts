@@ -119,19 +119,6 @@ export function parseDispatches(output: string): TtDispatch[] {
   return value.map((record, index) => parseDispatch(record, index));
 }
 
-export function activeDispatchesForWorkspace(
-  dispatches: readonly TtDispatch[],
-  workspacePath: string
-): TtDispatch[] {
-  return dispatches
-    .filter(
-      (dispatch) =>
-        dispatch.status === "active" &&
-        pathIsInside(dispatch.source.workspace_view, workspacePath)
-    )
-    .sort((left, right) => right.created_at.localeCompare(left.created_at));
-}
-
 export function workspaceReference(workspace: TtWorkspace): string {
   return workspace.born ? `${workspace.name}.${workspace.born}` : workspace.name;
 }
@@ -272,16 +259,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function pathIsInside(candidate: string, parent: string): boolean {
-  const child = relative(parent, candidate);
-  return child === "" || (
-    child !== ".." &&
-    !child.startsWith(`..${sep}`) &&
-    !isAbsolute(child)
-  );
-}
-
 function messageOf(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
-import { isAbsolute, relative, sep } from "node:path";
