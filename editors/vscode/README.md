@@ -131,7 +131,9 @@ credential variable. Saved Claude and Codex transcripts stay local.
 
 Use the **Mirror Workspace to Host** button directly on a local workspace row,
 beside its open buttons. Choose a configured host and the extension creates the
-same workspace on that host. No task name or agent handoff is needed.
+same workspace on that host with rsync, including Git metadata and current
+working state. No task name or agent handoff is needed. TT worktrees are
+excluded because their Git metadata contains source-machine paths.
 
 When the current workspace exists on another configured host, a third **Remote
 Mirrors** sidebar section appears. Each row represents the same stable TT

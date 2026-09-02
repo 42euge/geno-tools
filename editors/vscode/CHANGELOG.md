@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.3
+
+- Mirror the selected workspace path with rsync instead of resolving and
+  cloning repository remotes
+
 ## 0.3.2
 
 - Move Mirror Workspace from the section toolbar onto each workspace row

@@ -971,7 +971,8 @@ async function mirrorWorkspace(
   await cli.run(
     cli.forHost(source.host, [
       "mirror",
-      source.workspace.id,
+      "--workspace",
+      source.workspace.path,
       picked.host.alias
     ]),
     `Mirroring ${workspaceReference(source.workspace)} to ${picked.host.alias}`,

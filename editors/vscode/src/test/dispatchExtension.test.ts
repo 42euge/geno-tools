@@ -127,7 +127,7 @@ test("mirror control only asks for a host before mirroring", async () => {
     stub.spawnCalls.some(({ executable, args }) =>
       executable === "tt-test" &&
       Array.from(args).join(" ") ===
-        "-H local mirror chore.geno.parser.2026.q3 build"
+        "-H local mirror --workspace /tmp/parser.2026.q3 build"
     )
   );
 });

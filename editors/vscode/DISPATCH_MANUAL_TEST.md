@@ -5,7 +5,7 @@ mirror and a task dispatch. Do not invoke `tt` directly during this test.
 
 ## Preconditions
 
-- Geno Tools TT Workspaces `0.3.2` is installed.
+- Geno Tools TT Workspaces `0.3.3` is installed.
 - `Geno Tools: TT Path` points to the mirror/dispatch-capable `tt` installation.
 - At least one remote TT host is configured and has Git, tmux, and Claude.
 - The current window contains a local TT workspace with no important
@@ -32,6 +32,9 @@ whether an agent task is running.
 There should be no task name, context picker, or confirmation dialog. Expected
 results:
 
+- The selected workspace's current files, Git metadata, dirty state, untracked
+  files, and ignored files are transferred with rsync. `.wt` worktrees and
+  `.DS_Store` files are intentionally excluded.
 - VS Code reports that the workspace was mirrored.
 - A third **Remote Mirrors** section appears.
 - The section contains the selected host and repository count.
