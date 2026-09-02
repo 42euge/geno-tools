@@ -5,7 +5,7 @@ mirror and a task dispatch. Do not invoke `tt` directly during this test.
 
 ## Preconditions
 
-- Geno Tools TT Workspaces `0.3.1` is installed.
+- Geno Tools TT Workspaces `0.3.2` is installed.
 - `Geno Tools: TT Path` points to the mirror/dispatch-capable `tt` installation.
 - At least one remote TT host is configured and has Git, tmux, and Claude.
 - The current window contains a local TT workspace with no important
@@ -25,8 +25,8 @@ whether an agent task is running.
 
 ## 2. Mirror the workspace
 
-1. In **Current Workspace**, select **Mirror Workspace to Host** from the
-   toolbar.
+1. On the workspace row under **Current Workspace**, select **Mirror Workspace
+   to Host** beside the two open buttons.
 2. Choose the remote host.
 
 There should be no task name, context picker, or confirmation dialog. Expected

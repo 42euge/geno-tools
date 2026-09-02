@@ -164,10 +164,13 @@ test("manifest makes mirror primary and dispatch an action on a mirror", () => {
         command === "genoTools.dispatchWorkspace" && group === "remote@2"
     )
   );
+  assert.ok(!manifest.contributes.menus["view/title"].some(
+    ({ command }) => command === "genoTools.mirrorWorkspace"
+  ));
   assert.ok(
-    manifest.contributes.menus["view/title"].some(
+    manifest.contributes.menus["view/item/context"].some(
       ({ command, group }) =>
-        command === "genoTools.mirrorWorkspace" && group === "navigation@3"
+        command === "genoTools.mirrorWorkspace" && group === "inline@4"
     )
   );
   assert.ok(

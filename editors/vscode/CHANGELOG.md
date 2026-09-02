@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.2
+
+- Move Mirror Workspace from the section toolbar onto each workspace row
+
 ## 0.3.1
 
 - Make workspace mirroring the lightweight primary remote action

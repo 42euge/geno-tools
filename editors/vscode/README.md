@@ -129,9 +129,9 @@ credential variable. Saved Claude and Codex transcripts stay local.
 
 ## Remote mirrors and dispatch
 
-Use **Mirror Workspace to Host** from the Current Workspace toolbar or a local
-workspace row. Choose a configured host and the extension creates the same
-workspace on that host. No task name or agent handoff is needed.
+Use the **Mirror Workspace to Host** button directly on a local workspace row,
+beside its open buttons. Choose a configured host and the extension creates the
+same workspace on that host. No task name or agent handoff is needed.
 
 When the current workspace exists on another configured host, a third **Remote
 Mirrors** sidebar section appears. Each row represents the same stable TT
