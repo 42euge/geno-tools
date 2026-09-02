@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Homebrew formula for geno-tools.
 #
 # Source of truth lives in the geno-tools repo; the 42euge/homebrew-geno tap
@@ -23,8 +25,8 @@ class GenoTools < Formula
 
   desc "Control plane for AI coding agents: resolve and scope skillset bundles"
   homepage "https://github.com/42euge/geno-tools"
-  url "https://github.com/42euge/geno-tools/archive/refs/tags/v0.9.0.tar.gz"
-  sha256 "3d1b741a491d2f23720b7c818ebfd512af9f700b79e67ca985ebd670d40add60"
+  url "https://github.com/42euge/geno-tools/archive/refs/tags/v0.10.0.tar.gz"
+  sha256 "ee023654ead9929d03c633315019eda988a6f781af32f54d434a936e5bf0e6e9"
   license "MIT"
 
   head "https://github.com/42euge/geno-tools.git", branch: "main"
