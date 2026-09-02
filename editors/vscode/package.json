@@ -2,7 +2,7 @@
   "name": "geno-tools-tt-workspaces",
   "displayName": "Geno Tools: TT Workspaces",
   "description": "Browse and manage local and remote TT workspaces from VS Code.",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "publisher": "42euge",
   "license": "MIT",
   "engines": {
@@ -57,8 +57,7 @@
         },
         {
           "id": "genoTools.remoteMirrors",
-          "name": "Remote Mirrors",
-          "when": "genoTools.hasCurrentWorkspaceMirror"
+          "name": "Remote Mirrors"
         }
       ]
     },

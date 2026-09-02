@@ -151,12 +151,14 @@ test("manifest makes mirror primary and dispatch an action on a mirror", () => {
   assert.ok(commands.includes("genoTools.dispatchWorkspace"));
   assert.ok(commands.includes("genoTools.dispatchMirror"));
   assert.ok(commands.includes("genoTools.manageDispatches"));
-  assert.ok(
-    manifest.contributes.views.genoTools.some(
-      ({ id, when }) =>
-        id === "genoTools.remoteMirrors" &&
-        when === "genoTools.hasCurrentWorkspaceMirror"
-    )
+  const mirrorView = manifest.contributes.views.genoTools.find(
+    ({ id }) => id === "genoTools.remoteMirrors"
+  );
+  assert.ok(mirrorView);
+  assert.equal(
+    mirrorView.when,
+    undefined,
+    "Remote Mirrors must always occupy the third sidebar section"
   );
   assert.ok(
     manifest.contributes.menus["view/item/context"].some(

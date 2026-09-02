@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.4
+
+- Keep Remote Mirrors visible as the third sidebar section and show an explicit
+  empty state before a workspace is mirrored
+
 ## 0.3.3
 
 - Mirror the selected workspace path with rsync instead of resolving and

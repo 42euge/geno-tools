@@ -12,6 +12,14 @@ export interface RemoteMirrorNode {
   mirror: WorkspaceNode;
 }
 
+interface RemoteMirrorMessageNode {
+  kind: "message";
+  label: string;
+  description: string;
+}
+
+type RemoteMirrorTreeNode = RemoteMirrorNode | RemoteMirrorMessageNode;
+
 export function isRemoteMirrorNode(value: unknown): value is RemoteMirrorNode {
   return Boolean(
     value &&
@@ -24,10 +32,10 @@ export function isRemoteMirrorNode(value: unknown): value is RemoteMirrorNode {
 }
 
 export class RemoteMirrorTreeProvider
-  implements vscode.TreeDataProvider<RemoteMirrorNode>, vscode.Disposable
+  implements vscode.TreeDataProvider<RemoteMirrorTreeNode>, vscode.Disposable
 {
-  private readonly changed = new vscode.EventEmitter<RemoteMirrorNode | undefined>();
-  private cache: RemoteMirrorNode[] | undefined;
+  private readonly changed = new vscode.EventEmitter<RemoteMirrorTreeNode | undefined>();
+  private cache: RemoteMirrorTreeNode[] | undefined;
 
   readonly onDidChangeTreeData = this.changed.event;
 
@@ -42,7 +50,17 @@ export class RemoteMirrorTreeProvider
     this.changed.fire(undefined);
   }
 
-  getTreeItem(node: RemoteMirrorNode): vscode.TreeItem {
+  getTreeItem(node: RemoteMirrorTreeNode): vscode.TreeItem {
+    if (node.kind === "message") {
+      const item = new vscode.TreeItem(
+        node.label,
+        vscode.TreeItemCollapsibleState.None
+      );
+      item.description = node.description;
+      item.iconPath = new vscode.ThemeIcon("info");
+      item.contextValue = "remoteMirrorMessage";
+      return item;
+    }
     const reference = workspaceReference(node.mirror.workspace);
     const item = new vscode.TreeItem(
       node.mirror.host.alias,
@@ -66,7 +84,7 @@ export class RemoteMirrorTreeProvider
     return item;
   }
 
-  async getChildren(node?: RemoteMirrorNode): Promise<RemoteMirrorNode[]> {
+  async getChildren(node?: RemoteMirrorTreeNode): Promise<RemoteMirrorTreeNode[]> {
     return node ? [] : this.nodes();
   }
 
@@ -74,19 +92,25 @@ export class RemoteMirrorTreeProvider
     this.changed.dispose();
   }
 
-  private async nodes(): Promise<RemoteMirrorNode[]> {
+  private async nodes(): Promise<RemoteMirrorTreeNode[]> {
     if (this.cache) {
       return this.cache;
     }
     const source = await this.currentWorkspace();
     const mirrors = source ? await this.mirrorsFor(source) : [];
-    this.cache = source
+    this.cache = source && mirrors.length > 0
       ? mirrors.map((mirror) => ({ kind: "remoteMirror", source, mirror }))
-      : [];
+      : [{
+          kind: "message",
+          label: source ? "Not mirrored yet" : "Not a TT workspace",
+          description: source
+            ? "Use the remote button on the workspace row"
+            : "Open a local TT workspace to create a mirror"
+        }];
     await vscode.commands.executeCommand(
       "setContext",
       HAS_CURRENT_WORKSPACE_MIRROR,
-      this.cache.length > 0
+      mirrors.length > 0
     );
     return this.cache;
   }

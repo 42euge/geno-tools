@@ -34,6 +34,27 @@ test("remote mirror tree shows the matching host and enables its view", async ()
   ]);
 });
 
+test("remote mirror tree explains when the current workspace has no mirror", async () => {
+  const contexts: unknown[][] = [];
+  const RemoteMirrorTreeProvider = await loadProvider(contexts);
+  const source = workspaceNode("local", "localhost", "/tmp/demo.2026.q3");
+  const provider = new RemoteMirrorTreeProvider(
+    async () => source,
+    async () => []
+  );
+
+  const nodes = await provider.getChildren();
+  const item = provider.getTreeItem(nodes[0]);
+
+  assert.equal(item.label, "Not mirrored yet");
+  assert.equal(item.description, "Use the remote button on the workspace row");
+  assert.deepEqual(Array.from(contexts.at(-1) ?? []), [
+    "setContext",
+    "genoTools.hasCurrentWorkspaceMirror",
+    false
+  ]);
+});
+
 function workspaceNode(alias: string, hostname: string, path: string): object {
   const workspace = {
     id: "chore.geno.demo.2026.q3",
@@ -67,6 +88,7 @@ async function loadProvider(
   getChildren(): Promise<object[]>;
   getTreeItem(node: object): {
     label: string;
+    description?: string;
     contextValue?: string;
     command?: { command: string; arguments?: unknown[] };
   };

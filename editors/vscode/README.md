@@ -135,10 +135,11 @@ same workspace on that host with rsync, including Git metadata and current
 working state. No task name or agent handoff is needed. TT worktrees are
 excluded because their Git metadata contains source-machine paths.
 
-When the current workspace exists on another configured host, a third **Remote
-Mirrors** sidebar section appears. Each row represents the same stable TT
-workspace ID on a different host. Select a row to open that mirror in a new VS
-Code window, or use its rocket action to **Dispatch Work to This Mirror**.
+The third **Remote Mirrors** sidebar section is always present. Before
+mirroring it explains where to start; afterward each row represents the same
+stable TT workspace ID on another host. Select a row to open that mirror in a
+new VS Code window, or use its rocket action to **Dispatch Work to This
+Mirror**.
 
 Dispatch is the separate task-level operation. It asks for a durable task name
 and the remote agent's context from:
