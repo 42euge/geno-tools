@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import argparse
 
-from . import audit, discover, install, remove, scan, status, upgrade
+from . import audit, dev, discover, install, remove, scan, status, upgrade
 
 
 def add_parser(subparsers: argparse._SubParsersAction) -> None:
@@ -36,6 +36,26 @@ def add_parser(subparsers: argparse._SubParsersAction) -> None:
     update_parser.add_argument(
         "name", nargs="?", help="skillset to update; omit for all"
     )
+
+    dev_parser = subparsers.add_parser(
+        "dev", help="activate or restore a local skillset development checkout"
+    )
+    dev_parser.set_defaults(_dispatch=dispatch, _dev_parser=dev_parser)
+    dev_commands = dev_parser.add_subparsers(
+        dest="dev_action", title="commands", metavar="COMMAND"
+    )
+    dev_activate = dev_commands.add_parser(
+        "activate", help="select a local checkout and its isolated runtime"
+    )
+    dev_activate.add_argument("checkout")
+    dev_status = dev_commands.add_parser(
+        "status", help="show stable/dev selection and consistency"
+    )
+    dev_status.add_argument("name", nargs="?")
+    dev_deactivate = dev_commands.add_parser(
+        "deactivate", help="restore an installed skillset's stable main checkout"
+    )
+    dev_deactivate.add_argument("name")
 
     discover_parser = subparsers.add_parser(
         "discover", help="find & list installable skillsets, by category"
@@ -90,6 +110,11 @@ def dispatch(args: argparse.Namespace) -> int:
             args._audit_parser.print_help()
             return 0
         return audit.run(args)
+    if args.cmd == "dev":
+        if args.dev_action is None:
+            args._dev_parser.print_help()
+            return 0
+        return dev.run(args)
     handlers = {
         "install": install.run,
         "uninstall": remove.run,

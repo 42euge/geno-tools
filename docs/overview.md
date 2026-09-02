@@ -40,9 +40,11 @@ every skill with every known agent. Declared `requires:` are installed
 recursively.
 
 **Maintain** — `status` shows version, commit, and drift against remote main.
-`upgrade` fast-forwards worktrees, removes retired skill registrations, and
+`update` fast-forwards worktrees, removes retired skill registrations, and
 rebuilds venvs only when dependencies actually changed. Dependency resolution
-is automatic during install.
+is automatic during install. `dev activate` selects a local checkout together
+with an isolated editable runtime, its console commands, and agent skill
+registrations; `dev deactivate` restores stable main without modifying it.
 `uninstall` is the inverse of installing one skillset. The guarded
 `system uninstall` command removes the entire geno-tools-managed footprint,
 with a dry run and explicit confirmation, while preserving user data under
@@ -57,8 +59,11 @@ All state lives under `~/.geno-tools/`, one directory per skillset:
 └── geno-{name}/
     ├── .git/                    # bare repo
     ├── main/                    # primary worktree
-    ├── venvs/default/           # isolated Python runtime
-    └── active -> main           # active worktree symlink
+    ├── venvs/
+    │   ├── default/             # stable isolated Python runtime
+    │   └── dev-<hash>/          # cached editable runtime per dev checkout
+    ├── dev-state.json           # present only while dev mode is active
+    └── active -> main|checkout  # selected skill source
 ```
 
 Config and caches live beside it under `~/.geno/` — `config.yaml`,
@@ -91,6 +96,9 @@ geno-tools status                 # installed skillsets, versions, drift
 geno-tools install <ref>   # name | git URL | local path
 geno-tools update [name]  # one, or all
 geno-tools uninstall <name> [--keep-data]
+geno-tools dev activate <checkout>
+geno-tools dev status [name]
+geno-tools dev deactivate <name>
 geno-tools discover [--refresh]
 geno-tools scan [--namespace X] [--dry-run]
 geno-tools system uninstall [--dry-run] [--yes]
@@ -101,6 +109,6 @@ geno-tools config show | set <dot.path> <value>
 `gt` is the default short alias (`aliases.command_prefix` in config).
 
 The CLI is also surfaced as skills, so an agent can drive it conversationally:
-`skills/manager/*` (install, upgrade, remove, status, deps, discover),
+`skills/manager/*` (install, upgrade, remove, status, discover, dev),
 `skills/config/*`, `skills/author/*` (scaffold a new skill or skillset), and
 `skills/meta/ecosystem/*` (discover, scan, onboarding).

@@ -24,7 +24,11 @@ def run(args: argparse.Namespace) -> int:
 
 
 def _read_manifest(full: str) -> dict:
-    manifest = paths.skillset_worktree(full) / "genotools.yaml"
+    return _read_manifest_at(paths.skillset_worktree(full))
+
+
+def _read_manifest_at(source: Path) -> dict:
+    manifest = source / "genotools.yaml"
     if not manifest.exists():
         return {}
     try:
@@ -128,14 +132,17 @@ def _peek_repo_name(source: str) -> str:
 
 
 def _read_pyproject_name(repo_dir: Path) -> str | None:
+    return (_read_project(repo_dir).get("project") or {}).get("name")
+
+
+def _read_project(repo_dir: Path) -> dict:
     pyproject = repo_dir / "pyproject.toml"
     if not pyproject.exists():
-        return None
+        return {}
     try:
-        data = tomllib.loads(pyproject.read_text())
+        return tomllib.loads(pyproject.read_text())
     except tomllib.TOMLDecodeError:
-        return None
-    return (data.get("project") or {}).get("name")
+        return {}
 
 
 def _clone_and_worktree(source: str, full: str) -> None:
@@ -164,17 +171,19 @@ def _detect_default_branch(bare_repo: Path) -> str:
 
 def _create_venv_if_needed(full: str) -> dict[str, str]:
     worktree = paths.skillset_worktree(full)
-    pyproject = worktree / "pyproject.toml"
-    if not pyproject.exists():
-        return {}
+    return _create_venv_for_source(
+        worktree,
+        paths.skillset_venvs(full) / "default",
+    )
 
-    project = tomllib.loads(pyproject.read_text()).get("project", {})
+
+def _create_venv_for_source(source: Path, venv_dir: Path) -> dict[str, str]:
+    project = _read_project(source).get("project", {})
     if not project:
         return {}
 
     dependencies = project.get("dependencies", []) or []
     scripts = project.get("scripts", {}) or {}
-    venv_dir = paths.skillset_venvs(full) / "default"
     venv_dir.parent.mkdir(parents=True, exist_ok=True)
     print(f"  creating venv: {venv_dir}")
     subprocess.check_call([sys.executable, "-m", "venv", str(venv_dir)])
@@ -186,7 +195,7 @@ def _create_venv_if_needed(full: str) -> dict[str, str]:
         subprocess.check_call([str(pip), "install", "--quiet", *dependencies])
 
     print("  installing package (editable)")
-    subprocess.check_call([str(pip), "install", "--quiet", "-e", str(worktree)])
+    subprocess.check_call([str(pip), "install", "--quiet", "-e", str(source)])
     return scripts
 
 
@@ -215,7 +224,7 @@ def _remove_bin_symlinks(full: str, *, system_bin: Path | None = None) -> None:
     bin_dir = system_bin or SYSTEM_BIN
     if not bin_dir.exists():
         return
-    venv_bin = paths.skillset_venvs(full) / "default" / "bin"
+    venvs = paths.skillset_venvs(full)
     for entry in bin_dir.iterdir():
         if not entry.is_symlink():
             continue
@@ -223,7 +232,11 @@ def _remove_bin_symlinks(full: str, *, system_bin: Path | None = None) -> None:
             target = entry.readlink()
         except OSError:
             continue
-        if str((entry.parent / target).resolve()).startswith(str(venv_bin)):
+        try:
+            (entry.parent / target).resolve().relative_to(venvs.resolve())
+        except ValueError:
+            continue
+        else:
             entry.unlink()
             print(f"  -> removed {entry}")
 
@@ -260,14 +273,16 @@ def _uninstall_skills_via_npx(full: str) -> None:
     _uninstall_skill_names_via_npx(_enumerate_skills(full))
 
 
-def _uninstall_skill_names_via_npx(skill_names: list[str]) -> None:
+def _uninstall_skill_names_via_npx(
+    skill_names: list[str], *, check: bool = False
+) -> None:
     skill_names = sorted(set(skill_names))
     if not skill_names:
         return
     print(f"  uninstalling {len(skill_names)} skill(s) via npx skills")
     subprocess.run(
         ["npx", "--yes", "skills", "remove", "--global", "--yes", *skill_names],
-        check=False,
+        check=check,
     )
 
 

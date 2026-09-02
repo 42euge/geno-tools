@@ -17,7 +17,7 @@ from geno_tools.core.terminal import (
 )
 
 from .. import paths
-from .install import _read_manifest
+from . import dev
 
 _STATE_FORMATS = {
     "in-sync": ("●", "ok", green),
@@ -25,6 +25,7 @@ _STATE_FORMATS = {
     "dirty": ("✎", "dirty", yellow),
     "diverged": ("✗", "diverged", red),
     "offline": ("·", "offline", dim),
+    "dev-drift": ("!", "dev-drift", red),
 }
 
 
@@ -81,7 +82,8 @@ def run(_: argparse.Namespace) -> int:
 
 def _skillset_status(full: str, *, check_remote: bool) -> dict:
     worktree = paths.skillset_worktree(full)
-    version = str(_read_manifest(full).get("version", "?"))
+    active = dev.active_details(full)
+    version = active["version"]
 
     def git(*arguments: str) -> str:
         try:
@@ -93,9 +95,8 @@ def _skillset_status(full: str, *, check_remote: bool) -> dict:
         except (subprocess.CalledProcessError, FileNotFoundError):
             return ""
 
-    commit = git("rev-parse", "--short", "HEAD") or "?"
-    state = ""
-    if check_remote:
+    state = "" if active["consistent"] else "dev-drift"
+    if check_remote and not state:
         if git("status", "--porcelain"):
             state = "dirty"
         else:
@@ -141,7 +142,7 @@ def _skillset_status(full: str, *, check_remote: bool) -> dict:
     return {
         "name": full,
         "version": version,
-        "variant": "main",
-        "commit": commit,
+        "variant": active["mode"],
+        "commit": active["commit"],
         "state": state,
     }

@@ -89,8 +89,9 @@ side by side, sharing one `~/.geno-tools/` and one venv strategy.
 
 Three paths, in increasing order of commitment:
 
-1. **Local dev link** — `geno-tools install ~/src/your-skillset` to
-   iterate on a checkout without committing anything.
+1. **Local source install** — `geno-tools install ~/src/your-skillset` seeds the
+   managed stable copy from a local repository. To iterate on live files after
+   installation, use `geno-tools dev activate ~/src/your-skillset`.
 2. **Direct git URL** — `geno-tools install https://…/your-skillset.git`.
    Works for any compliant repo, with no registry entry anywhere. This is the
    recommended path for private, internal, and experimental skillsets.
@@ -107,12 +108,20 @@ resolves those recursively before finishing — so installing one skillset can
 pull in the graph beneath it. Dependency resolution is part of installation,
 not a separate operator command.
 
-## Variants
+## Stable and development selections
 
-Each skillset is cloned as a bare repo with a `main` worktree and an `active`
-symlink pointing at it. Additional worktrees under `.worktrees/<variant>/` let
-two versions of the same skillset exist at once; repointing `active` decides
-which one a session sees. Venvs are shared across worktrees by default, or
-per-worktree when a variant needs isolation.
+Each skillset is cloned as a bare repo with a managed `main` worktree, a
+`venvs/default` runtime, and an `active` symlink. That is the stable selection.
+
+`geno-tools dev activate <checkout>` selects another local checkout without
+changing managed main. geno-tools creates a checkout-specific editable runtime
+under `venvs/dev-<hash>`, repoints the active source and console-script links,
+re-registers agent skills, then records the selection in `dev-state.json`. If a
+step fails, it restores the prior selection. `geno-tools dev deactivate <name>`
+returns every surface to stable main.
+
+Use `geno-tools dev status [name]` to see the selected source and detect drift.
+Do not repoint `active` manually: source, runtime links, and registered skills
+form one managed selection.
 
 See [overview.md](overview.md) for the on-disk layout in full.
