@@ -15,10 +15,12 @@ interface VscodeStub {
   clipboardText?: string;
   commands: Map<string, (...args: unknown[]) => Promise<unknown>>;
   errorMessages: string[];
+  globalState?: Map<string, unknown>;
   informationResults?: string[];
   inputValues: string[];
   openFolderCalls: Array<[{ path: string }, boolean]>;
   spawnCalls: Array<{ executable: string; args: string[] }>;
+  spawnResults?: Array<{ code: number; stdout?: string; stderr?: string }>;
   terminalCommands: string[];
   terminalHistory?: string;
   treeDescriptions?: Record<string, string>;
@@ -29,6 +31,7 @@ test("+ creates a new tmux session and accepts an optional name", async () => {
   const stub: VscodeStub = {
     commands: new Map(),
     errorMessages: [],
+    globalState: new Map(),
     inputValues: ["", "focus", "remote-focus"],
     openFolderCalls: [],
     spawnCalls: [],
@@ -132,48 +135,176 @@ test("creating a tmux session refreshes the host registry", async () => {
   ]);
 });
 
-test("deleting a tmux session requires confirmation, kills it, and refreshes", async () => {
+test("creating a tmux session persists a restorable shell recipe", async () => {
   const stub: VscodeStub = {
     commands: new Map(),
     errorMessages: [],
+    globalState: new Map(),
+    inputValues: ["focus"],
+    openFolderCalls: [],
+    spawnCalls: [],
+    terminalCommands: []
+  };
+  const extension = await loadExtension(stub);
+  extension.activate(extensionContext(stub));
+
+  const createTmuxSession = stub.commands.get("genoTools.createTmuxSession");
+  assert.ok(createTmuxSession);
+  await createTmuxSession(workspaceNode());
+
+  const [record] = persistedSessions(stub);
+  assert.equal(record.registryHost, "localhost");
+  assert.equal(record.workspaceId, "chore.geno.demo.2026.q3");
+  assert.equal(record.sessionName, "focus");
+  assert.equal(record.workspacePath, "/tmp/demo.2026.q3");
+  assert.deepEqual(JSON.parse(JSON.stringify(record.launch)), { kind: "shell" });
+});
+
+test("Manage explicitly adopts an external live session without mutating tmux", async () => {
+  const stub: VscodeStub = {
+    commands: new Map(),
+    errorMessages: [],
+    globalState: new Map(),
+    inputValues: [],
+    openFolderCalls: [],
+    spawnCalls: [],
+    terminalCommands: []
+  };
+  const extension = await loadExtension(stub);
+  extension.activate(extensionContext(stub));
+
+  const manage = stub.commands.get("genoTools.manageTmuxSession");
+  assert.ok(manage, "Manage command should be registered");
+  await manage(tmuxNode("manual-work", "external"));
+
+  assert.equal(stub.spawnCalls.length, 0);
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(
+      persistedSessions(stub).map((record) => record.sessionName)
+    )),
+    ["manual-work"]
+  );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(persistedSessions(stub)[0].launch)),
+    { kind: "shell" }
+  );
+});
+
+test("Restore recreates a stopped shell session and attaches it", async () => {
+  const record = managedRecord("stopped-shell");
+  const stub: VscodeStub = {
+    commands: new Map(),
+    errorMessages: [],
+    globalState: persistedState(record),
     inputValues: [],
     openFolderCalls: [],
     spawnCalls: [],
     terminalCommands: [],
-    warningResults: ["Delete tmux Session"]
+    warningResults: ["Restore tmux Session"]
   };
   const extension = await loadExtension(stub);
-  const contextObject = { subscriptions: [] as Array<{ dispose?: () => void }> };
-  extension.activate(contextObject);
+  extension.activate(extensionContext(stub));
+
+  const restore = stub.commands.get("genoTools.restoreTmuxSession");
+  assert.ok(restore, "Restore command should be registered");
+  await restore(tmuxNode("stopped-shell", "stopped", record));
+
+  assert.deepEqual(JSON.parse(JSON.stringify(stub.spawnCalls)), [
+    {
+      executable: "tmux",
+      args: [
+        "new-session",
+        "-d",
+        "-s",
+        "stopped-shell",
+        "-c",
+        "/tmp/demo.2026.q3"
+      ]
+    },
+    {
+      executable: "tt-test",
+      args: ["-H", "local", "registry", "refresh"]
+    }
+  ]);
+  assert.deepEqual(stub.terminalCommands, [
+    "tt-test -H local tmux demo.2026.q3 stopped-shell"
+  ]);
+  assert.equal(persistedSessions(stub)[0].sessionName, "stopped-shell");
+});
+
+test("Restore replays a stopped session's validated agent resume command", async () => {
+  const record = managedRecord("stopped-agent", {
+    launch: { kind: "agent-resume", command: "codexd resume abc-123" }
+  });
+  const stub: VscodeStub = {
+    commands: new Map(),
+    errorMessages: [],
+    globalState: persistedState(record),
+    inputValues: [],
+    openFolderCalls: [],
+    spawnCalls: [],
+    terminalCommands: [],
+    warningResults: ["Restore tmux Session"]
+  };
+  const extension = await loadExtension(stub);
+  extension.activate(extensionContext(stub));
+
+  const restore = stub.commands.get("genoTools.restoreTmuxSession");
+  assert.ok(restore);
+  await restore(tmuxNode("stopped-agent", "stopped", record));
+
+  assert.deepEqual(JSON.parse(JSON.stringify(stub.spawnCalls)), [
+    {
+      executable: "tmux",
+      args: [
+        "new-session",
+        "-d",
+        "-s",
+        "stopped-agent",
+        "-c",
+        "/tmp/demo.2026.q3"
+      ]
+    },
+    {
+      executable: "tmux",
+      args: [
+        "send-keys",
+        "-t",
+        "stopped-agent",
+        "-l",
+        "--",
+        "codexd resume abc-123"
+      ]
+    },
+    {
+      executable: "tmux",
+      args: ["send-keys", "-t", "stopped-agent", "Enter"]
+    },
+    {
+      executable: "tt-test",
+      args: ["-H", "local", "registry", "refresh"]
+    }
+  ]);
+});
+
+test("removing a managed tmux session requires confirmation, kills it, and refreshes", async () => {
+  const record = managedRecord("obsolete-work");
+  const stub: VscodeStub = {
+    commands: new Map(),
+    errorMessages: [],
+    globalState: persistedState(record),
+    inputValues: [],
+    openFolderCalls: [],
+    spawnCalls: [],
+    terminalCommands: [],
+    warningResults: ["Remove tmux Session"]
+  };
+  const extension = await loadExtension(stub);
+  extension.activate(extensionContext(stub));
   const deleteTmuxSession = stub.commands.get("genoTools.deleteTmuxSession");
   assert.ok(deleteTmuxSession, "delete tmux command should be registered");
 
-  await deleteTmuxSession({
-    kind: "tmuxSession",
-    host: { alias: "local", hostname: "localhost", isDefault: true },
-    registry: {
-      schema_version: 1,
-      host: "localhost",
-      generated_at: "2026-09-01T00:00:00Z",
-      workspaces: []
-    },
-    workspace: {
-      id: "chore.geno.demo.2026.q3",
-      track: "chore",
-      domain: "geno",
-      name: "demo",
-      born: "2026.q3",
-      path: "/tmp/demo.2026.q3",
-      repos: [],
-      state: { tmux: { sessions: [] } }
-    },
-    session: {
-      session_name: "obsolete-work",
-      pane_current_path: "/tmp/demo.2026.q3",
-      pane_current_command: "zsh",
-      session_activity: 0
-    }
-  });
+  await deleteTmuxSession(tmuxNode("obsolete-work", "live", record));
 
   assert.deepEqual(JSON.parse(JSON.stringify(stub.spawnCalls)), [
     {
@@ -185,29 +316,104 @@ test("deleting a tmux session requires confirmation, kills it, and refreshes", a
       args: ["-H", "local", "registry", "refresh"]
     }
   ]);
+  assert.deepEqual(persistedSessions(stub), []);
 });
 
-test("canceling tmux deletion leaves the session untouched", async () => {
+test("canceling tmux removal leaves the session and record untouched", async () => {
+  const record = managedRecord("keep-work");
   const stub: VscodeStub = {
     commands: new Map(),
     errorMessages: [],
+    globalState: persistedState(record),
     inputValues: [],
     openFolderCalls: [],
     spawnCalls: [],
     terminalCommands: []
   };
   const extension = await loadExtension(stub);
-  const contextObject = { subscriptions: [] as Array<{ dispose?: () => void }> };
-  extension.activate(contextObject);
+  extension.activate(extensionContext(stub));
   const deleteTmuxSession = stub.commands.get("genoTools.deleteTmuxSession");
   assert.ok(deleteTmuxSession);
-  await deleteTmuxSession({
-    kind: "tmuxSession",
-    host: { alias: "local", hostname: "localhost", isDefault: true },
-    registry: { host: "localhost" },
-    session: { session_name: "keep-work" }
-  });
+  await deleteTmuxSession(tmuxNode("keep-work", "live", record));
   assert.deepEqual(stub.spawnCalls, []);
+  assert.equal(persistedSessions(stub)[0].sessionName, "keep-work");
+});
+
+test("Remove clears a managed record when the tmux server is already gone", async () => {
+  const record = managedRecord("already-gone");
+  const stub: VscodeStub = {
+    commands: new Map(),
+    errorMessages: [],
+    globalState: persistedState(record),
+    inputValues: [],
+    openFolderCalls: [],
+    spawnCalls: [],
+    spawnResults: [
+      {
+        code: 1,
+        stderr: "no server running on /private/tmp/tmux-503/default\n"
+      },
+      { code: 0 }
+    ],
+    terminalCommands: [],
+    warningResults: ["Remove tmux Session"]
+  };
+  const extension = await loadExtension(stub);
+  extension.activate(extensionContext(stub));
+
+  const remove = stub.commands.get("genoTools.deleteTmuxSession");
+  assert.ok(remove);
+  await remove(tmuxNode("already-gone", "stopped", record));
+
+  assert.deepEqual(persistedSessions(stub), []);
+  assert.deepEqual(stub.errorMessages, []);
+  assert.deepEqual(JSON.parse(JSON.stringify(stub.spawnCalls)), [
+    {
+      executable: "tmux",
+      args: ["kill-session", "-t", "already-gone"]
+    },
+    {
+      executable: "tt-test",
+      args: ["-H", "local", "registry", "refresh"]
+    }
+  ]);
+});
+
+test("Remove preserves a managed record when remote tmux state is unknown", async () => {
+  const record = managedRecord("remote-work", {
+    registryHost: "build.example.com",
+    workspacePath: "/srv/demo.2026.q3",
+    paneCurrentPath: "/srv/demo.2026.q3"
+  });
+  const stub: VscodeStub = {
+    commands: new Map(),
+    errorMessages: [],
+    globalState: persistedState(record),
+    inputValues: [],
+    openFolderCalls: [],
+    spawnCalls: [],
+    spawnResults: [
+      { code: 255, stderr: "ssh: connect to host build: Operation timed out\n" }
+    ],
+    terminalCommands: [],
+    warningResults: ["Remove tmux Session"]
+  };
+  const extension = await loadExtension(stub);
+  extension.activate(extensionContext(stub));
+
+  const remove = stub.commands.get("genoTools.deleteTmuxSession");
+  assert.ok(remove);
+  await remove(tmuxNode("remote-work", "live", record, {
+    alias: "build",
+    hostname: "build.example.com",
+    isDefault: false
+  }));
+
+  assert.deepEqual(persistedSessions(stub).map((item) => item.sessionName), [
+    "remote-work"
+  ]);
+  assert.match(stub.errorMessages[0] ?? "", /Operation timed out/);
+  assert.equal(stub.spawnCalls.length, 1);
 });
 
 test("workspace actions explicitly choose the current or a new window", async () => {
@@ -585,6 +791,7 @@ test("the recovery agent creates, seeds, registers, and attaches a tmux session"
     clipboardText: "original clipboard",
     commands: new Map(),
     errorMessages: [],
+    globalState: new Map(),
     informationResults: ["Create tmux Session"],
     inputValues: [],
     openFolderCalls: [],
@@ -594,8 +801,7 @@ test("the recovery agent creates, seeds, registers, and attaches a tmux session"
     warningResults: ["Scan History"]
   };
   const extension = await loadExtension(stub);
-  const contextObject = { subscriptions: [] as Array<{ dispose?: () => void }> };
-  extension.activate(contextObject);
+  extension.activate(extensionContext(stub));
   const recover = stub.commands.get("genoTools.recoverTerminalInTmux");
   assert.ok(recover, "recovery command should be registered");
 
@@ -669,6 +875,13 @@ test("the recovery agent creates, seeds, registers, and attaches a tmux session"
   assert.deepEqual(stub.terminalCommands, [
     "tt-test -H local tmux repo-a recovered-work"
   ]);
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(persistedSessions(stub)[0].launch)),
+    {
+      kind: "agent-resume",
+      command: `codexd resume ${sessionId}`
+    }
+  );
 });
 
 test("recovery does not create tmux without a matching saved agent session", async () => {
@@ -863,6 +1076,100 @@ test("a recovery proposal can be renamed before tmux creation", async (t) => {
   ]);
 });
 
+interface StoredTmuxSession {
+  registryHost: string;
+  workspaceId: string;
+  workspacePath: string;
+  sessionName: string;
+  paneCurrentPath: string;
+  paneCurrentCommand: string;
+  launch:
+    | { kind: "shell" }
+    | { kind: "agent-resume"; command: string };
+  managedAt: string;
+}
+
+function workspaceNode(): Record<string, unknown> {
+  return {
+    kind: "workspace",
+    host: { alias: "local", hostname: "localhost", isDefault: true },
+    registry: {
+      schema_version: 1,
+      host: "localhost",
+      generated_at: "2026-09-01T00:00:00Z",
+      workspaces: []
+    },
+    workspace: {
+      id: "chore.geno.demo.2026.q3",
+      track: "chore",
+      domain: "geno",
+      name: "demo",
+      born: "2026.q3",
+      path: "/tmp/demo.2026.q3",
+      repos: [],
+      state: { tmux: { sessions: [] } }
+    }
+  };
+}
+
+function tmuxNode(
+  sessionName: string,
+  lifecycle: "live" | "stopped" | "external",
+  managed?: StoredTmuxSession,
+  host: { alias: string; hostname: string; isDefault: boolean } = {
+    alias: "local",
+    hostname: "localhost",
+    isDefault: true
+  }
+): Record<string, unknown> {
+  const base = workspaceNode() as {
+    registry: Record<string, unknown>;
+    workspace: Record<string, unknown>;
+  } & Record<string, unknown>;
+  base.kind = "tmuxSession";
+  base.host = host;
+  base.registry.host = managed?.registryHost ?? host.hostname;
+  base.session = {
+    session_name: sessionName,
+    pane_current_path: managed?.paneCurrentPath ?? "/tmp/demo.2026.q3",
+    pane_current_command: managed?.paneCurrentCommand ?? "zsh",
+    session_activity: 0,
+    lifecycle,
+    ...(managed ? { managed } : {})
+  };
+  return base;
+}
+
+function managedRecord(
+  sessionName: string,
+  overrides: Partial<StoredTmuxSession> = {}
+): StoredTmuxSession {
+  return {
+    registryHost: "localhost",
+    workspaceId: "chore.geno.demo.2026.q3",
+    workspacePath: "/tmp/demo.2026.q3",
+    sessionName,
+    paneCurrentPath: "/tmp/demo.2026.q3",
+    paneCurrentCommand: "zsh",
+    launch: { kind: "shell" },
+    managedAt: "2026-09-03T12:00:00.000Z",
+    ...overrides
+  };
+}
+
+function persistedState(...records: StoredTmuxSession[]): Map<string, unknown> {
+  return new Map([
+    ["genoTools.managedTmuxSessions.v1", { schema: 1, sessions: records }]
+  ]);
+}
+
+function persistedSessions(stub: VscodeStub): StoredTmuxSession[] {
+  const value = stub.globalState?.get("genoTools.managedTmuxSessions.v1") as
+    | { schema: 1; sessions: StoredTmuxSession[] }
+    | undefined;
+  return value?.sessions ?? [];
+}
+
 async function createCodexSessionHome(
   workingDirectory: string,
   sessionId: string,
@@ -1052,18 +1359,40 @@ async function loadExtension(
         build.onLoad({ filter: /.*/, namespace: "child-process-stub" }, () => ({
           contents: `
             const state = globalThis.__vscodeStub;
+            function stream() {
+              const dataListeners = [];
+              return {
+                dataListeners,
+                on(event, callback) {
+                  if (event === "data") dataListeners.push(callback);
+                  return this;
+                }
+              };
+            }
             function spawn(executable, args) {
               state.spawnCalls.push({ executable, args });
-              const listeners = {};
-              const stream = { on() { return stream; } };
+              const result = state.spawnResults?.shift() ?? { code: 0 };
+              const stdout = stream();
+              const stderr = stream();
               const child = {
-                stdout: stream,
-                stderr: stream,
+                stdout,
+                stderr,
                 kill() {},
                 on(event, callback) {
-                  listeners[event] = callback;
                   if (event === "close") {
-                    Promise.resolve().then(() => callback(0));
+                    Promise.resolve().then(() => {
+                      if (result.stdout) {
+                        for (const listener of stdout.dataListeners) {
+                          listener(Buffer.from(result.stdout));
+                        }
+                      }
+                      if (result.stderr) {
+                        for (const listener of stderr.dataListeners) {
+                          listener(Buffer.from(result.stderr));
+                        }
+                      }
+                      callback(result.code);
+                    });
                   }
                   return child;
                 }
@@ -1091,4 +1420,25 @@ async function loadExtension(
     __vscodeStub: stub
   });
   return compiledModule.exports as unknown as { activate(context: object): void };
+}
+
+function extensionContext(stub: VscodeStub): {
+  subscriptions: Array<{ dispose?: () => void }>;
+  globalState: {
+    get<T>(key: string): T | undefined;
+    update(key: string, value: unknown): Promise<void>;
+  };
+} {
+  return {
+    subscriptions: [],
+    globalState: {
+      get<T>(key: string): T | undefined {
+        return stub.globalState?.get(key) as T | undefined;
+      },
+      async update(key: string, value: unknown): Promise<void> {
+        stub.globalState ??= new Map();
+        stub.globalState.set(key, value);
+      }
+    }
+  };
 }
