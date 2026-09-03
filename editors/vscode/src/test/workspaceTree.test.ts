@@ -12,7 +12,8 @@ interface TreeNode {
 }
 
 interface TreeProvider {
-  getChildren(node: TreeNode): Promise<TreeNode[]>;
+  getChildren(node?: TreeNode): Promise<TreeNode[]>;
+  invalidateHost(host: unknown, liveStateAlreadyRefreshed?: boolean): void;
   getTreeItem(node: TreeNode): {
     label: string;
     description?: string;
@@ -201,6 +202,122 @@ test("tmux sessions can be reopened from the tree", async () => {
   assert.equal(item.command?.arguments?.[0], node);
 });
 
+test("tmux rows distinguish live, stopped, and external lifecycle state", async () => {
+  const WorkspaceTreeProvider = await loadWorkspaceTreeProvider();
+  const provider = new WorkspaceTreeProvider({});
+  const live = tmuxNode("managed-live", "live");
+  const stopped = tmuxNode("managed-stopped", "stopped");
+  const external = tmuxNode("manual", "external");
+
+  const liveItem = provider.getTreeItem(live);
+  assert.equal(liveItem.contextValue, "tmuxSession.live");
+  assert.equal(liveItem.command?.command, "genoTools.openTmuxSession");
+
+  const stoppedItem = provider.getTreeItem(stopped);
+  assert.equal(stoppedItem.contextValue, "tmuxSession.stopped");
+  assert.equal(stoppedItem.description, "Stopped");
+  assert.equal(stoppedItem.command?.command, "genoTools.restoreTmuxSession");
+
+  const externalItem = provider.getTreeItem(external);
+  assert.equal(externalItem.contextValue, "tmuxSession.external");
+  assert.match(externalItem.description ?? "", /External/);
+  assert.equal(externalItem.command?.command, "genoTools.openTmuxSession");
+});
+
+test("tmux groups include stopped managed sessions missing from live state", async () => {
+  const WorkspaceTreeProvider = await loadWorkspaceTreeProvider();
+  const rawLive = {
+    session_name: "managed-live",
+    pane_current_path: "/tmp/demo.2026.q3",
+    pane_current_command: "codex",
+    session_activity: 1788249600
+  };
+  const workspace = {
+    id: "chore.geno.demo.2026.q3",
+    track: "chore",
+    domain: "geno",
+    name: "demo",
+    born: "2026.q3",
+    path: "/tmp/demo.2026.q3",
+    repos: [],
+    state: { tmux: { sessions: [rawLive] } }
+  };
+  const host = { alias: "local", hostname: "localhost", isDefault: true };
+  const registry = {
+    schema_version: 1,
+    host: "localhost",
+    generated_at: "2026-09-01T00:00:00Z",
+    workspaces: [workspace]
+  };
+  const sessionStore = {
+    forWorkspace: () => [
+      { ...rawLive, lifecycle: "live" },
+      {
+        session_name: "managed-stopped",
+        pane_current_path: "/tmp/demo.2026.q3",
+        pane_current_command: "zsh",
+        session_activity: 0,
+        lifecycle: "stopped"
+      }
+    ]
+  };
+  const provider = new WorkspaceTreeProvider(
+    {},
+    "all",
+    undefined,
+    sessionStore
+  );
+  const groups = await provider.getChildren({
+    kind: "workspace",
+    host,
+    registry,
+    workspace
+  });
+  const tmuxGroup = groups.find((node) => node.kind === "tmuxSessionGroup");
+  assert.ok(tmuxGroup);
+
+  assert.equal(provider.getTreeItem(tmuxGroup).description, "2");
+  assert.deepEqual(
+    labels(provider, await provider.getChildren(tmuxGroup)),
+    ["managed-live", "managed-stopped"]
+  );
+});
+
+test("initial host load scans live state and refreshed invalidation avoids a second scan", async () => {
+  const WorkspaceTreeProvider = await loadWorkspaceTreeProvider();
+  const host = { alias: "local", hostname: "localhost", isDefault: true };
+  const registry = {
+    schema_version: 1,
+    host: "localhost",
+    generated_at: "2026-09-01T00:00:00Z",
+    workspaces: []
+  };
+  let scans = 0;
+  let reads = 0;
+  const provider = new WorkspaceTreeProvider({
+    hosts: async () => [host],
+    scanRegistry: async () => {
+      scans += 1;
+      return registry;
+    },
+    registry: async () => {
+      reads += 1;
+      return registry;
+    }
+  });
+
+  const roots = await provider.getChildren();
+  assert.equal(roots.length, 1);
+  await provider.getChildren(roots[0]);
+  assert.equal(scans, 1);
+  assert.equal(reads, 0);
+
+  provider.invalidateHost(host, true);
+  await provider.getChildren(roots[0]);
+  assert.equal(scans, 1);
+  assert.equal(reads, 1);
+});
+
 test("terminal and tmux rows show their bidirectional VS Code link", async () => {
   const attached = {
     name: "TT: local/recovered-work",
@@ -262,9 +379,26 @@ function labels(provider: TreeProvider, nodes: TreeNode[]): string[] {
   return Array.from(nodes, (node) => provider.getTreeItem(node).label);
 }
 
+function tmuxNode(
+  sessionName: string,
+  lifecycle: "live" | "stopped" | "external"
+): TreeNode {
+  return {
+    kind: "tmuxSession",
+    host: { alias: "local", hostname: "localhost", isDefault: true },
+    session: {
+      session_name: sessionName,
+      pane_current_path: "/tmp/demo.2026.q3",
+      pane_current_command: "zsh",
+      session_activity: 1788249600,
+      lifecycle
+    }
+  };
+}
+
 async function loadWorkspaceTreeProvider(
   terminals: unknown[] = []
-): Promise<new (cli: object) => TreeProvider> {
+): Promise<new (...args: unknown[]) => TreeProvider> {
   const result = await esbuild.build({
     entryPoints: [join(__dirname, "..", "workspaceTree.ts")],
     bundle: true,
@@ -323,6 +457,6 @@ async function loadWorkspaceTreeProvider(
     __vscodeStub: { terminals }
   });
   return compiledModule.exports.WorkspaceTreeProvider as new (
-    cli: object
+    ...args: unknown[]
   ) => TreeProvider;
 }

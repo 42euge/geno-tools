@@ -132,16 +132,18 @@ function processState(spawnResults: SpawnResult[] = []): ProcessState {
   return { progressCalls: 0, spawnCalls: [], spawnResults: [...spawnResults] };
 }
 
-function output(): {
+interface OutputStub {
   append(): void;
   appendLine(): void;
   show(): void;
-} {
+}
+
+function output(): OutputStub {
   return { append() {}, appendLine() {}, show() {} };
 }
 
 interface TtCliModule {
-  TtCli: new (output: ReturnType<typeof output>) => {
+  TtCli: new (outputChannel: OutputStub) => {
     killTmuxSession(
       host: { alias: string; hostname: string; isDefault: boolean },
       registryHost: string,
