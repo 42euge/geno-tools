@@ -265,7 +265,7 @@ export class WorkspaceTreeProvider
       }
       switch (node.kind) {
         case "host":
-          return this.hostChildren(node.host);
+          return await this.hostChildren(node.host);
         case "track":
           return trackChildren(node);
         case "domain":

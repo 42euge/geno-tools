@@ -296,6 +296,9 @@ async function refreshWorkspaces(
         provider.invalidateHost(host, true);
       }
     } catch (error) {
+      for (const provider of providers) {
+        provider.invalidateHost(host);
+      }
       failures.push(`${host.alias}: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -578,13 +581,18 @@ async function restoreTmuxSession(
     record.paneCurrentPath,
     record.sessionName
   );
+  let resumeFailure: string | undefined;
   if (record.launch.kind === "agent-resume") {
-    await cli.sendTmuxCommand(
-      node.host,
-      record.registryHost,
-      record.sessionName,
-      record.launch.command
-    );
+    try {
+      await cli.sendTmuxCommand(
+        node.host,
+        record.registryHost,
+        record.sessionName,
+        record.launch.command
+      );
+    } catch (error) {
+      resumeFailure = error instanceof Error ? error.message : String(error);
+    }
   }
   await cli.refreshRegistry(node.host);
   for (const provider of providers) {
@@ -599,6 +607,12 @@ async function restoreTmuxSession(
   );
   for (const provider of providers) {
     provider.refreshTerminals();
+  }
+
+  if (resumeFailure) {
+    void vscode.window.showWarningMessage(
+      `Restored ${record.sessionName}, but its agent resume command failed: ${resumeFailure}`
+    );
   }
 }
 

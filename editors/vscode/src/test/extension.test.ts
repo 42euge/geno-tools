@@ -24,6 +24,10 @@ interface VscodeStub {
   terminalCommands: string[];
   terminalHistory?: string;
   treeDescriptions?: Record<string, string>;
+  treeProviders?: Map<string, {
+    getChildren(node?: Record<string, unknown>): Promise<Array<Record<string, unknown>>>;
+  }>;
+  warningMessages?: string[];
   warningResults?: string[];
 }
 
@@ -133,6 +137,48 @@ test("creating a tmux session refreshes the host registry", async () => {
       args: ["-H", "local", "registry", "refresh"]
     }
   ]);
+});
+
+test("a failed explicit refresh invalidates cached live host state", async () => {
+  const registry = {
+    schema_version: 1,
+    host: "localhost",
+    generated_at: "2026-09-03T12:00:00Z",
+    workspaces: []
+  };
+  const stub: VscodeStub = {
+    commands: new Map(),
+    errorMessages: [],
+    inputValues: [],
+    openFolderCalls: [],
+    spawnCalls: [],
+    spawnResults: [
+      { code: 0 },
+      { code: 0, stdout: JSON.stringify(registry) },
+      { code: 1, stderr: "ssh: connect to host build: Operation timed out\n" },
+      { code: 1, stderr: "ssh: connect to host build: Operation timed out\n" }
+    ],
+    terminalCommands: []
+  };
+  const extension = await loadExtension(stub);
+  extension.activate(extensionContext(stub));
+  const host = { alias: "build", hostname: "build.example.com", isDefault: false };
+  const hostNode = { kind: "host", host };
+  const provider = stub.treeProviders?.get("genoTools.workspaces");
+  assert.ok(provider);
+
+  await assert.doesNotReject(() => provider.getChildren(hostNode));
+  const refresh = stub.commands.get("genoTools.refreshWorkspaces");
+  assert.ok(refresh);
+  await assert.doesNotReject(() => refresh(hostNode));
+  let children: Array<Record<string, unknown>> = [];
+  await assert.doesNotReject(async () => {
+    children = await provider.getChildren(hostNode);
+  });
+
+  assert.equal(children[0]?.label, "ssh: connect to host build: Operation timed out");
+  assert.equal(stub.spawnCalls.length, 4);
+  assert.match(stub.errorMessages[0] ?? "", /host build: Operation timed out/);
 });
 
 test("creating a tmux session persists a restorable shell recipe", async () => {
@@ -285,6 +331,74 @@ test("Restore replays a stopped session's validated agent resume command", async
       args: ["-H", "local", "registry", "refresh"]
     }
   ]);
+});
+
+test("Restore still attaches when the saved agent resume command fails", async () => {
+  const record = managedRecord("stopped-agent", {
+    launch: { kind: "agent-resume", command: "codexd resume abc-123" }
+  });
+  const stub: VscodeStub = {
+    commands: new Map(),
+    errorMessages: [],
+    globalState: persistedState(record),
+    inputValues: [],
+    openFolderCalls: [],
+    spawnCalls: [],
+    spawnResults: [
+      { code: 0 },
+      { code: 1, stderr: "can't find pane: stopped-agent\n" },
+      { code: 0 }
+    ],
+    terminalCommands: [],
+    warningResults: ["Restore tmux Session"]
+  };
+  const extension = await loadExtension(stub);
+  extension.activate(extensionContext(stub));
+
+  const restore = stub.commands.get("genoTools.restoreTmuxSession");
+  assert.ok(restore);
+  await restore(tmuxNode("stopped-agent", "stopped", record));
+
+  assert.deepEqual(JSON.parse(JSON.stringify(stub.spawnCalls)), [
+    {
+      executable: "tmux",
+      args: [
+        "new-session",
+        "-d",
+        "-s",
+        "stopped-agent",
+        "-c",
+        "/tmp/demo.2026.q3"
+      ]
+    },
+    {
+      executable: "tmux",
+      args: [
+        "send-keys",
+        "-t",
+        "stopped-agent",
+        "-l",
+        "--",
+        "codexd resume abc-123"
+      ]
+    },
+    {
+      executable: "tt-test",
+      args: ["-H", "local", "registry", "refresh"]
+    }
+  ]);
+  assert.deepEqual(stub.terminalCommands, [
+    "tt-test -H local tmux demo.2026.q3 stopped-agent"
+  ]);
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(persistedSessions(stub)[0].launch)),
+    { kind: "agent-resume", command: "codexd resume abc-123" }
+  );
+  assert.deepEqual(stub.errorMessages, []);
+  assert.match(
+    stub.warningMessages?.[1] ?? "",
+    /agent resume command failed: can't find pane: stopped-agent/
+  );
 });
 
 test("removing a managed tmux session requires confirmation, kills it, and refreshes", async () => {
@@ -1318,7 +1432,9 @@ async function loadExtension(
                 createOutputChannel: () => ({
                   append() {}, appendLine() {}, show() {}, dispose() {}
                 }),
-                createTreeView: (id) => {
+                createTreeView: (id, options) => {
+                  state.treeProviders ??= new Map();
+                  state.treeProviders.set(id, options.treeDataProvider);
                   const view = { selection: [], dispose() {} };
                   Object.defineProperty(view, "description", {
                     set(value) {
@@ -1337,7 +1453,11 @@ async function loadExtension(
                   sendText(command) { state.terminalCommands.push(command); }
                 }),
                 showInputBox: async () => state.inputValues.shift(),
-                showWarningMessage: async () => state.warningResults?.shift(),
+                showWarningMessage: async (message) => {
+                  state.warningMessages ??= [];
+                  state.warningMessages.push(message);
+                  return state.warningResults?.shift();
+                },
                 showInformationMessage: async () => state.informationResults?.shift(),
                 showErrorMessage: async (message) => {
                   state.errorMessages.push(message);
