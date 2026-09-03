@@ -26,6 +26,15 @@ export class TtCommandError extends Error {
   }
 }
 
+export type TmuxKillOutcome = "killed" | "alreadyAbsent";
+
+export function isTmuxSessionAbsentError(error: unknown): boolean {
+  return error instanceof TtCommandError &&
+    /(?:no server running|no sessions|can't find session)(?::|\s|$)/i.test(
+      error.message
+    );
+}
+
 export class TtCli {
   constructor(readonly output: vscode.OutputChannel) {}
 
@@ -44,6 +53,11 @@ export class TtCli {
   async registry(host: TtHost): Promise<TtRegistry> {
     const result = await this.execute(this.forHost(host, ["registry", "show"]));
     return parseRegistry(result.stdout);
+  }
+
+  async scanRegistry(host: TtHost): Promise<TtRegistry> {
+    await this.execute(this.forHost(host, ["registry", "refresh"]));
+    return this.registry(host);
   }
 
   async refreshRegistry(host: TtHost): Promise<void> {
@@ -101,18 +115,26 @@ export class TtCli {
     host: TtHost,
     registryHost: string,
     sessionName: string
-  ): Promise<void> {
+  ): Promise<TmuxKillOutcome> {
     const tmuxArgs = ["kill-session", "-t", sessionName];
     const title = `Deleting tmux session ${sessionName}`;
-    if (host.hostname === "localhost" || registryHost === "localhost") {
-      await this.runExecutable("tmux", tmuxArgs, title);
-      return;
+    try {
+      if (host.hostname === "localhost" || registryHost === "localhost") {
+        await this.runExecutable("tmux", tmuxArgs, title);
+      } else {
+        await this.runExecutable(
+          "ssh",
+          [host.hostname, formatCommand("tmux", tmuxArgs)],
+          title
+        );
+      }
+      return "killed";
+    } catch (error) {
+      if (isTmuxSessionAbsentError(error)) {
+        return "alreadyAbsent";
+      }
+      throw error;
     }
-    await this.runExecutable(
-      "ssh",
-      [host.hostname, formatCommand("tmux", tmuxArgs)],
-      title
-    );
   }
 
   async sendTmuxCommand(
