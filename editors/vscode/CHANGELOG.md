@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.3.0
+
+- Persist explicit ownership for tmux sessions created or adopted in the VS
+  Code extension and distinguish Live, Stopped, and External rows.
+- Keep managed sessions visible after a tmux server dies, with Restore and
+  Remove actions; saved agent recoveries replay their validated resume command.
+- Make Remove idempotent when tmux reports that its server or selected session
+  is already absent, while preserving managed records on real connection,
+  authorization, executable, or cancellation failures.
+- Refresh live tmux state when the tree loads and after lifecycle actions
+  without background polling.
+
 ## 0.2.3
 
 - Match captured terminal scrollback against locally saved Claude and Codex

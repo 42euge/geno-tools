@@ -722,12 +722,12 @@ test("unlinked terminal rows expose the OpenAI tmux recovery button", () => {
   );
 });
 
-test("tmux rows expose adjacent reopen and confirmed delete actions", () => {
+test("tmux rows expose actions for their lifecycle state", () => {
   const manifest = JSON.parse(
     readFileSync(join(__dirname, "..", "..", "package.json"), "utf8")
   ) as {
     contributes: {
-      commands: Array<{ command: string; icon?: string }>;
+      commands: Array<{ command: string; title: string; icon?: string }>;
       menus: {
         "view/item/context": Array<{
           command: string;
@@ -738,25 +738,65 @@ test("tmux rows expose adjacent reopen and confirmed delete actions", () => {
     };
   };
   assert.deepEqual(
-    manifest.contributes.commands.find(
-      ({ command }) => command === "genoTools.deleteTmuxSession"
-    ),
-    {
-      command: "genoTools.deleteTmuxSession",
-      title: "Geno Tools: Delete tmux Session",
-      icon: "$(trash)"
-    }
+    manifest.contributes.commands.filter(({ command }) => [
+      "genoTools.openTmuxSession",
+      "genoTools.manageTmuxSession",
+      "genoTools.restoreTmuxSession",
+      "genoTools.deleteTmuxSession"
+    ].includes(command)),
+    [
+      {
+        command: "genoTools.openTmuxSession",
+        title: "Geno Tools: Reopen tmux Session",
+        icon: "$(terminal-tmux)"
+      },
+      {
+        command: "genoTools.manageTmuxSession",
+        title: "Geno Tools: Manage tmux Session",
+        icon: "$(verified)"
+      },
+      {
+        command: "genoTools.restoreTmuxSession",
+        title: "Geno Tools: Restore tmux Session",
+        icon: "$(debug-restart)"
+      },
+      {
+        command: "genoTools.deleteTmuxSession",
+        title: "Geno Tools: Remove tmux Session",
+        icon: "$(trash)"
+      }
+    ]
   );
   assert.deepEqual(
     manifest.contributes.menus["view/item/context"]
-      .filter(({ command }) =>
-        command === "genoTools.openTmuxSession" ||
-        command === "genoTools.deleteTmuxSession"
-      )
-      .map(({ command, group }) => ({ command, group })),
+      .filter(({ command }) => [
+        "genoTools.openTmuxSession",
+        "genoTools.manageTmuxSession",
+        "genoTools.restoreTmuxSession",
+        "genoTools.deleteTmuxSession"
+      ].includes(command))
+      .map(({ command, when, group }) => ({ command, when, group })),
     [
-      { command: "genoTools.openTmuxSession", group: "inline@1" },
-      { command: "genoTools.deleteTmuxSession", group: "inline@2" }
+      {
+        command: "genoTools.openTmuxSession",
+        when: "(view == genoTools.workspaces || view == genoTools.currentWorkspace) && (viewItem == tmuxSession.live || viewItem == tmuxSession.external)",
+        group: "inline@1"
+      },
+      {
+        command: "genoTools.manageTmuxSession",
+        when: "(view == genoTools.workspaces || view == genoTools.currentWorkspace) && viewItem == tmuxSession.external",
+        group: "inline@2"
+      },
+      {
+        command: "genoTools.restoreTmuxSession",
+        when: "(view == genoTools.workspaces || view == genoTools.currentWorkspace) && viewItem == tmuxSession.stopped",
+        group: "inline@1"
+      },
+      {
+        command: "genoTools.deleteTmuxSession",
+        when: "(view == genoTools.workspaces || view == genoTools.currentWorkspace) && (viewItem == tmuxSession.live || viewItem == tmuxSession.stopped)",
+        group: "inline@2"
+      }
     ]
   );
 });

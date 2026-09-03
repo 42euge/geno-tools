@@ -26,7 +26,8 @@ From the explorer you can:
 - initialize an empty Git repository from the `Repositories` group `+`;
 - create a tmux session from the `tmux Sessions` group `+`, optionally choosing
   its name or letting the extension generate the next available name; the
-  registry and both trees refresh before the new session is attached;
+  extension records the session as managed, then refreshes the registry and
+  both trees before attaching;
 - refresh and focus open integrated terminals from the `VS Code Terminals`
   group;
 - recover an unlinked integrated terminal into tmux with the row's robot
@@ -37,10 +38,16 @@ From the explorer you can:
   cancel the reviewed resume proposal;
 - see `tmux: <session>` on linked terminal rows and `VS Code` on tmux rows that
   are currently attached in an integrated terminal;
-- browse repositories and live tmux sessions in separate workspace folders;
+- browse repositories and live or stopped managed tmux sessions in separate
+  workspace folders;
 - reopen a specific live tmux session by selecting its row;
-- delete a tmux session with its trash action after confirming the destructive
-  operation;
+- adopt a live `External` workspace session with **Manage tmux Session** when
+  TT should own its future lifecycle;
+- restore a stopped managed session to its saved directory, including the
+  validated Claude or Codex resume command when it came from terminal recovery;
+- remove a managed session with its trash action after confirming the
+  destructive operation, even when the tmux session or entire server is already
+  gone;
 - create TT workspaces from a host's context menu and rescan them;
 - mirror a workspace to another configured TT host;
 - create, list, and remove whole-workspace worktrees; and
@@ -48,6 +55,29 @@ From the explorer you can:
 
 Each view title shows the running extension version and its UTC build datetime,
 so an installed build can be distinguished from an older cached copy.
+
+## tmux lifecycle
+
+The extension distinguishes three session states:
+
+- **Live** sessions were created or adopted by the extension and still exist in
+  the host's current tmux state. They can be reopened or removed.
+- **Stopped** sessions have a saved managed record but are absent from a
+  successful host scan. They can be restored or removed. A crashed tmux server
+  therefore leaves recoverable rows instead of trapping stale live rows.
+- **External** sessions are live workspace sessions that the extension does not
+  own. They can be reopened, but lifecycle actions remain disabled until you
+  explicitly choose **Manage tmux Session**.
+
+The first tree load, explicit refreshes, and lifecycle actions scan live state;
+the extension does not poll continuously. If a local or remote host cannot be
+scanned, its state is unknown: the view reports the real connection error and
+keeps managed records unchanged rather than marking them stopped.
+
+Remove is convergent. It attempts `tmux kill-session`, but treats tmux's narrow
+"no server running", "no sessions", and "can't find session" responses as an
+already-completed removal. SSH, authorization, cancellation, missing executable,
+and other failures remain visible errors and preserve the managed record.
 
 ## Requirements
 
