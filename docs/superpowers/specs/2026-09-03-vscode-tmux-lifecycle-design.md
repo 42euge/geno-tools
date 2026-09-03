@@ -1,7 +1,7 @@
 # VS Code tmux lifecycle management
 
-**Date:** 2026-09-03  
-**Status:** Approved  
+**Date:** 2026-09-03
+**Status:** Approved
 **Repository:** `geno-tools` (`editors/vscode`)
 
 ## Goal

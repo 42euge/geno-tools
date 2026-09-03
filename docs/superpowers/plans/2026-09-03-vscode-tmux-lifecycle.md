@@ -460,4 +460,3 @@ gh pr create --base main --head feat/vscode-tmux-lifecycle --title "feat(vscode)
 ~~~
 
 The PR body summarizes ownership, lifecycle state, restore recipes, idempotent Remove, retained real errors, and the three verification commands.
-
