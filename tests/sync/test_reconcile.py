@@ -146,6 +146,13 @@ def test_reconcile_declined_removal_mutates_nothing(monkeypatch):
     assert operations.calls == []
 
 
+def test_confirm_removals_refuses_when_standard_input_is_exhausted(monkeypatch):
+    monkeypatch.setattr(
+        "builtins.input", lambda _prompt: (_ for _ in ()).throw(EOFError())
+    )
+    assert reconcile.confirm_removals(["geno-extra"]) is False
+
+
 def test_reconcile_collects_skipped_update_as_failure(monkeypatch):
     source = lock({"geno-a": entry("geno-a")})
     operations = StatefulOperations(

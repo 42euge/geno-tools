@@ -8,6 +8,7 @@ from rich.table import Table
 from geno_tools import __version__
 from geno_tools.core import add_parser as add_core_parser
 from geno_tools.skills_manager import add_parser as add_skillset_parsers
+from geno_tools.sync.commands import add_parser as add_sync_parser
 
 
 SKILLSET_LIFECYCLE_COMMANDS = [
@@ -25,6 +26,7 @@ SKILLSET_INSPECTION_COMMANDS = [
 ]
 
 OTHER_COMMANDS = [
+    ("sync COMMAND", "Compare or reconcile installations across hosts"),
     ("system", "Update or uninstall geno-tools itself"),
     ("config", "Show or set ecosystem configuration"),
 ]
@@ -84,6 +86,7 @@ def main(argv: list[str] | None = None) -> int:
 
     add_skillset_parsers(sub)
     add_core_parser(sub)
+    add_sync_parser(sub)
 
     arguments = sys.argv[1:] if argv is None else argv
     if not arguments:
