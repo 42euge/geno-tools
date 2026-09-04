@@ -223,12 +223,20 @@ def _optional_git(checkout: Path, *arguments: str) -> str | None:
     return value or None
 
 
-def _bundle(checkout: Path) -> bytes:
+def _bundle(checkout: Path, branch: str | None) -> bytes:
     with tempfile.TemporaryDirectory(prefix="geno-snapshot-bundle-") as temporary:
         destination = Path(temporary) / "snapshot.bundle"
         try:
             subprocess.run(
-                ["git", "-C", str(checkout), "bundle", "create", str(destination), "HEAD"],
+                [
+                    "git",
+                    "-C",
+                    str(checkout),
+                    "bundle",
+                    "create",
+                    str(destination),
+                    f"refs/heads/{branch}" if branch else "HEAD",
+                ],
                 check=True,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.PIPE,
@@ -271,7 +279,7 @@ def capture(checkout: Path, *, machine: str) -> dict[str, Any]:
     return {
         **asdict(descriptor),
         "artifacts": {
-            "bundle": _encode(_bundle(source)),
+            "bundle": _encode(_bundle(source, branch)),
             "cached_diff": _encode(cached),
             "worktree_diff": _encode(worktree),
             "untracked_tar": _encode(_untracked_archive(source, entries)),
@@ -392,6 +400,14 @@ def validate(payload: dict[str, Any]) -> None:
     """Validate snapshot metadata and base64 artifact structure without mutation."""
     _validate_payload(payload)
     _decode_artifacts(payload)
+
+
+def artifact(payload: dict[str, Any], name: str) -> bytes:
+    """Return one validated decoded artifact from a snapshot."""
+    validate(payload)
+    if name not in ARTIFACT_NAMES:
+        raise SnapshotError(f"unknown snapshot artifact: {name}")
+    return _decode_artifacts(payload)[name]
 
 
 def _apply_patch(checkout: Path, patch: Path, *, cached: bool) -> None:

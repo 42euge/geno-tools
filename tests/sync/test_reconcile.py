@@ -46,7 +46,15 @@ class StatefulOperations:
     def export(self):
         return lock(self.state, self.config)
 
-    def install(self, url, *, installing, branch=None, revision=None):
+    def install(
+        self,
+        url,
+        *,
+        installing,
+        branch=None,
+        revision=None,
+        expected_name=None,
+    ):
         name = url.removesuffix(".git").rsplit("/", 1)[-1]
         self.calls.append(("install", name))
         if name in self.install_error:
@@ -63,6 +71,7 @@ class StatefulOperations:
         force_venv_rebuild=False,
         branch=None,
         revision=None,
+        source=None,
     ):
         self.calls.append(("update", name, force_venv_rebuild))
         if name in self.update_error:

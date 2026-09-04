@@ -183,6 +183,7 @@ def test_inventory_includes_stable_fallback_and_active_snapshot_size(monkeypatch
     candidate = value["skillsets"]["geno-dev"]
     assert value["lockfile"] == lock
     assert candidate["stable"] == lock["skillsets"]["geno-dev"]
+    assert candidate["stable_transfer_size"] == 16
     assert candidate["active"]["fingerprint"] == "a" * 64
     assert candidate["active"]["transfer_size"] == 16
     assert "artifacts" not in candidate["active"]

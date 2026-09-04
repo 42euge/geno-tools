@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 from typing import Any, Callable
 
+from geno_tools.skills_manager import paths
 from geno_tools.skills_manager.commands import dev
 from geno_tools.sync import lockfile, snapshot
 
@@ -28,6 +29,10 @@ def inventory() -> dict[str, Any]:
     skillsets: dict[str, Any] = {}
     for name, stable in sorted(stable_lock["skillsets"].items()):
         details = dev.selection_details(name)
+        stable_payload = snapshot.capture(
+            paths.skillset_worktree(name), machine=stable_lock["machine"]
+        )
+        stable_transfer_size = snapshot.encoded_size(stable_payload)
         active = None
         if details["active"]["mode"] == "dev":
             captured = snapshot.capture(
@@ -41,6 +46,7 @@ def inventory() -> dict[str, Any]:
             active["transfer_size"] = snapshot.encoded_size(captured)
         skillsets[name] = {
             "stable": stable,
+            "stable_transfer_size": stable_transfer_size,
             "active": active,
             "rollback": bool(details.get("rollback")),
         }

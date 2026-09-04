@@ -61,6 +61,7 @@ def _update_one(
     force_venv_rebuild: bool = False,
     branch: str | None = None,
     revision: str | None = None,
+    source: str | None = None,
 ) -> _UpdateResult:
     bare = paths.skillset_git(full)
     worktree = paths.skillset_worktree(full)
@@ -102,11 +103,24 @@ def _update_one(
     except subprocess.CalledProcessError:
         old_rev = ""
 
-    print(f"  fetching {full}...")
-    try:
-        subprocess.check_call(["git", "-C", str(bare), "fetch", "--quiet", "origin"])
-    except subprocess.CalledProcessError:
-        return _UpdateResult(full, "error", "git fetch failed")
+    revision_available = False
+    if revision:
+        revision_available = (
+            subprocess.run(
+                ["git", "-C", str(bare), "cat-file", "-e", f"{revision}^{{commit}}"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            ).returncode
+            == 0
+        )
+    if not revision_available:
+        print(f"  fetching {full}...")
+        try:
+            subprocess.check_call(
+                ["git", "-C", str(bare), "fetch", "--quiet", source or "origin"]
+            )
+        except subprocess.CalledProcessError:
+            return _UpdateResult(full, "error", "git fetch failed")
     if revision:
         try:
             subprocess.check_call(
