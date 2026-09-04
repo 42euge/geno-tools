@@ -810,7 +810,7 @@ function reconcileTerminalLayout(
   if (
     groups.some((group) => group.length === 0) ||
     new Set(layoutIds).size !== layoutIds.length ||
-    layoutIds.length !== terminals.length
+    layoutIds.length > terminals.length
   ) {
     return fallback;
   }
@@ -828,14 +828,14 @@ function reconcileTerminalLayout(
   const unmappedTerminals = terminals.filter(
     (terminal) => !mappedTerminals.has(terminal)
   );
-  if (unmappedIds.length !== unmappedTerminals.length) {
+  if (unmappedIds.length > unmappedTerminals.length) {
     return fallback;
   }
   unmappedIds.forEach((id, index) => {
     terminalsByLayoutId.set(id, unmappedTerminals[index]);
   });
 
-  return groups.flatMap((group) =>
+  const layoutTerminals = groups.flatMap((group) =>
     group.flatMap((id, index) => {
       const terminal = terminalsByLayoutId.get(id);
       if (!terminal) {
@@ -851,6 +851,13 @@ function reconcileTerminalLayout(
       return [{ terminal, splitPrefix }];
     })
   );
+  const terminalsInLayout = new Set(
+    layoutTerminals.map(({ terminal }) => terminal)
+  );
+  const extraTerminals = terminals
+    .filter((terminal) => !terminalsInLayout.has(terminal))
+    .map((terminal) => ({ terminal }));
+  return [...layoutTerminals, ...extraTerminals];
 }
 
 function terminalLocation(terminal: vscode.Terminal): WorkspaceLocation | undefined {
