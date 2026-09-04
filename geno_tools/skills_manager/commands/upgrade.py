@@ -116,9 +116,10 @@ def _update_one(
     if not revision_available:
         print(f"  fetching {full}...")
         try:
-            subprocess.check_call(
-                ["git", "-C", str(bare), "fetch", "--quiet", source or "origin"]
-            )
+            command = ["git", "-C", str(bare), "fetch", "--quiet", source or "origin"]
+            if source:
+                command.append(f"refs/heads/{default_branch}")
+            subprocess.check_call(command)
         except subprocess.CalledProcessError:
             return _UpdateResult(full, "error", "git fetch failed")
     if revision:

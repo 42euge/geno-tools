@@ -122,6 +122,20 @@ def _planned_actions(source: dict) -> tuple[list[ReconcileAction], list[str], bo
     return actions, removals, config_changed
 
 
+def _set_origin(name: str, url: str) -> None:
+    subprocess.check_call(
+        [
+            "git",
+            "-C",
+            str(paths.skillset_git(name)),
+            "remote",
+            "set-url",
+            "origin",
+            url,
+        ]
+    )
+
+
 def reconcile(
     source: dict,
     options: ReconcileOptions,
@@ -161,17 +175,7 @@ def reconcile(
                     expected_name=item.name if item.name in overrides else None,
                 )
                 if item.name in overrides:
-                    subprocess.check_call(
-                        [
-                            "git",
-                            "-C",
-                            str(paths.skillset_git(item.name)),
-                            "remote",
-                            "set-url",
-                            "origin",
-                            item.source["url"],
-                        ]
-                    )
+                    _set_origin(item.name, item.source["url"])
             except Exception as error:
                 failures.append(ReconcileAction(item.name, "install", str(error)))
                 continue
@@ -198,6 +202,14 @@ def reconcile(
                     ReconcileAction(item.name, "update", result.detail or result.status)
                 )
             else:
+                if item.name in overrides:
+                    try:
+                        _set_origin(item.name, item.source["url"])
+                    except Exception as error:
+                        failures.append(
+                            ReconcileAction(item.name, "update", str(error))
+                        )
+                        continue
                 actions.append(ReconcileAction(item.name, "update"))
 
     current = build_lockfile()

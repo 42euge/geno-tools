@@ -295,6 +295,44 @@ def test_reconcile_package_installs_stable_from_bundle_when_origin_is_unreachabl
     )
 
 
+def test_reconcile_package_updates_stable_from_bundle_and_normalizes_origin(
+    tmp_path, tmp_root, tmp_config, monkeypatch
+):
+    name = "geno-local-update"
+    repository, first_sha = create_skillset(tmp_path, name)
+    monkeypatch.setattr(install, "_install_skills_via_npx", lambda *_args: None)
+    monkeypatch.setattr(upgrade, "_install_skills_via_npx", lambda *_args: None)
+    monkeypatch.setattr(
+        upgrade, "_uninstall_skill_names_via_npx", lambda *_args: None
+    )
+    reconcile.reconcile(
+        lock(name, repository, first_sha), reconcile.ReconcileOptions(yes=True)
+    )
+    (repository / "payload.txt").write_text("local second\n")
+    second_sha = commit(repository, "local second")
+    stable_snapshot = snapshot.capture(repository, machine="source")
+    desired_url = "https://unreachable.invalid/geno-local-update.git"
+    stable_lock = lock(name, repository, second_sha)
+    stable_lock["skillsets"][name]["url"] = desired_url
+    value = {
+        "protocol": 1,
+        "lockfile": stable_lock,
+        "selections": {
+            name: {"kind": "stable", "stable_snapshot": stable_snapshot}
+        },
+    }
+
+    first = reconcile.reconcile_package(value, reconcile.ReconcileOptions(yes=True))
+    second = reconcile.reconcile_package(value, reconcile.ReconcileOptions(yes=True))
+
+    managed = paths.skillset_worktree(name)
+    assert first.failures == ()
+    assert git(managed, "rev-parse", "HEAD") == second_sha
+    assert (managed / "payload.txt").read_text() == "local second\n"
+    assert git(paths.skillset_git(name), "remote", "get-url", "origin") == desired_url
+    assert second.actions == ()
+
+
 def test_reconcile_package_selects_stable_and_preserves_dev_rollback(
     tmp_path, tmp_root, tmp_config, monkeypatch
 ):

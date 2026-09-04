@@ -68,3 +68,18 @@ def test_choose_one_supports_up_wraparound_and_ctrl_c_cancellation():
         read_key=interrupted,
         console=console,
     ) == "cancel"
+
+
+def test_choose_one_cleans_up_the_interactive_menu_after_selection():
+    output = io.StringIO()
+    console = Console(file=output, force_terminal=True, width=100)
+    keys = iter([terminal.DOWN, terminal.ENTER])
+
+    assert terminal.choose_one(
+        CANDIDATE,
+        [CANDIDATE],
+        read_key=lambda: next(keys),
+        console=console,
+    ) == "stable"
+
+    assert "\x1b[2K" in output.getvalue()
