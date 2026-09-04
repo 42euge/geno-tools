@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import subprocess
+import tempfile
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -13,6 +14,7 @@ from geno_tools.skills_manager.commands import dev, remove
 from geno_tools.skills_manager.commands.install import _get_requires, _install_one
 from geno_tools.skills_manager.commands.upgrade import _update_one
 
+from . import snapshot
 from .diff import compare
 from .lockfile import apply_portable_config, build_lockfile, parse_lockfile
 from .package import parse as parse_package
@@ -125,6 +127,7 @@ def reconcile(
     options: ReconcileOptions,
     *,
     confirm: Callable[[list[str]], bool] = confirm_removals,
+    source_overrides: dict[str, str] | None = None,
 ) -> ReconcileResult:
     """Make local managed state match ``source`` without discarding dev work."""
     desired = parse_lockfile(source)
@@ -143,17 +146,32 @@ def reconcile(
     actions: list[ReconcileAction] = []
     failures: list[ReconcileAction] = []
     initial = compare(build_lockfile(), desired)
+    overrides = source_overrides or {}
 
     for item in initial.skillsets:
         if item.state == "missing-here":
             action = ReconcileAction(item.name, "install")
             try:
+                install_source = overrides.get(item.name, item.source["url"])
                 rc = _install_one(
-                    item.source["url"],
+                    install_source,
                     installing=set(),
                     branch=item.source["branch"],
                     revision=item.source["sha"],
+                    expected_name=item.name if item.name in overrides else None,
                 )
+                if item.name in overrides:
+                    subprocess.check_call(
+                        [
+                            "git",
+                            "-C",
+                            str(paths.skillset_git(item.name)),
+                            "remote",
+                            "set-url",
+                            "origin",
+                            item.source["url"],
+                        ]
+                    )
             except Exception as error:
                 failures.append(ReconcileAction(item.name, "install", str(error)))
                 continue
@@ -170,6 +188,7 @@ def reconcile(
                     force_venv_rebuild=options.rebuild,
                     branch=item.source["branch"],
                     revision=item.source["sha"],
+                    source=overrides.get(item.name),
                 )
             except Exception as error:
                 failures.append(ReconcileAction(item.name, "update", str(error)))
@@ -231,7 +250,33 @@ def reconcile_package(
 ) -> ReconcileResult:
     """Reconcile Stable state, then atomically apply each selected source."""
     package = parse_package(value)
-    stable = reconcile(package["lockfile"], options, confirm=confirm)
+    if options.dry_run:
+        stable = reconcile(package["lockfile"], options, confirm=confirm)
+        return _reconcile_package_selections(package, stable, options)
+
+    with tempfile.TemporaryDirectory(prefix="geno-stable-bundles-") as temporary:
+        overrides = {}
+        for name, selected in package["selections"].items():
+            payload = selected.get("stable_snapshot")
+            if payload is None:
+                continue
+            bundle = Path(temporary) / f"{name}.bundle"
+            bundle.write_bytes(snapshot.artifact(payload, "bundle"))
+            overrides[name] = str(bundle)
+        stable = reconcile(
+            package["lockfile"],
+            options,
+            confirm=confirm,
+            source_overrides=overrides,
+        )
+        return _reconcile_package_selections(package, stable, options)
+
+
+def _reconcile_package_selections(
+    package: dict,
+    stable: ReconcileResult,
+    options: ReconcileOptions,
+) -> ReconcileResult:
     actions = list(stable.actions)
     failures = list(stable.failures)
     failed_names = {failure.name for failure in failures}

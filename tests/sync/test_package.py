@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 import pytest
 
@@ -49,6 +50,7 @@ SNAPSHOT = {
 
 def test_build_stable_only_package_keeps_the_v1_lockfile(monkeypatch):
     monkeypatch.setattr(package.lockfile, "build_lockfile", lambda: LOCK)
+    monkeypatch.setattr(package.snapshot, "capture", lambda *_args, **_kw: SNAPSHOT)
 
     value = package.build({"geno-dev": "stable", "geno-tt": "stable"})
 
@@ -56,14 +58,21 @@ def test_build_stable_only_package_keeps_the_v1_lockfile(monkeypatch):
         "protocol": 1,
         "lockfile": LOCK,
         "selections": {
-            "geno-dev": {"kind": "stable"},
-            "geno-tt": {"kind": "stable"},
+            "geno-dev": {"kind": "stable", "stable_snapshot": SNAPSHOT},
+            "geno-tt": {"kind": "stable", "stable_snapshot": SNAPSHOT},
         },
     }
 
 
-def test_build_mixed_package_captures_only_the_selected_active_checkout(monkeypatch):
+def test_build_mixed_package_captures_stable_fallbacks_and_selected_active(
+    monkeypatch,
+):
     monkeypatch.setattr(package.lockfile, "build_lockfile", lambda: LOCK)
+    monkeypatch.setattr(
+        package.paths,
+        "skillset_worktree",
+        lambda name: Path(f"/stable/{name}"),
+    )
     monkeypatch.setattr(
         package.dev,
         "selection_details",
@@ -82,12 +91,20 @@ def test_build_mixed_package_captures_only_the_selected_active_checkout(monkeypa
 
     value = package.build({"geno-dev": "stable", "geno-tt": "active"})
 
-    assert value["selections"]["geno-dev"] == {"kind": "stable"}
+    assert value["selections"]["geno-dev"] == {
+        "kind": "stable",
+        "stable_snapshot": SNAPSHOT,
+    }
     assert value["selections"]["geno-tt"] == {
         "kind": "dev",
+        "stable_snapshot": SNAPSHOT,
         "snapshot": SNAPSHOT,
     }
-    assert captured == [("/tmp/geno-tt", "laptop")]
+    assert captured == [
+        ("/stable/geno-dev", "laptop"),
+        ("/stable/geno-tt", "laptop"),
+        ("/tmp/geno-tt", "laptop"),
+    ]
 
 
 def test_parse_package_round_trips_json_and_reports_decoded_artifact_size():

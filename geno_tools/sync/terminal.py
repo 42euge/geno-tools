@@ -52,7 +52,10 @@ def _render(
         f"{str(active.get('commit', '?'))[:10]} ({_dirty(active)})"
     )
     console.print(f"    {active.get('source', '?')}")
-    console.print(f"    estimated transfer {_size(int(active.get('transfer_size', 0)))}")
+    transfer_size = int(active.get("transfer_size", 0)) + int(
+        candidate.get("stable_transfer_size", 0)
+    )
+    console.print(f"    estimated transfer {_size(transfer_size)}")
     console.print(
         "  deactivate restores Stable "
         f"[bold]{stable.get('version', '?')}[/bold] "

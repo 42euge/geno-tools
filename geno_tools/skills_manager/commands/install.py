@@ -50,8 +50,10 @@ def _install_one(
     installing: set[str],
     branch: str | None = None,
     revision: str | None = None,
+    expected_name: str | None = None,
 ) -> int:
     source, name = _resolve_source(name_or_source)
+    name = expected_name or name
     if name is None:
         name = _peek_repo_name(source)
     full = paths.normalize(name)
@@ -104,7 +106,7 @@ def _resolve_source(name_or_source: str) -> tuple[str, str | None]:
         return url, name_or_source
 
     path = Path(name_or_source).expanduser()
-    if path.exists() and path.is_dir():
+    if path.exists() and (path.is_dir() or path.suffix == ".bundle"):
         return str(path.resolve()), None
 
     if name_or_source.startswith(("http://", "https://", "git@")) or name_or_source.endswith(".git"):

@@ -53,7 +53,9 @@ def estimated_size(
 ) -> int:
     total = 0
     for name, kind in choices.items():
-        active = inventory["skillsets"][name].get("active")
+        candidate = inventory["skillsets"][name]
+        total += int(candidate.get("stable_transfer_size", 0))
+        active = candidate.get("active")
         if kind == "active" and isinstance(active, dict):
             total += int(active.get("transfer_size", 0))
     return total

@@ -245,6 +245,56 @@ def package_for(name, stable_lock, kind, payload=None):
     }
 
 
+def test_reconcile_package_installs_stable_from_bundle_when_origin_is_unreachable(
+    tmp_path, tmp_root, tmp_config, monkeypatch
+):
+    name = "geno-local-stable"
+    source = tmp_path / "local-stable"
+    source.mkdir()
+    subprocess.run(
+        ["git", "-C", str(source), "init", "-q", "-b", "main"], check=True
+    )
+    (source / "genotools.yaml").write_text(
+        f'name: {name}\nversion: "3.0.0"\n'
+    )
+    (source / "SKILL.md").write_text(
+        f"---\nname: {name}\ndescription: local only\n---\n"
+    )
+    subprocess.run(["git", "-C", str(source), "add", "."], check=True)
+    source_sha = commit(source, "local stable")
+    stable_snapshot = snapshot.capture(source, machine="source")
+    value = {
+        "protocol": 1,
+        "lockfile": {
+            "version": 1,
+            "machine": "source",
+            "generated": "now",
+            "skillsets": {
+                name: {
+                    "url": "https://unreachable.invalid/geno-local-stable.git",
+                    "branch": "main",
+                    "sha": source_sha,
+                    "version": "3.0.0",
+                }
+            },
+            "config": {},
+        },
+        "selections": {
+            name: {"kind": "stable", "stable_snapshot": stable_snapshot}
+        },
+    }
+    monkeypatch.setattr(install, "_install_skills_via_npx", lambda *_args: None)
+
+    result = reconcile.reconcile_package(value, reconcile.ReconcileOptions(yes=True))
+
+    managed = paths.skillset_worktree(name)
+    assert result.failures == ()
+    assert git(managed, "rev-parse", "HEAD") == source_sha
+    assert git(paths.skillset_git(name), "remote", "get-url", "origin") == (
+        "https://unreachable.invalid/geno-local-stable.git"
+    )
+
+
 def test_reconcile_package_selects_stable_and_preserves_dev_rollback(
     tmp_path, tmp_root, tmp_config, monkeypatch
 ):

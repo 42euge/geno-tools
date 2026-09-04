@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+from geno_tools.skills_manager import paths
 from geno_tools.skills_manager.commands import dev
 from geno_tools.sync import lockfile, snapshot
 
@@ -28,8 +29,14 @@ def build(selections: dict[str, str]) -> dict[str, Any]:
     packaged: dict[str, dict[str, Any]] = {}
     for name in sorted(expected):
         kind = selections[name]
+        stable_snapshot = snapshot.capture(
+            paths.skillset_worktree(name), machine=stable["machine"]
+        )
         if kind == "stable":
-            packaged[name] = {"kind": "stable"}
+            packaged[name] = {
+                "kind": "stable",
+                "stable_snapshot": stable_snapshot,
+            }
             continue
         if kind != "active":
             raise PackageError(f"invalid sync selection for {name}: {kind}")
@@ -38,6 +45,7 @@ def build(selections: dict[str, str]) -> dict[str, Any]:
             raise PackageError(f"{name} has no active Dev selection")
         packaged[name] = {
             "kind": "dev",
+            "stable_snapshot": stable_snapshot,
             "snapshot": snapshot.capture(
                 Path(details["source"]), machine=stable["machine"]
             ),
@@ -63,19 +71,26 @@ def artifact_size(value: dict[str, Any]) -> int:
     if not isinstance(selections, dict):
         raise PackageError("sync package field 'selections' must be a mapping")
     for name, selected in selections.items():
-        if not isinstance(selected, dict) or selected.get("kind") != "dev":
+        if not isinstance(selected, dict):
             continue
-        payload = selected.get("snapshot")
-        artifacts = payload.get("artifacts") if isinstance(payload, dict) else None
-        if not isinstance(artifacts, dict):
-            raise PackageError(f"invalid Dev snapshot for {name}")
-        for artifact_name in snapshot.ARTIFACT_NAMES:
-            encoded = artifacts.get(artifact_name)
-            if not isinstance(encoded, str):
-                raise PackageError(
-                    f"invalid Dev snapshot artifact for {name}: {artifact_name}"
+        payloads = []
+        if selected.get("stable_snapshot") is not None:
+            payloads.append(("stable", selected["stable_snapshot"]))
+        if selected.get("kind") == "dev":
+            payloads.append(("dev", selected.get("snapshot")))
+        for label, payload in payloads:
+            artifacts = payload.get("artifacts") if isinstance(payload, dict) else None
+            if not isinstance(artifacts, dict):
+                raise PackageError(f"invalid {label} snapshot for {name}")
+            for artifact_name in snapshot.ARTIFACT_NAMES:
+                encoded = artifacts.get(artifact_name)
+                if not isinstance(encoded, str):
+                    raise PackageError(
+                        f"invalid {label} snapshot artifact for {name}: {artifact_name}"
+                    )
+                total += len(
+                    _decode(encoded, name=f"{name}.{label}.{artifact_name}")
                 )
-            total += len(_decode(encoded, name=f"{name}.{artifact_name}"))
     return total
 
 
@@ -113,6 +128,16 @@ def parse(value: str | bytes | dict[str, Any]) -> dict[str, Any]:
             "dev",
         }:
             raise PackageError(f"invalid sync selection for {name}")
+        stable_snapshot = selected.get("stable_snapshot")
+        if stable_snapshot is not None:
+            if not isinstance(stable_snapshot, dict):
+                raise PackageError(f"invalid Stable snapshot for {name}")
+            try:
+                snapshot.validate(stable_snapshot)
+            except snapshot.SnapshotError as exc:
+                raise PackageError(
+                    f"invalid Stable snapshot for {name}: {exc}"
+                ) from exc
         if selected["kind"] == "dev":
             payload = selected.get("snapshot")
             if not isinstance(payload, dict):
