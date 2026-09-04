@@ -330,7 +330,28 @@ function extensionBuildDescription(context: vscode.ExtensionContext): string {
   const builtAt = typeof __GENO_TOOLS_BUILD_DATETIME__ === "string"
     ? __GENO_TOOLS_BUILD_DATETIME__
     : "development";
-  return `v${version} · built ${builtAt}`;
+  const buildName = typeof __GENO_TOOLS_BUILD_NAME__ === "string"
+    ? __GENO_TOOLS_BUILD_NAME__
+    : "local build";
+  return `v${version} · ${formatBuildDatetime(builtAt)} · ${buildName}`;
+}
+
+function formatBuildDatetime(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const months = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+  ];
+  const hour = date.getHours();
+  const displayHour = hour % 12 || 12;
+  const minute = String(date.getMinutes()).padStart(2, "0");
+  const period = hour >= 12 ? "PM" : "AM";
+  return `${weekdays[date.getDay()]} ${months[date.getMonth()]} ${date.getDate()} ${displayHour}:${minute} ${period}`;
 }
 
 function register(
