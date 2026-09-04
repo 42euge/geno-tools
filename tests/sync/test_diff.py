@@ -87,3 +87,8 @@ def test_compare_reports_nested_config_changes_by_dot_path():
 def test_compare_omits_equal_config():
     result = diff.compare(lock(config={"mode": "user"}), lock(config={"mode": "user"}))
     assert result.config == ()
+
+
+def test_compare_distinguishes_null_config_from_absent_config():
+    result = diff.compare(lock(config={"mode": None}), lock(config={}))
+    assert result.config == (diff.ConfigDelta("mode", None, None),)
