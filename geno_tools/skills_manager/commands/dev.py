@@ -564,6 +564,13 @@ def status(name: str | None = None) -> int:
                 f"{stable['branch']} {stable['commit']}"
             )
             print(f"      {stable['source']}")
+            snapshot = details.get("snapshot")
+            if snapshot:
+                print(
+                    f"    snapshot from {snapshot['machine']} "
+                    f"{snapshot['fingerprint'][:12]} captured {snapshot['captured']}"
+                )
+                print(f"      source {snapshot['source']}")
         if selection["rollback"]:
             print("    rollback available")
     return 1 if failures else 0

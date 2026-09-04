@@ -34,6 +34,17 @@ rehash
 the saved selection, active source, or console-script links disagree; activation
 and deactivation also roll back their changes if registration fails.
 
+When installation sync replaces a selection, it keeps one rollback slot:
+
+```zsh
+geno-tools dev rollback geno-tt
+```
+
+`dev status` shows the Stable fallback that `deactivate` restores. A Dev
+snapshot received through sync also records its source machine and content
+fingerprint. Dirty development checkouts can be pushed or pulled without
+cleaning, committing, or publishing them; see [sync.md](sync.md).
+
 ## Develop geno-tools itself
 
 ### Run the CLI from this checkout
@@ -42,7 +53,7 @@ A Homebrew installation normally resolves to `/opt/homebrew/bin/geno-tools`.
 For development, install this checkout in editable mode so source changes are
 used without rebuilding the Homebrew formula.
 
-#### Repository-scoped override
+#### Repository-scoped test environment
 
 Create the virtual environment once, install the project and test dependencies,
 then activate it:
@@ -66,10 +77,10 @@ geno-tools
 `command -v` should report a path ending in `.venv/bin/geno-tools`. Run
 `deactivate` to return to the Homebrew installation.
 
-#### Persistent editable override
+#### Install the checkout as the normal command
 
-To select this checkout in new shells without activating its virtual
-environment each time, install it with pipx:
+For manual and remote testing, install this checkout with pipx so no virtual
+environment activation is needed:
 
 ```zsh
 pipx install --force --editable .
