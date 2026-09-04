@@ -90,6 +90,15 @@ def _read_state(full: str, *, strict: bool = True) -> dict | None:
         if strict:
             raise DevModeError(f"invalid state file {state_path}: {exc}") from exc
         return None
+    snapshot = value.get("snapshot") if isinstance(value, dict) else None
+    snapshot_valid = snapshot is None or (
+        isinstance(snapshot, dict)
+        and all(
+            isinstance(snapshot.get(key), str)
+            for key in ("machine", "captured", "source", "fingerprint", "commit")
+        )
+        and (snapshot.get("branch") is None or isinstance(snapshot.get("branch"), str))
+    )
     valid = (
         isinstance(value, dict)
         and value.get("version") == STATE_VERSION
@@ -100,6 +109,7 @@ def _read_state(full: str, *, strict: bool = True) -> dict | None:
             for item in value["scripts"]
         )
         and (value.get("venv") is None or isinstance(value.get("venv"), str))
+        and snapshot_valid
     )
     if not valid:
         if strict:
@@ -311,6 +321,8 @@ def rollback(name: str) -> None:
             "venv": str(venv) if venv else None,
             "scripts": sorted(scripts),
         }
+        if state.get("snapshot") is not None:
+            restored["snapshot"] = state["snapshot"]
         _switch(
             full,
             active_target=source,
@@ -385,7 +397,7 @@ def _switch(
         raise DevModeError(f"switch failed and was rolled back: {exc}") from exc
 
 
-def activate(checkout: Path) -> None:
+def activate(checkout: Path, *, provenance: dict | None = None) -> None:
     full, source = _checkout_identity(checkout)
     venv, scripts = _prepare_runtime(full, source)
     state = {
@@ -394,6 +406,8 @@ def activate(checkout: Path) -> None:
         "venv": str(venv) if venv else None,
         "scripts": sorted(scripts),
     }
+    if provenance is not None:
+        state["snapshot"] = provenance
     _switch(
         full,
         active_target=source,
@@ -480,6 +494,7 @@ def active_details(full: str) -> dict:
         "commit": _commit(source),
         "source": str(source),
         "consistent": consistent,
+        "snapshot": state.get("snapshot") if state else None,
     }
 
 

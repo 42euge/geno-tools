@@ -1,9 +1,10 @@
 import subprocess
 from pathlib import Path
+import json
 
 from geno_tools.skills_manager import paths
-from geno_tools.skills_manager.commands import install, remove, upgrade
-from geno_tools.sync import reconcile
+from geno_tools.skills_manager.commands import dev, install, remove, upgrade
+from geno_tools.sync import lockfile, reconcile, snapshot
 
 
 def git(repository: Path, *arguments: str) -> str:
@@ -140,3 +141,140 @@ def test_reconcile_installs_the_source_branch_instead_of_the_remote_default(
     assert result.failures == ()
     assert git(managed, "branch", "--show-current") == "feature"
     assert git(managed, "rev-parse", "HEAD") == feature_sha
+
+
+def create_selection_fixture(tmp_path, tmp_root, tmp_config, monkeypatch):
+    name = "geno-selected"
+    root = tmp_root / name
+    stable = root / "main"
+    stable.mkdir(parents=True)
+    subprocess.run(
+        ["git", "-C", str(stable), "init", "-q", "-b", "main"], check=True
+    )
+    (stable / "genotools.yaml").write_text(
+        f'name: {name}\nversion: "1.0.0"\n'
+    )
+    (stable / "SKILL.md").write_text(
+        f"---\nname: {name}\ndescription: stable\n---\n"
+    )
+    subprocess.run(["git", "-C", str(stable), "add", "."], check=True)
+    commit(stable, "stable")
+    origin = tmp_path / "stable-origin.git"
+    subprocess.run(
+        ["git", "clone", "-q", "--bare", str(stable), str(origin)], check=True
+    )
+    subprocess.run(
+        ["git", "-C", str(stable), "remote", "add", "origin", str(origin)],
+        check=True,
+    )
+    (root / "active").symlink_to("main")
+
+    source = tmp_path / "external" / name
+    source.mkdir(parents=True)
+    subprocess.run(
+        ["git", "-C", str(source), "init", "-q", "-b", "feature"], check=True
+    )
+    (source / "genotools.yaml").write_text(
+        f'name: {name}\nversion: "2.0.0"\n'
+    )
+    (source / "SKILL.md").write_text(
+        f"---\nname: {name}\ndescription: dev\n---\n"
+    )
+    subprocess.run(["git", "-C", str(source), "add", "."], check=True)
+    commit(source, "dev")
+
+    monkeypatch.setattr(install, "SYSTEM_BIN", tmp_path / "bin")
+    monkeypatch.setattr(install, "_install_skills_via_npx", lambda *_args: None)
+    monkeypatch.setattr(
+        install, "_uninstall_skill_names_via_npx", lambda *_args, **_kwargs: None
+    )
+    stable_lock = lockfile.build_lockfile(machine="source", generated="now")
+    payload = snapshot.capture(source, machine="source")
+    return name, root, stable, source, stable_lock, payload
+
+
+def package_for(name, stable_lock, kind, payload=None):
+    selected = {"kind": kind}
+    if payload is not None:
+        selected["snapshot"] = payload
+    return {
+        "protocol": 1,
+        "lockfile": stable_lock,
+        "selections": {name: selected},
+    }
+
+
+def test_reconcile_package_selects_stable_and_preserves_dev_rollback(
+    tmp_path, tmp_root, tmp_config, monkeypatch
+):
+    name, root, stable, source, stable_lock, _payload = create_selection_fixture(
+        tmp_path, tmp_root, tmp_config, monkeypatch
+    )
+    dev.activate(source)
+    (source / "dirty.txt").write_text("must remain untouched\n")
+
+    result = reconcile.reconcile_package(
+        package_for(name, stable_lock, "stable"),
+        reconcile.ReconcileOptions(yes=True),
+    )
+
+    assert result.failures == ()
+    assert paths.skillset_active(name).resolve() == stable.resolve()
+    rollback = json.loads((root / "dev-rollback.json").read_text())
+    assert rollback["kind"] == "dev"
+    assert rollback["state"]["checkout"] == str(source.resolve())
+    assert (source / "dirty.txt").read_text() == "must remain untouched\n"
+
+
+def test_reconcile_package_materializes_dev_and_is_idempotent(
+    tmp_path, tmp_root, tmp_config, monkeypatch
+):
+    name, root, stable, _source, stable_lock, payload = create_selection_fixture(
+        tmp_path, tmp_root, tmp_config, monkeypatch
+    )
+    value = package_for(name, stable_lock, "dev", payload)
+
+    first = reconcile.reconcile_package(value, reconcile.ReconcileOptions(yes=True))
+    active = paths.skillset_active(name).resolve()
+    second = reconcile.reconcile_package(value, reconcile.ReconcileOptions(yes=True))
+
+    assert first.failures == ()
+    assert [(action.name, action.kind) for action in first.actions] == [
+        (name, "activate-dev")
+    ]
+    assert active.parent == root / "snapshots"
+    assert active.name == payload["fingerprint"]
+    state = json.loads(paths.skillset_dev_state(name).read_text())
+    assert state["checkout"] == str(active)
+    assert state["snapshot"] == {
+        "machine": "source",
+        "captured": payload["captured"],
+        "source": str(_source),
+        "fingerprint": payload["fingerprint"],
+        "commit": payload["commit"],
+        "branch": "feature",
+    }
+    assert second.actions == ()
+    assert paths.skillset_active(name).resolve() == active
+    dev.deactivate(name)
+    assert paths.skillset_active(name).resolve() == stable.resolve()
+
+
+def test_reconcile_package_rejects_bad_snapshot_before_replacing_external_dev(
+    tmp_path, tmp_root, tmp_config, monkeypatch
+):
+    name, root, _stable, source, stable_lock, payload = create_selection_fixture(
+        tmp_path, tmp_root, tmp_config, monkeypatch
+    )
+    dev.activate(source)
+    bad = {**payload, "fingerprint": "0" * 64}
+
+    result = reconcile.reconcile_package(
+        package_for(name, stable_lock, "dev", bad),
+        reconcile.ReconcileOptions(yes=True),
+    )
+
+    assert result.failures[0].name == name
+    assert result.failures[0].kind == "activate-dev"
+    assert paths.skillset_active(name).resolve() == source.resolve()
+    assert not (root / "dev-rollback.json").exists()

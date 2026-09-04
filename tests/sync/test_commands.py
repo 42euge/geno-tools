@@ -214,6 +214,39 @@ def test_sync_apply_rejects_malformed_stdin_without_reconciling(monkeypatch, cap
     assert "valid JSON" in capsys.readouterr().err
 
 
+def test_sync_apply_accepts_a_selection_package(monkeypatch):
+    value = {"protocol": 1, "lockfile": LOCK, "selections": {}}
+    received = []
+    monkeypatch.setattr(apply_command.sys, "stdin", io.StringIO(json.dumps(value)))
+    monkeypatch.setattr(
+        apply_command,
+        "reconcile_package",
+        lambda source, options: received.append((source, options))
+        or reconcile.ReconcileResult((), (), False),
+    )
+
+    assert main(["sync", "apply", "-"]) == 0
+    assert received == [(value, reconcile.ReconcileOptions())]
+
+
+def test_sync_apply_requires_yes_for_packages_over_100_mib(monkeypatch, capsys):
+    value = {"protocol": 1, "lockfile": LOCK, "selections": {}}
+    monkeypatch.setattr(apply_command.sys, "stdin", io.StringIO(json.dumps(value)))
+    monkeypatch.setattr(
+        apply_command.sync_package,
+        "artifact_size",
+        lambda _value: 100 * 1024 * 1024 + 1,
+    )
+    monkeypatch.setattr(
+        apply_command,
+        "reconcile_package",
+        lambda *_args: pytest.fail("oversize package must not reconcile"),
+    )
+
+    assert main(["sync", "apply", "-"]) == 1
+    assert "--yes" in capsys.readouterr().err
+
+
 def test_sync_push_pipes_local_lockfile_to_remote_apply(monkeypatch):
     registry = HostRegistry(None, {"lab": Host("lab", "buildbox", False)})
     calls = []

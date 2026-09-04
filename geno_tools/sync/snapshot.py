@@ -388,6 +388,12 @@ def _validate_payload(payload: dict[str, Any]) -> None:
         raise SnapshotError("invalid snapshot field: fingerprint")
 
 
+def validate(payload: dict[str, Any]) -> None:
+    """Validate snapshot metadata and base64 artifact structure without mutation."""
+    _validate_payload(payload)
+    _decode_artifacts(payload)
+
+
 def _apply_patch(checkout: Path, patch: Path, *, cached: bool) -> None:
     if patch.stat().st_size == 0:
         return
