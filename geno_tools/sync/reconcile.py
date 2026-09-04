@@ -6,14 +6,17 @@ import argparse
 import subprocess
 from collections.abc import Callable
 from dataclasses import dataclass
+from pathlib import Path
 
 from geno_tools.skills_manager import paths
-from geno_tools.skills_manager.commands import remove
+from geno_tools.skills_manager.commands import dev, remove
 from geno_tools.skills_manager.commands.install import _get_requires, _install_one
 from geno_tools.skills_manager.commands.upgrade import _update_one
 
 from .diff import compare
 from .lockfile import apply_portable_config, build_lockfile, parse_lockfile
+from .package import parse as parse_package
+from .snapshot import materialize
 
 
 class ReconcileError(RuntimeError):
@@ -198,4 +201,66 @@ def reconcile(
         else:
             actions.append(ReconcileAction("config", "apply"))
 
+    return ReconcileResult(tuple(actions), tuple(failures), bool(actions))
+
+
+def _selection_action_needed(name: str, selected: dict) -> bool:
+    if not paths.skillset_root(name).is_dir():
+        return selected["kind"] == "dev"
+    details = dev.selection_details(name)["active"]
+    if selected["kind"] == "stable":
+        return details["mode"] == "dev"
+    expected = selected["snapshot"]["fingerprint"]
+    if details["mode"] != "dev":
+        return True
+    source = Path(details["source"])
+    return source.name != expected or source.parent != (
+        paths.skillset_root(name) / "snapshots"
+    )
+
+
+def reconcile_package(
+    value: dict,
+    options: ReconcileOptions,
+    *,
+    confirm: Callable[[list[str]], bool] = confirm_removals,
+) -> ReconcileResult:
+    """Reconcile Stable state, then atomically apply each selected source."""
+    package = parse_package(value)
+    stable = reconcile(package["lockfile"], options, confirm=confirm)
+    actions = list(stable.actions)
+    failures = list(stable.failures)
+    failed_names = {failure.name for failure in failures}
+
+    for name, selected in sorted(package["selections"].items()):
+        if name in failed_names or not _selection_action_needed(name, selected):
+            continue
+        kind = "activate-dev" if selected["kind"] == "dev" else "select-stable"
+        if options.dry_run:
+            actions.append(ReconcileAction(name, kind))
+            continue
+        try:
+            if selected["kind"] == "stable":
+                dev.preserve_rollback(name)
+                dev.deactivate(name)
+            else:
+                target = materialize(name, selected["snapshot"])
+                dev.preserve_rollback(name)
+                payload = selected["snapshot"]
+                provenance = {
+                    key: payload.get(key)
+                    for key in (
+                        "machine",
+                        "captured",
+                        "source",
+                        "fingerprint",
+                        "commit",
+                        "branch",
+                    )
+                }
+                dev.activate(target, provenance=provenance)
+        except Exception as error:
+            failures.append(ReconcileAction(name, kind, str(error)))
+        else:
+            actions.append(ReconcileAction(name, kind))
     return ReconcileResult(tuple(actions), tuple(failures), bool(actions))
