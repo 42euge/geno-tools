@@ -230,6 +230,181 @@ test("open VS Code terminals are listed under their workspace", async () => {
   assert.equal(item.command?.arguments?.[0], terminals[0]);
 });
 
+test("VS Code split groups use native connectors and terminal order", async () => {
+  const workspacePath = "/tmp/demo.2026.q3";
+  const terminals = ["second pane", "first pane", "standalone"].map(
+    (name) => ({
+      name,
+      creationOptions: { cwd: workspacePath },
+      shellIntegration: undefined,
+      show() {}
+    })
+  );
+  const WorkspaceTreeProvider = await loadWorkspaceTreeProvider(terminals);
+  const workspace = {
+    id: "chore.geno.demo.2026.q3",
+    track: "chore",
+    domain: "geno",
+    name: "demo",
+    born: "2026.q3",
+    path: workspacePath,
+    repos: [],
+    state: { tmux: { sessions: [] } }
+  };
+  const host = { alias: "local", hostname: "localhost", isDefault: true };
+  const registry = {
+    schema_version: 1,
+    host: "localhost",
+    generated_at: "2026-09-01T00:00:00Z",
+    workspaces: [workspace]
+  };
+  const provider = new WorkspaceTreeProvider(
+    {},
+    "all",
+    undefined,
+    undefined,
+    { readGroups: async () => [[39, 41], [40]] }
+  );
+  const groups = await provider.getChildren({
+    kind: "workspace",
+    host,
+    registry,
+    workspace
+  });
+  const terminalGroup = groups.find(({ kind }) => kind === "terminalGroup");
+  assert.ok(terminalGroup);
+
+  const terminalNodes = await provider.getChildren(terminalGroup);
+
+  assert.deepEqual(labels(provider, terminalNodes), [
+    "┌ second pane",
+    "└ first pane",
+    "standalone"
+  ]);
+});
+
+test("stale internal terminal layouts fall back to an ungrouped list", async () => {
+  const workspacePath = "/tmp/demo.2026.q3";
+  const terminals = ["second", "first", "standalone"].map((name) => ({
+    name,
+    creationOptions: { cwd: workspacePath },
+    shellIntegration: undefined,
+    show() {}
+  }));
+  const WorkspaceTreeProvider = await loadWorkspaceTreeProvider(terminals);
+  const workspace = {
+    id: "chore.geno.demo.2026.q3",
+    track: "chore",
+    domain: "geno",
+    name: "demo",
+    born: "2026.q3",
+    path: workspacePath,
+    repos: [],
+    state: { tmux: { sessions: [] } }
+  };
+  const host = { alias: "local", hostname: "localhost", isDefault: true };
+  const registry = {
+    schema_version: 1,
+    host: "localhost",
+    generated_at: "2026-09-01T00:00:00Z",
+    workspaces: [workspace]
+  };
+  const provider = new WorkspaceTreeProvider(
+    {},
+    "all",
+    undefined,
+    undefined,
+    { readGroups: async () => [[39, 41]] }
+  );
+  const groups = await provider.getChildren({
+    kind: "workspace",
+    host,
+    registry,
+    workspace
+  });
+  const terminalGroup = groups.find(({ kind }) => kind === "terminalGroup");
+  assert.ok(terminalGroup);
+
+  const terminalNodes = await provider.getChildren(terminalGroup);
+
+  assert.deepEqual(labels(provider, terminalNodes), [
+    "second",
+    "first",
+    "standalone"
+  ]);
+});
+
+test("both tree views keep a live split mapped when creation order differs", async () => {
+  const workspacePath = "/tmp/demo.2026.q3";
+  const terminals = ["first pane", "standalone"].map((name) => ({
+    name,
+    creationOptions: { cwd: workspacePath },
+    shellIntegration: undefined,
+    show() {}
+  }));
+  let layoutGroups = [[39], [40]];
+  const WorkspaceTreeProvider = await loadWorkspaceTreeProvider(terminals);
+  const workspace = {
+    id: "chore.geno.demo.2026.q3",
+    track: "chore",
+    domain: "geno",
+    name: "demo",
+    born: "2026.q3",
+    path: workspacePath,
+    repos: [],
+    state: { tmux: { sessions: [] } }
+  };
+  const host = { alias: "local", hostname: "localhost", isDefault: true };
+  const registry = {
+    schema_version: 1,
+    host: "localhost",
+    generated_at: "2026-09-01T00:00:00Z",
+    workspaces: [workspace]
+  };
+  const terminalLayout = { readGroups: async () => layoutGroups };
+  const terminalsByLayoutId = new Map<number, unknown>();
+  const provider = new WorkspaceTreeProvider(
+    {},
+    "all",
+    undefined,
+    undefined,
+    terminalLayout,
+    terminalsByLayoutId
+  );
+  const groups = await provider.getChildren({
+    kind: "workspace",
+    host,
+    registry,
+    workspace
+  });
+  const terminalGroup = groups.find(({ kind }) => kind === "terminalGroup");
+  assert.ok(terminalGroup);
+  await provider.getChildren(terminalGroup);
+
+  terminals.push({
+    name: "second pane",
+    creationOptions: { cwd: workspacePath },
+    shellIntegration: undefined,
+    show() {}
+  });
+  layoutGroups = [[39, 41], [40]];
+  const currentProvider = new WorkspaceTreeProvider(
+    {},
+    "current",
+    undefined,
+    undefined,
+    terminalLayout,
+    terminalsByLayoutId
+  );
+  const terminalNodes = await currentProvider.getChildren(terminalGroup);
+
+  assert.deepEqual(labels(currentProvider, terminalNodes), [
+    "┌ first pane",
+    "└ second pane",
+    "standalone"
+  ]);
+});
+
 test("tmux sessions can be reopened from the tree", async () => {
   const WorkspaceTreeProvider = await loadWorkspaceTreeProvider();
   const host = { alias: "local", hostname: "localhost", isDefault: true };

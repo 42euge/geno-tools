@@ -24,6 +24,7 @@ import {
 } from "./mirrorTree";
 import { TRACK_ORDER, TtHost, TtWorkspace, workspaceReference } from "./model";
 import { TerminalLinkRegistry } from "./terminalLinks";
+import { UnsupportedVsCodeTerminalLayoutReader } from "./terminalLayout";
 import {
   ManagedTmuxSession,
   ManagedTmuxSessionStore
@@ -57,17 +58,26 @@ export function activate(context: vscode.ExtensionContext): void {
   const cli = new TtCli(output);
   const terminalLinks = new TerminalLinkRegistry();
   const tmuxSessions = new ManagedTmuxSessionStore(context.globalState);
+  const terminalLayout = new UnsupportedVsCodeTerminalLayoutReader(
+    context.storageUri?.fsPath,
+    (message) => output.appendLine(message)
+  );
+  const terminalsByLayoutId = new Map<number, vscode.Terminal>();
   const provider = new WorkspaceTreeProvider(
     cli,
     "all",
     terminalLinks,
-    tmuxSessions
+    tmuxSessions,
+    terminalLayout,
+    terminalsByLayoutId
   );
   const currentProvider = new WorkspaceTreeProvider(
     cli,
     "current",
     terminalLinks,
-    tmuxSessions
+    tmuxSessions,
+    terminalLayout,
+    terminalsByLayoutId
   );
   const mirrorProvider = new RemoteMirrorTreeProvider(
     () => currentProvider.currentWorkspace(),

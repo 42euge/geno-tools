@@ -100,6 +100,11 @@ export interface TerminalNode {
   workspace: TtWorkspace;
   terminal: vscode.Terminal;
   cwd?: string;
+  splitPrefix?: string;
+}
+
+export interface TerminalLayoutReader {
+  readGroups(): Promise<number[][] | undefined>;
 }
 
 export interface MessageNode {
@@ -153,7 +158,9 @@ export class WorkspaceTreeProvider
     private readonly cli: TtCli,
     private readonly scope: "all" | "current" = "all",
     private readonly terminalLinks = new TerminalLinkRegistry(),
-    private readonly tmuxSessions = new ManagedTmuxSessionStore()
+    private readonly tmuxSessions = new ManagedTmuxSessionStore(),
+    private readonly terminalLayout?: TerminalLayoutReader,
+    private readonly terminalsByLayoutId = new Map<number, vscode.Terminal>()
   ) {}
 
   async hosts(reload = false): Promise<TtHost[]> {
@@ -307,7 +314,12 @@ export class WorkspaceTreeProvider
         case "tmuxSessionGroup":
           return tmuxSessionGroupChildren(node, this.tmuxSessions);
         case "terminalGroup":
-          return terminalGroupChildren(node, this.terminalLinks);
+          return terminalGroupChildren(
+            node,
+            this.terminalLinks,
+            this.terminalLayout,
+            this.terminalsByLayoutId
+          );
         case "repo":
           return [];
         case "tmuxSession":
@@ -617,7 +629,7 @@ function terminalItem(
   const link = terminalLinks.linkFor(node.terminal);
   const location = node.cwd ?? "working directory unavailable";
   const item = new vscode.TreeItem(
-    node.terminal.name,
+    `${node.splitPrefix ? `${node.splitPrefix} ` : ""}${node.terminal.name}`,
     vscode.TreeItemCollapsibleState.None
   );
   item.contextValue = link ? "terminalLinked" : "terminal";
@@ -729,31 +741,44 @@ function tmuxSessionGroupChildren(
     .map((session) => tmuxSessionNode(node, session));
 }
 
-function terminalGroupChildren(
+async function terminalGroupChildren(
   node: TerminalGroupNode,
-  terminalLinks: TerminalLinkRegistry
-): TerminalNode[] {
-  return terminalsForWorkspace(node, terminalLinks)
-    .sort((left, right) =>
-      left.terminal.name.localeCompare(right.terminal.name) ||
-      (left.cwd ?? "").localeCompare(right.cwd ?? "")
-    )
-    .map(({ terminal, cwd }) => ({
+  terminalLinks: TerminalLinkRegistry,
+  terminalLayout: TerminalLayoutReader | undefined,
+  terminalsByLayoutId: Map<number, vscode.Terminal>
+): Promise<TerminalNode[]> {
+  const displayTerminals = reconcileTerminalLayout(
+    await terminalLayout?.readGroups(),
+    vscode.window.terminals,
+    terminalsByLayoutId
+  );
+  return terminalsForWorkspace(node, terminalLinks, displayTerminals)
+    .map(({ terminal, cwd, splitPrefix }) => ({
       kind: "terminal",
       host: node.host,
       registry: node.registry,
       workspace: node.workspace,
       terminal,
-      cwd
+      cwd,
+      splitPrefix
     }));
+}
+
+interface DisplayTerminal {
+  terminal: vscode.Terminal;
+  splitPrefix?: string;
 }
 
 function terminalsForWorkspace(
   node: TerminalGroupNode,
-  terminalLinks: TerminalLinkRegistry
-): Array<{ terminal: vscode.Terminal; cwd?: string }> {
+  terminalLinks: TerminalLinkRegistry,
+  displayTerminals: DisplayTerminal[] = vscode.window.terminals.map(
+    (terminal) => ({ terminal })
+  )
+): Array<DisplayTerminal & { cwd?: string }> {
   const currentLocations = currentWorkspaceLocations();
-  return vscode.window.terminals.flatMap((terminal) => {
+  return displayTerminals.flatMap((displayTerminal) => {
+    const { terminal } = displayTerminal;
     const location = terminalLocation(terminal);
     const link = terminalLinks.linkFor(terminal);
     const linkedToWorkspace = link?.hostAlias === node.host.alias &&
@@ -768,8 +793,64 @@ function terminalsForWorkspace(
             locationMatchesHost(current, node.host, node.registry) &&
             pathIsInside(current.path, node.workspace.path)
         ));
-    return belongs ? [{ terminal, cwd: location?.path }] : [];
+    return belongs ? [{ ...displayTerminal, cwd: location?.path }] : [];
   });
+}
+
+function reconcileTerminalLayout(
+  groups: number[][] | undefined,
+  terminals: readonly vscode.Terminal[],
+  terminalsByLayoutId: Map<number, vscode.Terminal>
+): DisplayTerminal[] {
+  const fallback = terminals.map((terminal) => ({ terminal }));
+  if (!groups) {
+    return fallback;
+  }
+  const layoutIds = groups.flat();
+  if (
+    groups.some((group) => group.length === 0) ||
+    new Set(layoutIds).size !== layoutIds.length ||
+    layoutIds.length !== terminals.length
+  ) {
+    return fallback;
+  }
+
+  const liveIds = new Set(layoutIds);
+  const liveTerminals = new Set(terminals);
+  for (const [layoutId, terminal] of terminalsByLayoutId) {
+    if (!liveIds.has(layoutId) || !liveTerminals.has(terminal)) {
+      terminalsByLayoutId.delete(layoutId);
+    }
+  }
+
+  const mappedTerminals = new Set(terminalsByLayoutId.values());
+  const unmappedIds = layoutIds.filter((id) => !terminalsByLayoutId.has(id));
+  const unmappedTerminals = terminals.filter(
+    (terminal) => !mappedTerminals.has(terminal)
+  );
+  if (unmappedIds.length !== unmappedTerminals.length) {
+    return fallback;
+  }
+  unmappedIds.forEach((id, index) => {
+    terminalsByLayoutId.set(id, unmappedTerminals[index]);
+  });
+
+  return groups.flatMap((group) =>
+    group.flatMap((id, index) => {
+      const terminal = terminalsByLayoutId.get(id);
+      if (!terminal) {
+        return [];
+      }
+      const splitPrefix = group.length <= 1
+        ? undefined
+        : index === 0
+          ? "┌"
+          : index === group.length - 1
+            ? "└"
+            : "├";
+      return [{ terminal, splitPrefix }];
+    })
+  );
 }
 
 function terminalLocation(terminal: vscode.Terminal): WorkspaceLocation | undefined {

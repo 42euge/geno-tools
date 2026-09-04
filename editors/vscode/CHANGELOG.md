@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Show integrated terminal split groups in VS Code's native order with the same
+  `┌`, `├`, and `└` row markers.
+- Read split membership from unsupported VS Code workspace state because the
+  public extension API does not expose native terminal groups; fall back to an
+  ungrouped list when that internal state is unavailable or incompatible.
+
 ## 0.3.6
 
 - Place Remote Mirrors directly below Current Workspace and move All
