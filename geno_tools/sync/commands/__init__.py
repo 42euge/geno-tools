@@ -20,6 +20,12 @@ def _add_reconcile_flags(parser: argparse.ArgumentParser) -> None:
         action="store_true",
         help="skip deterministic venv rebuilds after repository updates",
     )
+    parser.add_argument(
+        "--dev-source",
+        choices=("ask", "stable", "active"),
+        default="ask",
+        help="choose Stable or active Dev sources (default: ask interactively)",
+    )
 
 
 def options_from_args(args: argparse.Namespace) -> ReconcileOptions:
