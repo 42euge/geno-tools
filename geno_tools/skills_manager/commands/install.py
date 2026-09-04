@@ -45,7 +45,11 @@ def _get_requires(full: str) -> list[str]:
 
 
 def _install_one(
-    name_or_source: str, *, installing: set[str], branch: str | None = None
+    name_or_source: str,
+    *,
+    installing: set[str],
+    branch: str | None = None,
+    revision: str | None = None,
 ) -> int:
     source, name = _resolve_source(name_or_source)
     if name is None:
@@ -65,7 +69,7 @@ def _install_one(
     root = paths.skillset_root(full)
     root.mkdir(parents=True)
     try:
-        _clone_and_worktree(source, full, branch=branch)
+        _clone_and_worktree(source, full, branch=branch, revision=revision)
         _install_requires(full, installing)
         scripts = _create_venv_if_needed(full)
         _materialize_bin_symlinks(full, scripts)
@@ -148,7 +152,11 @@ def _read_project(repo_dir: Path) -> dict:
 
 
 def _clone_and_worktree(
-    source: str, full: str, *, branch: str | None = None
+    source: str,
+    full: str,
+    *,
+    branch: str | None = None,
+    revision: str | None = None,
 ) -> None:
     bare = paths.skillset_git(full)
     subprocess.check_call(["git", "clone", "--bare", "--quiet", source, str(bare)])
@@ -160,6 +168,13 @@ def _clone_and_worktree(
         )
         subprocess.check_call(
             ["git", "-C", str(bare), "symbolic-ref", "HEAD", f"refs/heads/{branch}"]
+        )
+    if revision:
+        subprocess.check_call(
+            ["git", "-C", str(bare), "cat-file", "-e", f"{revision}^{{commit}}"]
+        )
+        subprocess.check_call(
+            ["git", "-C", str(bare), "update-ref", f"refs/heads/{selected}", revision]
         )
     subprocess.check_call(
         [

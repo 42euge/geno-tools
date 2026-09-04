@@ -152,6 +152,7 @@ def reconcile(
                     item.source["url"],
                     installing=set(),
                     branch=item.source["branch"],
+                    revision=item.source["sha"],
                 )
             except Exception as error:
                 failures.append(ReconcileAction(item.name, "install", str(error)))
@@ -165,7 +166,10 @@ def reconcile(
         elif item.state == "version-skew":
             try:
                 result = _update_one(
-                    item.name, force_venv_rebuild=options.rebuild
+                    item.name,
+                    force_venv_rebuild=options.rebuild,
+                    branch=item.source["branch"],
+                    revision=item.source["sha"],
                 )
             except Exception as error:
                 failures.append(ReconcileAction(item.name, "update", str(error)))

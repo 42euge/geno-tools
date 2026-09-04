@@ -56,7 +56,11 @@ class _UpdateResult:
 
 
 def _update_one(
-    full: str, *, force_venv_rebuild: bool = False
+    full: str,
+    *,
+    force_venv_rebuild: bool = False,
+    branch: str | None = None,
+    revision: str | None = None,
 ) -> _UpdateResult:
     bare = paths.skillset_git(full)
     worktree = paths.skillset_worktree(full)
@@ -72,7 +76,7 @@ def _update_one(
     if status:
         return _UpdateResult(full, "skipped", "dirty worktree")
 
-    default_branch = _detect_default_branch(bare)
+    default_branch = branch or _detect_default_branch(bare)
     try:
         current_branch = subprocess.check_output(
             ["git", "-C", str(worktree), "branch", "--show-current"], text=True
@@ -103,21 +107,32 @@ def _update_one(
         subprocess.check_call(["git", "-C", str(bare), "fetch", "--quiet", "origin"])
     except subprocess.CalledProcessError:
         return _UpdateResult(full, "error", "git fetch failed")
-    try:
-        subprocess.check_call(
-            [
-                "git",
-                "-C",
-                str(worktree),
-                "pull",
-                "--ff-only",
-                "--quiet",
-                "origin",
-                default_branch,
-            ]
-        )
-    except subprocess.CalledProcessError:
-        return _UpdateResult(full, "error", "git pull --ff-only failed (diverged?)")
+    if revision:
+        try:
+            subprocess.check_call(
+                ["git", "-C", str(bare), "cat-file", "-e", f"{revision}^{{commit}}"]
+            )
+            subprocess.check_call(
+                ["git", "-C", str(worktree), "reset", "--hard", "--quiet", revision]
+            )
+        except subprocess.CalledProcessError:
+            return _UpdateResult(full, "error", f"recorded commit is unavailable: {revision}")
+    else:
+        try:
+            subprocess.check_call(
+                [
+                    "git",
+                    "-C",
+                    str(worktree),
+                    "pull",
+                    "--ff-only",
+                    "--quiet",
+                    "origin",
+                    default_branch,
+                ]
+            )
+        except subprocess.CalledProcessError:
+            return _UpdateResult(full, "error", "git pull --ff-only failed (diverged?)")
 
     try:
         new_rev = subprocess.check_output(
