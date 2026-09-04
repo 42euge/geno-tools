@@ -283,7 +283,68 @@ test("VS Code split groups use native connectors and terminal order", async () =
   ]);
 });
 
-test("stale internal terminal layouts fall back to an ungrouped list", async () => {
+test("split markers survive an extra terminal outside the native layout", async () => {
+  const workspacePath = "/tmp/demo.2026.q3";
+  const terminals = [
+    "first pane",
+    "second pane",
+    "standalone",
+    "review prs",
+    "TT: local/review-prs-and-worktrees",
+    "other window"
+  ].map((name) => ({
+    name,
+    creationOptions: { cwd: workspacePath },
+    shellIntegration: undefined,
+    show() {}
+  }));
+  const WorkspaceTreeProvider = await loadWorkspaceTreeProvider(terminals);
+  const workspace = {
+    id: "explore.geno.demo.2026.q3",
+    track: "explore",
+    domain: "geno",
+    name: "demo",
+    born: "2026.q3",
+    path: workspacePath,
+    repos: [],
+    state: { tmux: { sessions: [] } }
+  };
+  const host = { alias: "local", hostname: "localhost", isDefault: true };
+  const registry = {
+    schema_version: 1,
+    host: "localhost",
+    generated_at: "2026-09-04T22:00:00Z",
+    workspaces: [workspace]
+  };
+  const provider = new WorkspaceTreeProvider(
+    {},
+    "all",
+    undefined,
+    undefined,
+    { readGroups: async () => [[39, 41], [40], [42], [44]] }
+  );
+  const groups = await provider.getChildren({
+    kind: "workspace",
+    host,
+    registry,
+    workspace
+  });
+  const terminalGroup = groups.find(({ kind }) => kind === "terminalGroup");
+  assert.ok(terminalGroup);
+
+  const terminalNodes = await provider.getChildren(terminalGroup);
+
+  assert.deepEqual(labels(provider, terminalNodes), [
+    "┌ first pane",
+    "└ second pane",
+    "standalone",
+    "review prs",
+    "TT: local/review-prs-and-worktrees",
+    "other window"
+  ]);
+});
+
+test("layouts with missing live terminals fall back to an ungrouped list", async () => {
   const workspacePath = "/tmp/demo.2026.q3";
   const terminals = ["second", "first", "standalone"].map((name) => ({
     name,
@@ -314,7 +375,7 @@ test("stale internal terminal layouts fall back to an ungrouped list", async () 
     "all",
     undefined,
     undefined,
-    { readGroups: async () => [[39, 41]] }
+    { readGroups: async () => [[39, 41], [40], [42]] }
   );
   const groups = await provider.getChildren({
     kind: "workspace",
