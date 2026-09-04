@@ -5,3 +5,6 @@ discovery:
   sources:
     - kind: github
       org: 42euge          # discovers public geno-* repos
+
+sync:
+  primary: ""
