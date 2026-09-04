@@ -102,5 +102,5 @@ listed. There is no rollback. Correct the named dirty branch, network, or
 installation problem and run the same pull/push again; reconciliation is
 idempotent.
 
-Use the [sync smoke test](sync-manual-acceptance.md) for a short,
-non-destructive check against a second computer.
+Use the [sync smoke test](sync-manual-acceptance.md) for an end-to-end
+reconciliation against a second computer.
