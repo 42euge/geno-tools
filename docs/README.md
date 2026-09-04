@@ -9,6 +9,6 @@ Plain Markdown only — no mkdocs, no site build, no generated assets.
 - [Skillsets](skillsets.md) — anatomy, subskillsets, namespaces, dependencies, variants
 - [Skillset compliance](skillset-compliance.md) — normative, checkable rules for a healthy skillset repo
 - [Installation sync](sync.md) — compare and reconcile skillsets across geno-tt hosts
-- [Installation sync manual acceptance](sync-manual-acceptance.md) — safely exercise sync across two test computers
+- [Installation sync smoke test](sync-manual-acceptance.md) — run a short, non-destructive two-host check
 
 _(more to come as the refactor lands)_

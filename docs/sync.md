@@ -102,6 +102,5 @@ listed. There is no rollback. Correct the named dirty branch, network, or
 installation problem and run the same pull/push again; reconciliation is
 idempotent.
 
-Before release, use the [manual acceptance
-runbook](sync-manual-acceptance.md) to exercise the complete two-computer flow,
-including destructive-operation guards and failure handling.
+Use the [sync smoke test](sync-manual-acceptance.md) for a short,
+non-destructive check against a second computer.
