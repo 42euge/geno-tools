@@ -66,6 +66,8 @@ def compare(here: dict, source: dict) -> SyncDiff:
     config_deltas = tuple(
         ConfigDelta(key, local_config.get(key), desired_config.get(key))
         for key in sorted(local_config.keys() | desired_config.keys())
-        if local_config.get(key) != desired_config.get(key)
+        if key not in local_config
+        or key not in desired_config
+        or local_config[key] != desired_config[key]
     )
     return SyncDiff(tuple(skillsets), config_deltas)
