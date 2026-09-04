@@ -20,7 +20,9 @@ interface VscodeStub {
   editorText: string;
   inputValues: string[];
   quickPickTitles?: string[];
+  registries?: Record<string, object>;
   spawnCalls: SpawnCall[];
+  treeReveals?: Array<{ id: string; node: Record<string, unknown> }>;
   warningValues: Array<string | undefined>;
   workspaceFolders: string[];
 }
@@ -132,13 +134,75 @@ test("mirror control only asks for a host before mirroring", async () => {
   );
 });
 
+test("retiring a mirror confirms the backup and invokes tt retire on its host", async () => {
+  const stub: VscodeStub = {
+    commands: new Map(),
+    errors: [],
+    editorText: "",
+    inputValues: [],
+    spawnCalls: [],
+    warningValues: ["Back Up and Retire"],
+    workspaceFolders: ["/tmp/parser.2026.q3"]
+  };
+  const extension = await loadExtension(stub);
+  extension.activate({ subscriptions: [] });
+  const command = stub.commands.get("genoTools.retireMirror");
+  assert.ok(command, "retire mirror command should be registered");
+  const source = localWorkspaceNode();
+  const mirror = {
+    ...localWorkspaceNode(),
+    host: { alias: "build", hostname: "build.example.com", isDefault: false }
+  };
+
+  await command({ kind: "remoteMirror", source, mirror });
+
+  assert.deepEqual(stub.errors, []);
+  assert.ok(stub.spawnCalls.some(({ executable, args }) =>
+    executable === "tt-test" &&
+    Array.from(args).join(" ") ===
+      "-H build retire parser.2026.q3 --mirror --yes"
+  ));
+});
+
+test("canceling mirror retirement leaves the remote workspace untouched", async () => {
+  const stub: VscodeStub = {
+    commands: new Map(),
+    errors: [],
+    editorText: "",
+    inputValues: [],
+    spawnCalls: [],
+    warningValues: [undefined],
+    workspaceFolders: ["/tmp/parser.2026.q3"]
+  };
+  const extension = await loadExtension(stub);
+  extension.activate({ subscriptions: [] });
+  const command = stub.commands.get("genoTools.retireMirror");
+  assert.ok(command);
+
+  await command({
+    kind: "remoteMirror",
+    source: localWorkspaceNode(),
+    mirror: {
+      ...localWorkspaceNode(),
+      host: { alias: "build", hostname: "build.example.com", isDefault: false }
+    }
+  });
+
+  assert.ok(!stub.spawnCalls.some(({ args }) => args.includes("retire")));
+});
+
 test("manifest makes mirror primary and dispatch an action on a mirror", () => {
   const manifest = JSON.parse(
     readFileSync(join(__dirname, "..", "..", "package.json"), "utf8")
   ) as {
+    extensionKind: string[];
     contributes: {
       views: {
-        genoTools: Array<{ id: string; when?: string }>;
+        genoTools: Array<{
+          id: string;
+          when?: string;
+          visibility?: string;
+        }>;
       };
       commands: Array<{ command: string }>;
       menus: {
@@ -151,14 +215,31 @@ test("manifest makes mirror primary and dispatch an action on a mirror", () => {
   assert.ok(commands.includes("genoTools.dispatchWorkspace"));
   assert.ok(commands.includes("genoTools.dispatchMirror"));
   assert.ok(commands.includes("genoTools.manageDispatches"));
+  assert.ok(commands.includes("genoTools.retireMirror"));
+  assert.deepEqual(manifest.extensionKind, ["ui"]);
+  assert.deepEqual(
+    manifest.contributes.views.genoTools.map(({ id }) => id),
+    [
+      "genoTools.currentWorkspace",
+      "genoTools.remoteMirrors",
+      "genoTools.workspaces"
+    ]
+  );
   const mirrorView = manifest.contributes.views.genoTools.find(
     ({ id }) => id === "genoTools.remoteMirrors"
   );
   assert.ok(mirrorView);
+  assert.equal(mirrorView.visibility, "collapsed");
   assert.equal(
     mirrorView.when,
     undefined,
-    "Remote Mirrors must always occupy the third sidebar section"
+    "Remote Mirrors must remain available when the workspace has no mirror"
+  );
+  assert.equal(
+    manifest.contributes.views.genoTools.find(
+      ({ id }) => id === "genoTools.workspaces"
+    )?.visibility,
+    "collapsed"
   );
   assert.ok(
     manifest.contributes.menus["view/item/context"].some(
@@ -181,6 +262,53 @@ test("manifest makes mirror primary and dispatch an action on a mirror", () => {
         command === "genoTools.dispatchMirror" && group === "inline@1"
     )
   );
+  assert.ok(
+    manifest.contributes.menus["view/item/context"].some(
+      ({ command, group }) =>
+        command === "genoTools.retireMirror" && group === "inline@2"
+    )
+  );
+});
+
+test("workspace reload reveals a real remote mirror but not the empty state", async () => {
+  const source = localWorkspaceNode() as Record<string, unknown>;
+  const sourceWorkspace = source.workspace as Record<string, unknown>;
+  const mirrorWorkspace = {
+    ...sourceWorkspace,
+    path: "/home/dev/code/chore/geno/parser.2026.q3"
+  };
+  const stub: VscodeStub = {
+    commands: new Map(),
+    errors: [],
+    editorText: "",
+    inputValues: [],
+    registries: {
+      local: registry("localhost", [sourceWorkspace]),
+      build: registry("build.example.com", [mirrorWorkspace])
+    },
+    spawnCalls: [],
+    treeReveals: [],
+    warningValues: [],
+    workspaceFolders: ["/tmp/parser.2026.q3"]
+  };
+  const extension = await loadExtension(stub);
+  extension.activate({ subscriptions: [] });
+  const reload = stub.commands.get("genoTools.reloadWorkspaces");
+  assert.ok(reload);
+
+  await reload();
+
+  assert.equal(stub.treeReveals?.length, 1);
+  assert.equal(stub.treeReveals?.[0].id, "genoTools.remoteMirrors");
+  assert.equal(stub.treeReveals?.[0].node.kind, "remoteMirror");
+
+  stub.registries = {
+    local: registry("localhost", [sourceWorkspace]),
+    build: registry("build.example.com", [])
+  };
+  await reload();
+
+  assert.equal(stub.treeReveals?.length, 1);
 });
 
 test("dispatch manager confirms stop and invokes safe recall", async () => {
@@ -231,6 +359,15 @@ function localWorkspaceNode(): object {
       repos: [],
       state: { tmux: { sessions: [] } }
     }
+  };
+}
+
+function registry(host: string, workspaces: object[]): object {
+  return {
+    schema_version: 1,
+    host,
+    generated_at: "2026-09-01T00:00:00Z",
+    workspaces
   };
 }
 
@@ -288,7 +425,13 @@ async function loadExtension(
                   document: { fileName: "/tmp/HANDOFF.md", getText: () => state.editorText }
                 },
                 createOutputChannel: () => ({ append() {}, appendLine() {}, show() {}, dispose() {} }),
-                createTreeView: () => ({ selection: [], dispose() {} }),
+                createTreeView: (id) => ({
+                  selection: [],
+                  async reveal(node) {
+                    state.treeReveals?.push({ id, node });
+                  },
+                  dispose() {}
+                }),
                 withProgress: async (_options, task) => task({}, { onCancellationRequested: () => ({ dispose() {} }) }),
                 createTerminal: () => ({ show() {}, sendText() {} }),
                 showInputBox: async () => state.inputValues.shift(),
@@ -339,6 +482,17 @@ async function loadExtension(
                     Promise.resolve().then(() => {
                       if (args.length === 1 && args[0] === "hosts") {
                         stdoutListeners.data?.(Buffer.from("local -> localhost (default)\\nbuild -> build.example.com\\n"));
+                      }
+                      if (args.at(-2) === "registry" && args.at(-1) === "show") {
+                        const alias = args[args.indexOf("-H") + 1];
+                        stdoutListeners.data?.(Buffer.from(JSON.stringify(
+                          state.registries?.[alias] ?? {
+                            schema_version: 1,
+                            host: alias === "local" ? "localhost" : "build.example.com",
+                            generated_at: "2026-09-01T00:00:00Z",
+                            workspaces: []
+                          }
+                        )));
                       }
                       if (args.join(" ") === "dispatch list --json") {
                         const recalled = state.spawnCalls.some((call) => call.args[0] === "recall");

@@ -18,7 +18,7 @@ interface RemoteMirrorMessageNode {
   description: string;
 }
 
-type RemoteMirrorTreeNode = RemoteMirrorNode | RemoteMirrorMessageNode;
+export type RemoteMirrorTreeNode = RemoteMirrorNode | RemoteMirrorMessageNode;
 
 export function isRemoteMirrorNode(value: unknown): value is RemoteMirrorNode {
   return Boolean(

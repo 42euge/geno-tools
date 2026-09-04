@@ -2,7 +2,7 @@
   "name": "geno-tools-tt-workspaces",
   "displayName": "Geno Tools: TT Workspaces",
   "description": "Browse and manage local and remote TT workspaces from VS Code.",
-  "version": "0.3.4",
+  "version": "0.3.6",
   "publisher": "42euge",
   "license": "MIT",
   "engines": {
@@ -23,6 +23,9 @@
     "url": "https://github.com/42euge/geno-tools.git"
   },
   "main": "./dist/extension.js",
+  "extensionKind": [
+    "ui"
+  ],
   "activationEvents": [
     "onView:genoTools.workspaces",
     "onView:genoTools.currentWorkspace",
@@ -52,12 +55,14 @@
           "name": "Current Workspace"
         },
         {
-          "id": "genoTools.workspaces",
-          "name": "All Workspaces"
+          "id": "genoTools.remoteMirrors",
+          "name": "Remote Mirrors",
+          "visibility": "collapsed"
         },
         {
-          "id": "genoTools.remoteMirrors",
-          "name": "Remote Mirrors"
+          "id": "genoTools.workspaces",
+          "name": "All Workspaces",
+          "visibility": "collapsed"
         }
       ]
     },
@@ -154,6 +159,11 @@
         "command": "genoTools.dispatchMirror",
         "title": "Geno Tools: Dispatch Work to This Mirror",
         "icon": "$(rocket)"
+      },
+      {
+        "command": "genoTools.retireMirror",
+        "title": "Geno Tools: Back Up and Retire Mirror",
+        "icon": "$(trash)"
       },
       {
         "command": "genoTools.manageDispatches",
@@ -319,6 +329,11 @@
           "command": "genoTools.dispatchMirror",
           "when": "view == genoTools.remoteMirrors && viewItem == remoteMirror",
           "group": "inline@1"
+        },
+        {
+          "command": "genoTools.retireMirror",
+          "when": "view == genoTools.remoteMirrors && viewItem == remoteMirror",
+          "group": "inline@2"
         },
         {
           "command": "genoTools.manageDispatches",

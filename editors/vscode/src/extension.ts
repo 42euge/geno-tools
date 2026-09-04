@@ -19,6 +19,7 @@ import {
 import { dispatchWorkspaceToHost, manageDispatches } from "./dispatchControls";
 import {
   isRemoteMirrorNode,
+  RemoteMirrorTreeNode,
   RemoteMirrorTreeProvider
 } from "./mirrorTree";
 import { TRACK_ORDER, TtHost, TtWorkspace, workspaceReference } from "./model";
@@ -92,7 +93,7 @@ export function activate(context: vscode.ExtensionContext): void {
   };
   const mirrorVisibility = currentTree.onDidChangeVisibility?.(({ visible }) => {
     if (visible) {
-      void reloadMirrors(mirrorProvider, output);
+      void reloadMirrors(mirrorProvider, mirrorTree, output);
     }
   });
 
@@ -107,7 +108,7 @@ export function activate(context: vscode.ExtensionContext): void {
     mirrorTree,
     vscode.workspace.onDidChangeWorkspaceFolders(() => {
       currentProvider.reload();
-      void reloadMirrors(mirrorProvider, output);
+      void reloadMirrors(mirrorProvider, mirrorTree, output);
     }),
     vscode.window.onDidOpenTerminal(refreshTerminalViews),
     vscode.window.onDidCloseTerminal((terminal) => {
@@ -120,17 +121,17 @@ export function activate(context: vscode.ExtensionContext): void {
     context.subscriptions.push(mirrorVisibility);
   }
   if (currentTree.visible) {
-    void reloadMirrors(mirrorProvider, output);
+    void reloadMirrors(mirrorProvider, mirrorTree, output);
   }
   register(context, "genoTools.reloadWorkspaces", async () => {
     provider.reload();
     currentProvider.reload();
-    await mirrorProvider.reload();
+    await reloadMirrors(mirrorProvider, mirrorTree, output);
   });
   register(context, "genoTools.refreshWorkspaces", async (node?: unknown) => {
     const host = isHostNode(node) ? node.host : undefined;
     await refreshWorkspaces(cli, [provider, currentProvider], host);
-    await mirrorProvider.reload();
+    await reloadMirrors(mirrorProvider, mirrorTree, output);
   });
   register(context, "genoTools.refreshTerminals", async () => {
     refreshTerminalViews();
@@ -254,7 +255,7 @@ export function activate(context: vscode.ExtensionContext): void {
     const workspace = isWorkspaceNode(node) ? node : await pickWorkspace(cli, provider);
     if (workspace) {
       await mirrorWorkspace(cli, provider, workspace);
-      await reloadMirrors(mirrorProvider, output);
+      await reloadMirrors(mirrorProvider, mirrorTree, output);
     }
   });
   register(context, "genoTools.dispatchWorkspace", async (node?: unknown) => {
@@ -276,6 +277,11 @@ export function activate(context: vscode.ExtensionContext): void {
         node.source,
         node.mirror.host
       );
+    }
+  });
+  register(context, "genoTools.retireMirror", async (node?: unknown) => {
+    if (isRemoteMirrorNode(node)) {
+      await retireMirror(cli, provider, mirrorProvider, node.source, node.mirror);
     }
   });
   register(context, "genoTools.manageDispatches", async (node?: unknown) => {
@@ -340,10 +346,15 @@ function register(
 
 async function reloadMirrors(
   provider: RemoteMirrorTreeProvider,
+  tree: vscode.TreeView<RemoteMirrorTreeNode>,
   output: vscode.OutputChannel
 ): Promise<void> {
   try {
     await provider.reload();
+    const mirror = (await provider.getChildren()).find(isRemoteMirrorNode);
+    if (mirror) {
+      await tree.reveal(mirror, { focus: false, select: false });
+    }
   } catch (error) {
     output.appendLine(
       `Remote mirror view unavailable: ${error instanceof Error ? error.message : String(error)}`
@@ -985,6 +996,47 @@ async function mirrorWorkspace(
   await vscode.window.showInformationMessage(
     `Mirrored ${workspaceReference(source.workspace)} to ${picked.host.alias}.`
   );
+}
+
+async function retireMirror(
+  cli: TtCli,
+  provider: WorkspaceTreeProvider,
+  mirrorProvider: RemoteMirrorTreeProvider,
+  source: WorkspaceNode,
+  mirror: WorkspaceNode
+): Promise<void> {
+  const reference = workspaceReference(mirror.workspace);
+  const action = "Back Up and Retire";
+  const confirmed = await vscode.window.showWarningMessage(
+    `Back up and retire ${reference} on ${mirror.host.alias}? ` +
+      `TT will copy a verified ZIP to ${source.host.alias} before moving the ` +
+      "remote workspace to its graveyard.",
+    { modal: true },
+    action
+  );
+  if (confirmed !== action) {
+    return;
+  }
+  const output = await cli.run(
+    cli.forHost(mirror.host, ["retire", reference, "--mirror", "--yes"]),
+    `Backing up and retiring ${reference} on ${mirror.host.alias}`,
+    { cwd: homedir() }
+  );
+  provider.invalidateHost(mirror.host);
+  await mirrorProvider.reload();
+  const backup = mirroredBackupPath(output);
+  await vscode.window.showInformationMessage(
+    backup
+      ? `Retired ${reference} on ${mirror.host.alias}. Backup: ${backup}`
+      : `Retired ${reference} on ${mirror.host.alias}. The verified backup is on ${source.host.alias}.`
+  );
+}
+
+function mirroredBackupPath(output: string): string | undefined {
+  const lines = output.split(/\r?\n/);
+  const heading = lines.findIndex((line) => line.startsWith("Backed up mirror to "));
+  const path = heading >= 0 ? lines[heading + 1]?.trim() : undefined;
+  return path || undefined;
 }
 
 async function createWorktree(cli: TtCli, node: WorkspaceNode): Promise<void> {

@@ -1580,6 +1580,7 @@ async function loadExtension(
     exports: compiledModule.exports,
     require: createRequire(__filename),
     process,
+    URL,
     Buffer,
     console,
     setTimeout,

@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.3.6
+
+- Place Remote Mirrors directly below Current Workspace and move All
+  Workspaces to the bottom
+- Collapse both secondary sections by default and reveal Remote Mirrors when
+  the current workspace has a mirror
+
+## 0.3.5
+
+- Add a confirmed trash action for remote mirrors that creates and verifies a
+  ZIP on the originating host before retirement
+- Run the locally installed extension in Remote - SSH windows through VS
+  Code's UI extension host
+
 ## 0.3.4
 
 - Keep Remote Mirrors visible as the third sidebar section and show an explicit
