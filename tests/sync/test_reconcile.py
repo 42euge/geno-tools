@@ -46,7 +46,7 @@ class StatefulOperations:
     def export(self):
         return lock(self.state, self.config)
 
-    def install(self, url, *, installing):
+    def install(self, url, *, installing, branch=None):
         name = url.removesuffix(".git").rsplit("/", 1)[-1]
         self.calls.append(("install", name))
         if name in self.install_error:

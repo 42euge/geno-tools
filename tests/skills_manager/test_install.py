@@ -425,6 +425,39 @@ class TestBinSymlinks:
 
         assert not (bin_dir / "geno-dev").exists()
 
+    def test_materialize_adopts_same_skillset_pipx_link(
+        self, fake_skillset, tmp_path, monkeypatch
+    ):
+        fake_skillset("geno-dev", has_pyproject=True)
+        bin_dir = tmp_path / "bin"
+        bin_dir.mkdir()
+        monkeypatch.setattr(
+            "geno_tools.skills_manager.commands.install.SYSTEM_BIN", bin_dir
+        )
+        monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path))
+
+        pipx_bin = (
+            tmp_path
+            / ".local"
+            / "share"
+            / "pipx"
+            / "venvs"
+            / "geno-dev"
+            / "bin"
+        )
+        pipx_bin.mkdir(parents=True)
+        old = pipx_bin / "geno-dev"
+        old.write_text("old\n")
+        (bin_dir / "geno-dev").symlink_to(old)
+        managed_bin = paths.skillset_venvs("geno-dev") / "default" / "bin"
+        managed_bin.mkdir(parents=True)
+        new = managed_bin / "geno-dev"
+        new.write_text("new\n")
+
+        commands._materialize_bin_symlinks("geno-dev", {"geno-dev": "..."})
+
+        assert (bin_dir / "geno-dev").resolve() == new.resolve()
+
 
 class TestAgentScoping:
     """npx --agent is scoped to detected agents, not '*' (avoids ~76-agent spam)."""

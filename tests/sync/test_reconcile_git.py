@@ -115,3 +115,28 @@ def test_reconcile_real_managed_repo_install_update_remove_and_idempotency(
     assert [(action.name, action.kind) for action in removed.actions] == [
         ("geno-real", "remove")
     ]
+
+
+def test_reconcile_installs_the_source_branch_instead_of_the_remote_default(
+    tmp_path, tmp_root, tmp_config, monkeypatch
+):
+    monkeypatch.setattr(install, "_install_skills_via_npx", lambda *_a, **_kw: None)
+    repository, _main_sha = create_skillset(tmp_path, "geno-branch")
+    subprocess.run(
+        ["git", "-C", str(repository), "switch", "-q", "-c", "feature"],
+        check=True,
+    )
+    (repository / "payload.txt").write_text("feature\n")
+    feature_sha = commit(repository, "feature")
+    subprocess.run(
+        ["git", "-C", str(repository), "switch", "-q", "main"], check=True
+    )
+    source = lock("geno-branch", repository, feature_sha)
+    source["skillsets"]["geno-branch"]["branch"] = "feature"
+
+    result = reconcile.reconcile(source, reconcile.ReconcileOptions(yes=True))
+
+    managed = paths.skillset_worktree("geno-branch")
+    assert result.failures == ()
+    assert git(managed, "branch", "--show-current") == "feature"
+    assert git(managed, "rev-parse", "HEAD") == feature_sha

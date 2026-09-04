@@ -6,6 +6,7 @@ import json
 import socket
 import subprocess
 from datetime import datetime, timezone
+from pathlib import Path
 
 import yaml
 
@@ -46,6 +47,27 @@ def _git(full: str, *arguments: str) -> str:
     ).strip()
 
 
+def _cloneable(value: str) -> bool:
+    return value.startswith(("http://", "https://", "ssh://", "git://", "git@", "file://"))
+
+
+def clone_source(full: str) -> str:
+    """Return a source another host can clone without changing local Git config."""
+    origin = _git(full, "remote", "get-url", "origin")
+    local = Path(origin).expanduser()
+    if not local.is_dir():
+        return origin
+    try:
+        nested = subprocess.check_output(
+            ["git", "-C", str(local), "remote", "get-url", "origin"],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip()
+    except (OSError, subprocess.CalledProcessError):
+        return origin
+    return nested if _cloneable(nested) else origin
+
+
 def _installed_skillsets() -> list[str]:
     if not paths.ROOT.exists():
         return []
@@ -75,7 +97,7 @@ def build_lockfile(
     for full in _installed_skillsets():
         version, _scripts = dev._project_details(paths.skillset_worktree(full))
         skillsets[full] = {
-            "url": _git(full, "remote", "get-url", "origin"),
+            "url": clone_source(full),
             "branch": _git(full, "branch", "--show-current"),
             "sha": _git(full, "rev-parse", "HEAD"),
             "version": version,
