@@ -6,8 +6,9 @@ import argparse
 import subprocess
 import sys
 from dataclasses import dataclass
+from pathlib import Path
 
-from .. import paths
+from .. import paths, registry
 from .install import (
     _create_venv_if_needed,
     _detect_default_branch,
@@ -51,6 +52,7 @@ class _UpdateResult:
     detail: str = ""
     old_rev: str = ""
     new_rev: str = ""
+    canonical_source: str = ""
 
 
 def _update_one(full: str) -> _UpdateResult:
@@ -81,6 +83,9 @@ def _update_one(full: str) -> _UpdateResult:
             "skipped",
             f"on branch '{current_branch}', not '{default_branch}'",
         )
+
+    origin = _origin_url(bare)
+    local_origin = bool(origin and Path(origin).expanduser().is_absolute())
 
     old_skills = set(_enumerate_registered_skills(full))
 
@@ -119,6 +124,14 @@ def _update_one(full: str) -> _UpdateResult:
     except subprocess.CalledProcessError:
         new_rev = ""
     if old_rev == new_rev:
+        if local_origin:
+            return _UpdateResult(
+                full,
+                "local-source",
+                detail=origin,
+                old_rev=old_rev[:8],
+                canonical_source=registry.resolve(full) or "",
+            )
         return _UpdateResult(full, "up-to-date", old_rev=old_rev[:8])
 
     _maybe_reinstall_venv(full, old_rev, new_rev)
@@ -130,6 +143,16 @@ def _update_one(full: str) -> _UpdateResult:
     return _UpdateResult(
         full, "updated", old_rev=old_rev[:8], new_rev=new_rev[:8]
     )
+
+
+def _origin_url(bare: Path) -> str:
+    try:
+        return subprocess.check_output(
+            ["git", "-C", str(bare), "remote", "get-url", "origin"],
+            text=True,
+        ).strip()
+    except subprocess.CalledProcessError:
+        return ""
 
 
 def _maybe_reinstall_venv(full: str, old_rev: str, new_rev: str) -> None:
@@ -163,6 +186,9 @@ def _maybe_reinstall_venv(full: str, old_rev: str, new_rev: str) -> None:
 def _print_update_summary(results: list[_UpdateResult]) -> None:
     groups = {
         "updated": [result for result in results if result.status == "updated"],
+        "local source": [
+            result for result in results if result.status == "local-source"
+        ],
         "already up-to-date": [
             result for result in results if result.status == "up-to-date"
         ],
@@ -177,6 +203,12 @@ def _print_update_summary(results: list[_UpdateResult]) -> None:
         for result in group:
             if result.status == "updated":
                 print(f"  {result.name:<24} {result.old_rev} -> {result.new_rev}")
+            elif result.status == "local-source":
+                print(f"  {result.name:<24} {result.detail}")
+                if result.canonical_source:
+                    print("    replace with discovered source:")
+                    print(f"      geno-tools uninstall {result.name}")
+                    print(f"      geno-tools install {result.canonical_source}")
             elif result.status in {"skipped", "error"}:
                 print(f"  {result.name:<24} {result.detail}")
             else:

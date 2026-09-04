@@ -353,6 +353,45 @@ class TestUpgradeCli:
         out = capsys.readouterr().out
         assert "geno-dev" in out
 
+    def test_local_origin_reports_canonical_reinstall_path(
+        self, fake_skillset, tmp_path, monkeypatch, capsys
+    ):
+        fake_skillset("geno-dev")
+        local_source = tmp_path / "retired-worktree" / "geno-dev"
+        local_source.mkdir(parents=True)
+
+        def fake_check_output(cmd, **kw):
+            if "status" in cmd and "--porcelain" in cmd:
+                return ""
+            if "branch" in cmd and "--show-current" in cmd:
+                return "main"
+            if "rev-parse" in cmd:
+                return "same1234"
+            if "symbolic-ref" in cmd:
+                return "main"
+            if "get-url" in cmd:
+                return str(local_source)
+            return ""
+
+        monkeypatch.setattr("subprocess.check_output", fake_check_output)
+        monkeypatch.setattr("subprocess.check_call", lambda cmd, **kw: None)
+        monkeypatch.setattr(
+            "geno_tools.skills_manager.registry._cache",
+            {"geno-dev": "https://github.com/42euge/geno-dev.git"},
+        )
+
+        from geno_tools.cli import main
+
+        assert main(["update", "geno-dev"]) == 0
+        out = capsys.readouterr().out
+        assert "local source (1)" in out
+        assert str(local_source) in out
+        assert "already up-to-date" not in out
+        assert "geno-tools uninstall geno-dev" in out
+        assert (
+            "geno-tools install https://github.com/42euge/geno-dev.git" in out
+        )
+
 
 # ── summary output ───────────────────────────────────────────────────────
 
