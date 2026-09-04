@@ -55,7 +55,9 @@ class _UpdateResult:
     canonical_source: str = ""
 
 
-def _update_one(full: str) -> _UpdateResult:
+def _update_one(
+    full: str, *, force_venv_rebuild: bool = False
+) -> _UpdateResult:
     bare = paths.skillset_git(full)
     worktree = paths.skillset_worktree(full)
     if not worktree.exists():
@@ -124,6 +126,8 @@ def _update_one(full: str) -> _UpdateResult:
     except subprocess.CalledProcessError:
         new_rev = ""
     if old_rev == new_rev:
+        if force_venv_rebuild:
+            _force_reinstall_venv(full)
         if local_origin:
             return _UpdateResult(
                 full,
@@ -134,7 +138,10 @@ def _update_one(full: str) -> _UpdateResult:
             )
         return _UpdateResult(full, "up-to-date", old_rev=old_rev[:8])
 
-    _maybe_reinstall_venv(full, old_rev, new_rev)
+    if force_venv_rebuild:
+        _force_reinstall_venv(full)
+    else:
+        _maybe_reinstall_venv(full, old_rev, new_rev)
     retired_skills = sorted(
         old_skills - set(_enumerate_registered_skills(full))
     )
@@ -180,6 +187,29 @@ def _maybe_reinstall_venv(full: str, old_rev: str, new_rev: str) -> None:
             [str(venv_dir / "bin" / "pip"), "install", "--quiet", "-e", str(worktree)]
         )
     except subprocess.CalledProcessError as error:
+        print(f"  warn: venv reinstall failed for {full}: {error}", file=sys.stderr)
+
+
+def _force_reinstall_venv(full: str) -> None:
+    worktree = paths.skillset_worktree(full)
+    if not (worktree / "pyproject.toml").exists():
+        return
+    venv_dir = paths.skillset_venvs(full) / "default"
+    print(f"  rebuilding venv for {full}...")
+    try:
+        if not venv_dir.exists():
+            _create_venv_if_needed(full)
+        else:
+            subprocess.check_call(
+                [
+                    str(venv_dir / "bin" / "pip"),
+                    "install",
+                    "--quiet",
+                    "-e",
+                    str(worktree),
+                ]
+            )
+    except (OSError, subprocess.CalledProcessError) as error:
         print(f"  warn: venv reinstall failed for {full}: {error}", file=sys.stderr)
 
 
