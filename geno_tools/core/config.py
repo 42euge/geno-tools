@@ -19,6 +19,9 @@ _DEFAULTS = {
             {"kind": "github", "org": "42euge"},
         ],
     },
+    "sync": {
+        "primary": "",
+    },
 }
 
 def ensure_dir() -> Path:
@@ -50,6 +53,9 @@ def load() -> dict:
                 merged[key] = {**default, **data[key]}
             else:
                 merged[key] = data[key]
+    for key in ("autonomy", "mode"):
+        if key in data:
+            merged[key] = data[key]
     return merged
 
 
