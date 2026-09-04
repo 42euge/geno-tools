@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Any, Callable
 
@@ -47,8 +48,41 @@ def inventory() -> dict[str, Any]:
         "protocol": INVENTORY_PROTOCOL,
         "machine": stable_lock["machine"],
         "generated": stable_lock["generated"],
+        "lockfile": stable_lock,
         "skillsets": skillsets,
     }
+
+
+def parse(value: str | bytes | dict[str, Any]) -> dict[str, Any]:
+    """Decode and validate inventory received from another geno-tools CLI."""
+    if isinstance(value, (str, bytes)):
+        try:
+            data = json.loads(value)
+        except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+            raise SelectionError("sync inventory is not valid JSON") from exc
+    else:
+        data = value
+    if not isinstance(data, dict) or data.get("protocol") != INVENTORY_PROTOCOL:
+        protocol = data.get("protocol") if isinstance(data, dict) else None
+        raise SelectionError(
+            f"unsupported sync inventory protocol {protocol!r}; "
+            f"this geno-tools supports protocol {INVENTORY_PROTOCOL}"
+        )
+    if not isinstance(data.get("machine"), str):
+        raise SelectionError("sync inventory has no machine name")
+    stable = data.get("lockfile")
+    try:
+        validated_lock = lockfile.parse_lockfile(stable)
+    except lockfile.LockfileError as exc:
+        raise SelectionError(f"invalid inventory lockfile: {exc}") from exc
+    candidates = _candidates(data)
+    if {candidate["name"] for candidate in candidates} != set(
+        validated_lock["skillsets"]
+    ):
+        raise SelectionError(
+            "sync inventory skillsets must exactly match its Stable lockfile"
+        )
+    return data
 
 
 def _candidates(value: dict[str, Any]) -> list[dict[str, Any]]:

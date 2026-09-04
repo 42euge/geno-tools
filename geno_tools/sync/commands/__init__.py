@@ -57,7 +57,15 @@ def add_parser(subparsers: argparse._SubParsersAction) -> None:
         dest="sync_action", title="commands", metavar="COMMAND"
     )
 
-    commands.add_parser("export", help="print the local installation lockfile")
+    export_parser = commands.add_parser(
+        "export", help="print the local installation lockfile"
+    )
+    export_parser.add_argument(
+        "--selection-json",
+        help=argparse.SUPPRESS,
+    )
+
+    commands.add_parser("inventory", help="print Stable and Dev source metadata")
 
     status_parser = commands.add_parser(
         "status", help="compare this installation with configured hosts"
@@ -81,17 +89,23 @@ def add_parser(subparsers: argparse._SubParsersAction) -> None:
     )
     apply_parser.add_argument("input", choices=["-"], metavar="-")
     _add_reconcile_flags(apply_parser)
+    apply_parser.add_argument(
+        "--allow-large",
+        action="store_true",
+        help=argparse.SUPPRESS,
+    )
 
 
 def dispatch(args: argparse.Namespace) -> int:
     if args.sync_action is None:
         args._sync_parser.print_help()
         return 0
-    from . import apply, export, pull, push, status
+    from . import apply, export, inventory, pull, push, status
 
     handlers = {
         "apply": apply.run,
         "export": export.run,
+        "inventory": inventory.run,
         "pull": pull.run,
         "push": push.run,
         "status": status.run,

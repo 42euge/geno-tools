@@ -32,7 +32,11 @@ def run(args: argparse.Namespace) -> int:
         if isinstance(decoded, dict) and "protocol" in decoded:
             source = sync_package.parse(decoded)
             size = sync_package.artifact_size(source)
-            if size > MAX_UNCONFIRMED_BYTES and not options.yes:
+            if (
+                size > MAX_UNCONFIRMED_BYTES
+                and not options.yes
+                and not args.allow_large
+            ):
                 raise ReconcileError(
                     "package artifacts exceed 100 MiB; rerun with --yes to apply"
                 )

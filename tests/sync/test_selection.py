@@ -181,7 +181,40 @@ def test_inventory_includes_stable_fallback_and_active_snapshot_size(monkeypatch
     value = selection.inventory()
 
     candidate = value["skillsets"]["geno-dev"]
+    assert value["lockfile"] == lock
     assert candidate["stable"] == lock["skillsets"]["geno-dev"]
     assert candidate["active"]["fingerprint"] == "a" * 64
     assert candidate["active"]["transfer_size"] == 16
     assert "artifacts" not in candidate["active"]
+
+
+def test_parse_inventory_round_trips_json_and_rejects_old_remote_protocol():
+    value = {
+        **INVENTORY,
+        "lockfile": {
+            "version": 1,
+            "machine": "laptop",
+            "generated": "now",
+            "skillsets": {
+                name: {
+                    "url": f"https://example.test/{name}.git",
+                    "branch": "main",
+                    "sha": name,
+                    "version": item["stable"]["version"],
+                }
+                for name, item in INVENTORY["skillsets"].items()
+            },
+            "config": {},
+        },
+    }
+    assert selection.parse(value) == value
+    with pytest.raises(selection.SelectionError, match="protocol"):
+        selection.parse(
+            {
+                "version": 1,
+                "machine": "old-remote",
+                "generated": "now",
+                "skillsets": {},
+                "config": {},
+            }
+        )
