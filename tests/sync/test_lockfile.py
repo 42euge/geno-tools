@@ -1,4 +1,5 @@
 import json
+import subprocess
 
 import pytest
 import yaml
@@ -79,6 +80,43 @@ def test_build_lockfile_reads_stable_main_when_dev_mode_is_selected(
     value = lockfile.build_lockfile(machine="laptop", generated="now")
 
     assert value["skillsets"]["geno-dev"]["version"] == "0.1.0"
+
+
+def test_build_lockfile_resolves_a_managed_local_origin_to_its_clone_url(
+    fake_skillset, tmp_config, tmp_path, monkeypatch
+):
+    fake_skillset("geno-dev", has_pyproject=True)
+    local_source = tmp_path / "geno-dev"
+    local_source.mkdir()
+    subprocess.run(["git", "-C", str(local_source), "init", "-q"], check=True)
+    subprocess.run(
+        [
+            "git",
+            "-C",
+            str(local_source),
+            "remote",
+            "add",
+            "origin",
+            "https://example.test/geno-dev.git",
+        ],
+        check=True,
+    )
+
+    def git_values(full, *arguments):
+        values = {
+            ("remote", "get-url", "origin"): str(local_source),
+            ("branch", "--show-current"): "feature",
+            ("rev-parse", "HEAD"): "0123456789abcdef",
+        }
+        return values[arguments]
+
+    monkeypatch.setattr(lockfile, "_git", git_values)
+
+    value = lockfile.build_lockfile(machine="laptop", generated="now")
+
+    assert value["skillsets"]["geno-dev"]["url"] == (
+        "https://example.test/geno-dev.git"
+    )
 
 
 def test_parse_lockfile_round_trips_json():

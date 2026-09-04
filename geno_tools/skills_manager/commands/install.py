@@ -44,7 +44,9 @@ def _get_requires(full: str) -> list[str]:
     return [str(requirement) for requirement in raw]
 
 
-def _install_one(name_or_source: str, *, installing: set[str]) -> int:
+def _install_one(
+    name_or_source: str, *, installing: set[str], branch: str | None = None
+) -> int:
     source, name = _resolve_source(name_or_source)
     if name is None:
         name = _peek_repo_name(source)
@@ -63,7 +65,7 @@ def _install_one(name_or_source: str, *, installing: set[str]) -> int:
     root = paths.skillset_root(full)
     root.mkdir(parents=True)
     try:
-        _clone_and_worktree(source, full)
+        _clone_and_worktree(source, full, branch=branch)
         _install_requires(full, installing)
         scripts = _create_venv_if_needed(full)
         _materialize_bin_symlinks(full, scripts)
@@ -145,9 +147,20 @@ def _read_project(repo_dir: Path) -> dict:
         return {}
 
 
-def _clone_and_worktree(source: str, full: str) -> None:
+def _clone_and_worktree(
+    source: str, full: str, *, branch: str | None = None
+) -> None:
     bare = paths.skillset_git(full)
     subprocess.check_call(["git", "clone", "--bare", "--quiet", source, str(bare)])
+    selected = branch or _detect_default_branch(bare)
+    if branch:
+        subprocess.check_call(
+            ["git", "-C", str(bare), "show-ref", "--verify", f"refs/heads/{branch}"],
+            stdout=subprocess.DEVNULL,
+        )
+        subprocess.check_call(
+            ["git", "-C", str(bare), "symbolic-ref", "HEAD", f"refs/heads/{branch}"]
+        )
     subprocess.check_call(
         [
             "git",
@@ -156,7 +169,7 @@ def _clone_and_worktree(source: str, full: str) -> None:
             "worktree",
             "add",
             str(paths.skillset_worktree(full)),
-            _detect_default_branch(bare),
+            selected,
         ]
     )
 
@@ -214,10 +227,36 @@ def _materialize_bin_symlinks(full: str, scripts: dict[str, str]) -> None:
             existing = destination.readlink() if destination.is_symlink() else None
             if existing == source:
                 continue
-            print(f"  warn: {destination} already exists; skipping", file=sys.stderr)
-            continue
+            if destination.is_symlink() and _same_skillset_pipx_link(
+                full, destination
+            ):
+                destination.unlink()
+                print(f"  -> adopting legacy pipx executable {destination}")
+            else:
+                print(f"  warn: {destination} already exists; skipping", file=sys.stderr)
+                continue
         destination.symlink_to(source)
         print(f"  -> {destination} -> {source}")
+
+
+def _same_skillset_pipx_link(full: str, link: Path) -> bool:
+    try:
+        target = link.resolve(strict=True)
+    except OSError:
+        return False
+    home = Path.home()
+    roots = (
+        home / ".local" / "share" / "pipx" / "venvs" / full,
+        home / ".local" / "pipx" / "venvs" / full,
+        home / "Library" / "Application Support" / "pipx" / "venvs" / full,
+    )
+    for root in roots:
+        try:
+            target.relative_to(root)
+        except ValueError:
+            continue
+        return True
+    return False
 
 
 def _remove_bin_symlinks(full: str, *, system_bin: Path | None = None) -> None:

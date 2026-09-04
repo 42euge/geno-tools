@@ -145,7 +145,11 @@ def reconcile(
         if item.state == "missing-here":
             action = ReconcileAction(item.name, "install")
             try:
-                rc = _install_one(item.source["url"], installing=set())
+                rc = _install_one(
+                    item.source["url"],
+                    installing=set(),
+                    branch=item.source["branch"],
+                )
             except Exception as error:
                 failures.append(ReconcileAction(item.name, "install", str(error)))
                 continue
