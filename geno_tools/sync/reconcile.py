@@ -71,7 +71,11 @@ def confirm_removals(names: list[str]) -> bool:
     print("The following skillsets will be removed:")
     for name in names:
         print(f"  {name}")
-    return input("Continue? [y/N] ").strip().lower() in {"y", "yes"}
+    try:
+        answer = input("Continue? [y/N] ")
+    except EOFError:
+        return False
+    return answer.strip().lower() in {"y", "yes"}
 
 
 def _dependency_closure(desired: set[str]) -> set[str]:

@@ -16,6 +16,7 @@ EXPECTED_COMMANDS = [
     "audit",
     "system",
     "config",
+    "sync",
 ]
 EXPECTED_SYSTEM_COMMANDS = ["update", "uninstall"]
 
@@ -35,6 +36,7 @@ class TestCliHelp:
         assert captured.out.index("uninstall NAME") < captured.out.index("update [NAME]")
         assert "Find and inspect skillsets" in captured.out
         assert "Other commands" in captured.out
+        assert "sync COMMAND" in captured.out
 
     def test_help_exits_zero(self, capsys):
         with pytest.raises(SystemExit) as exc:
