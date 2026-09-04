@@ -96,6 +96,7 @@ def test_parse_lockfile_round_trips_json():
     "value, message",
     [
         ("not json", "valid JSON"),
+        ({"version": True, "skillsets": {}, "config": {}}, "version True"),
         ({"version": 2, "skillsets": {}, "config": {}}, "version 2"),
         (
             {
