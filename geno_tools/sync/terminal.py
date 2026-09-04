@@ -6,7 +6,8 @@ from collections.abc import Callable
 from typing import Any
 
 import readchar
-from rich.console import Console
+from rich.console import Console, Group
+from rich.text import Text
 
 
 UP = readchar.key.UP
@@ -35,38 +36,59 @@ def _dirty(value: dict[str, Any]) -> str:
     return f"dirty: {', '.join(parts)}" if parts else "clean"
 
 
-def _render(
-    console: Console,
+def _view(
     candidate: dict[str, Any],
     remaining: list[dict[str, Any]],
     options: list[tuple[str, str]],
     selected: int,
-) -> None:
+) -> Group:
     active = candidate["active"]
     stable = candidate["stable"]
-    console.print(f"\n[bold]{candidate['name']}[/bold] has an active developer checkout")
-    console.print(
-        "  Dev snapshot "
-        f"[bold]{active.get('project_version', '?')}[/bold] "
-        f"{active.get('branch') or '(detached)'} "
-        f"{str(active.get('commit', '?'))[:10]} ({_dirty(active)})"
-    )
-    console.print(f"    {active.get('source', '?')}")
     transfer_size = int(active.get("transfer_size", 0)) + int(
         candidate.get("stable_transfer_size", 0)
     )
-    console.print(f"    estimated transfer {_size(transfer_size)}")
-    console.print(
-        "  deactivate restores Stable "
-        f"[bold]{stable.get('version', '?')}[/bold] "
-        f"{stable.get('branch', '?')} {str(stable.get('sha', '?'))[:10]}"
-    )
-    console.print(f"    {stable.get('url', '?')}")
-    console.print()
+    lines = [
+        Text(),
+        Text.from_markup(
+            f"[bold]{candidate['name']}[/bold] has an active developer checkout"
+        ),
+        Text.from_markup(
+            "  Dev snapshot "
+            f"[bold]{active.get('project_version', '?')}[/bold] "
+            f"{active.get('branch') or '(detached)'} "
+            f"{str(active.get('commit', '?'))[:10]} ({_dirty(active)})"
+        ),
+        Text(f"    {active.get('source', '?')}"),
+        Text(f"    estimated transfer {_size(transfer_size)}"),
+        Text.from_markup(
+            "  deactivate restores Stable "
+            f"[bold]{stable.get('version', '?')}[/bold] "
+            f"{stable.get('branch', '?')} {str(stable.get('sha', '?'))[:10]}"
+        ),
+        Text(f"    {stable.get('url', '?')}"),
+        Text(),
+    ]
     for index, (_value, label) in enumerate(options):
         pointer = "[bold cyan]›[/bold cyan]" if index == selected else " "
-        console.print(f"  {pointer} {label}")
-    console.print("\n[dim]Use ↑/↓ and Enter. Ctrl-C cancels.[/dim]")
+        lines.append(Text.from_markup(f"  {pointer} {label}"))
+    lines.extend(
+        [Text(), Text.from_markup("[dim]Use ↑/↓ and Enter. Ctrl-C cancels.[/dim]")]
+    )
+    return Group(*lines)
+
+
+def _draw(console: Console, view: Group) -> int:
+    height = len(console.render_lines(view, console.options, pad=False))
+    console.print(view)
+    return max(height, 1)
+
+
+def _clear(console: Console, height: int) -> None:
+    if not console.is_terminal:
+        return
+    for _ in range(height):
+        console.file.write("\x1b[1A\r\x1b[2K")
+    console.file.flush()
 
 
 def choose_one(
@@ -87,18 +109,24 @@ def choose_one(
         ("cancel", "Cancel"),
     ]
     selected = 0
+    height = _draw(output, _view(candidate, remaining, options, selected))
     while True:
-        _render(output, candidate, remaining, options, selected)
         try:
             pressed = read_key()
         except KeyboardInterrupt:
-            output.print()
+            _clear(output, height)
             return "cancel"
         if pressed in {UP, "\x1b[A"}:
             selected = (selected - 1) % len(options)
+            _clear(output, height)
+            height = _draw(output, _view(candidate, remaining, options, selected))
         elif pressed in {DOWN, "\x1b[B"}:
             selected = (selected + 1) % len(options)
+            _clear(output, height)
+            height = _draw(output, _view(candidate, remaining, options, selected))
         elif pressed in {ENTER, "\n", "\r"}:
+            _clear(output, height)
             return options[selected][0]
         elif pressed == "\x03":
+            _clear(output, height)
             return "cancel"
