@@ -40,6 +40,23 @@ def test_sync_without_command_prints_help(capsys):
     assert "export" in capsys.readouterr().out
 
 
+@pytest.mark.parametrize("command", ["push", "pull"])
+@pytest.mark.parametrize("source", ["ask", "stable", "active"])
+def test_sync_transfer_commands_accept_dev_source_policy(
+    command, source, monkeypatch
+):
+    module = push_command if command == "push" else pull_command
+    received = []
+    monkeypatch.setattr(module, "run", lambda args: received.append(args) or 0)
+    arguments = ["sync", command]
+    if command == "push":
+        arguments.append("lab")
+    arguments.extend(["--dev-source", source])
+
+    assert main(arguments) == 0
+    assert received[0].dev_source == source
+
+
 def test_sync_export_prints_only_json(monkeypatch, capsys):
     monkeypatch.setattr(export_command, "build_lockfile", lambda: LOCK)
     assert main(["sync", "export"]) == 0
