@@ -173,9 +173,7 @@ already stopped session, stop and recall an active session, or open the returned
 `RETURN.md`. **Stop and Recall** terminates the remote tmux session and therefore
 always requires confirmation.
 
-See [Remote Mirrors manual acceptance](REMOTE_MIRRORS_MANUAL_ACCEPTANCE.md) for
-the VS Code-only mirror and retirement workflow, and
-[Remote dispatch manual test](DISPATCH_MANUAL_TEST.md) for dispatch,
+See [Remote dispatch manual test](DISPATCH_MANUAL_TEST.md) for dispatch,
 management, and recall.
 
 ## Development
