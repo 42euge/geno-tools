@@ -18,6 +18,7 @@ from . import install
 
 
 STATE_VERSION = 1
+ROLLBACK_VERSION = 1
 
 
 class DevModeError(RuntimeError):
@@ -34,6 +35,8 @@ def run(args: argparse.Namespace) -> int:
             activate(Path(args.checkout))
         elif args.dev_action == "deactivate":
             deactivate(args.name)
+        elif args.dev_action == "rollback":
+            rollback(args.name)
         elif args.dev_action == "status":
             return status(args.name)
         else:
@@ -262,6 +265,65 @@ def _write_state(full: str, state: dict | None) -> None:
         raise
 
 
+def _rollback_path(full: str) -> Path:
+    return paths.skillset_root(full) / "dev-rollback.json"
+
+
+def preserve_rollback(name: str) -> None:
+    """Remember the current stable/dev selection without modifying it."""
+    full = paths.normalize(name)
+    state = _read_state(full)
+    value = {
+        "version": ROLLBACK_VERSION,
+        "kind": "dev" if state else "stable",
+        "state": state,
+    }
+    destination = _rollback_path(full)
+    destination.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n")
+
+
+def rollback(name: str) -> None:
+    """Restore the selection saved by :func:`preserve_rollback`."""
+    full = paths.normalize(name)
+    source_file = _rollback_path(full)
+    try:
+        value = json.loads(source_file.read_text())
+    except FileNotFoundError as exc:
+        raise DevModeError(f"{full} has no rollback selection") from exc
+    except (OSError, ValueError) as exc:
+        raise DevModeError(f"invalid rollback selection {source_file}: {exc}") from exc
+    if value.get("version") != ROLLBACK_VERSION or value.get("kind") not in {
+        "stable",
+        "dev",
+    }:
+        raise DevModeError(f"invalid rollback selection {source_file}")
+    if value["kind"] == "stable":
+        deactivate(full)
+    else:
+        state = value.get("state")
+        if not isinstance(state, dict) or not isinstance(state.get("checkout"), str):
+            raise DevModeError(f"invalid rollback selection {source_file}")
+        source = Path(state["checkout"])
+        venv, scripts = _prepare_runtime(full, source)
+        restored = {
+            "version": STATE_VERSION,
+            "checkout": str(source.resolve()),
+            "venv": str(venv) if venv else None,
+            "scripts": sorted(scripts),
+        }
+        _switch(
+            full,
+            active_target=source,
+            venv=venv,
+            scripts=scripts,
+            state=restored,
+        )
+        version, _scripts = _project_details(source)
+        print(f"rolled back {full} to dev {version}")
+        print(f"  source {source}")
+    source_file.unlink()
+
+
 def _restore_state(full: str, previous: bytes | None) -> None:
     state_path = paths.skillset_dev_state(full)
     if previous is None:
@@ -421,6 +483,34 @@ def active_details(full: str) -> dict:
     }
 
 
+def stable_details(full: str) -> dict:
+    source = paths.skillset_worktree(full)
+    version, _scripts = _project_details(source) if source.is_dir() else ("?", {})
+    try:
+        branch = subprocess.check_output(
+            ["git", "-C", str(source), "branch", "--show-current"],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip() or "?"
+    except (OSError, subprocess.CalledProcessError):
+        branch = "?"
+    return {
+        "mode": "stable",
+        "version": version,
+        "branch": branch,
+        "commit": _commit(source),
+        "source": str(source),
+    }
+
+
+def selection_details(full: str) -> dict:
+    return {
+        "active": active_details(full),
+        "stable": stable_details(full),
+        "rollback": _rollback_path(full).exists(),
+    }
+
+
 def status(name: str | None = None) -> int:
     if name:
         full = paths.normalize(name)
@@ -442,7 +532,8 @@ def status(name: str | None = None) -> int:
     print("geno-tools dev")
     failures = 0
     for full in names:
-        details = active_details(full)
+        selection = selection_details(full)
+        details = selection["active"]
         health = "ok" if details["consistent"] else "DRIFT"
         if health != "ok":
             failures += 1
@@ -451,4 +542,13 @@ def status(name: str | None = None) -> int:
             f"{details['commit']:<14} {health}"
         )
         print(f"    {details['source']}")
+        if details["mode"] == "dev":
+            stable = selection["stable"]
+            print(
+                f"    deactivate restores stable {stable['version']} "
+                f"{stable['branch']} {stable['commit']}"
+            )
+            print(f"      {stable['source']}")
+        if selection["rollback"]:
+            print("    rollback available")
     return 1 if failures else 0
