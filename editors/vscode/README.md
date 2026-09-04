@@ -14,6 +14,8 @@ host
             ├── tmux Sessions
             │   └── session
             └── VS Code Terminals
+                ├── ┌ terminal
+                ├── └ terminal
                 └── terminal
 ```
 
@@ -29,7 +31,8 @@ From the explorer you can:
   extension records the session as managed, then refreshes the registry and
   both trees before attaching;
 - refresh and focus open integrated terminals from the `VS Code Terminals`
-  group;
+  group, with split terminals shown in VS Code's native order and using its
+  `┌`, `├`, and `└` markers;
 - recover an unlinked integrated terminal into tmux with the row's robot
   button: after explicit consent, the extension samples the full available
   scrollback within a 60,000-character bound, matches it locally to a saved
@@ -102,6 +105,13 @@ access to the configured host. The extension invokes `tt` without a shell. Set
 The extension declares itself as a VS Code UI extension. In a Remote - SSH
 window it continues running from the Mac installation and controls the local
 `tt` CLI; a second copy of this VSIX is not required on the SSH host.
+
+Split-terminal markers are intentionally implemented through unsupported VS
+Code internals: the public extension API does not expose native terminal group
+membership, so Geno Tools uses `sqlite3` to read `terminal.integrated.layoutInfo`
+from the window's private `state.vscdb`. This may break across VS Code releases.
+If `sqlite3`, the database, or its expected schema is unavailable, the terminal
+list remains usable and simply falls back to ungrouped rows.
 
 AI recovery reads its provider from `~/.geno/config.yaml` by default:
 

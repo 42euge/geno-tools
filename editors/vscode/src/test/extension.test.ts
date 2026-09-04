@@ -21,11 +21,13 @@ interface VscodeStub {
   openFolderCalls: Array<[{ path: string }, boolean]>;
   spawnCalls: Array<{ executable: string; args: string[] }>;
   spawnResults?: Array<{ code: number; stdout?: string; stderr?: string }>;
+  terminals?: unknown[];
   terminalCommands: string[];
   terminalHistory?: string;
   treeDescriptions?: Record<string, string>;
   treeProviders?: Map<string, {
     getChildren(node?: Record<string, unknown>): Promise<Array<Record<string, unknown>>>;
+    getTreeItem(node: Record<string, unknown>): { label: string };
   }>;
   warningMessages?: string[];
   warningResults?: string[];
@@ -602,6 +604,72 @@ test("terminal rows focus their open VS Code terminal", async () => {
     terminal: { show: () => { focused = true; } }
   });
   assert.equal(focused, true);
+});
+
+test("activation reads unsupported VS Code state for native split markers", async () => {
+  const workspacePath = "/tmp/demo.2026.q3";
+  const stub: VscodeStub = {
+    commands: new Map(),
+    errorMessages: [],
+    globalState: new Map(),
+    inputValues: [],
+    openFolderCalls: [],
+    spawnCalls: [],
+    spawnResults: [{
+      code: 0,
+      stdout: JSON.stringify({
+        tabs: [{ terminals: [{ terminal: 39 }, { terminal: 41 }] }]
+      })
+    }],
+    terminals: ["second pane", "first pane"].map((name) => ({
+      name,
+      creationOptions: { cwd: workspacePath },
+      shellIntegration: undefined,
+      show() {}
+    })),
+    terminalCommands: []
+  };
+  const extension = await loadExtension(stub);
+  extension.activate({
+    ...extensionContext(stub),
+    storageUri: {
+      fsPath: "/tmp/workspaceStorage/hash/42euge.geno-tools-tt-workspaces"
+    }
+  });
+  const provider = stub.treeProviders?.get("genoTools.workspaces");
+  assert.ok(provider);
+  const workspace = {
+    id: "chore.geno.demo.2026.q3",
+    track: "chore",
+    domain: "geno",
+    name: "demo",
+    born: "2026.q3",
+    path: workspacePath,
+    repos: [],
+    state: { tmux: { sessions: [] } }
+  };
+  const host = { alias: "local", hostname: "localhost", isDefault: true };
+  const registry = {
+    schema_version: 1,
+    host: "localhost",
+    generated_at: "2026-09-01T00:00:00Z",
+    workspaces: [workspace]
+  };
+  const groups = await provider.getChildren({
+    kind: "workspace",
+    host,
+    registry,
+    workspace
+  });
+  const terminalGroup = groups.find(({ kind }) => kind === "terminalGroup");
+  assert.ok(terminalGroup);
+
+  const terminals = await provider.getChildren(terminalGroup);
+
+  assert.deepEqual(
+    Array.from(terminals, (terminal) => provider.getTreeItem(terminal).label),
+    ["┌ second pane", "└ first pane"]
+  );
 });
 
 test("view titles expose the extension version and build datetime", async () => {
@@ -1432,7 +1500,7 @@ async function loadExtension(
                 from: (parts) => parts
               },
               window: {
-                terminals: [],
+                terminals: state.terminals ?? [],
                 onDidOpenTerminal: () => ({ dispose() {} }),
                 onDidCloseTerminal: () => ({ dispose() {} }),
                 onDidChangeTerminalShellIntegration: () => ({ dispose() {} }),
@@ -1530,6 +1598,7 @@ async function loadExtension(
               const dataListeners = [];
               return {
                 dataListeners,
+                setEncoding() {},
                 on(event, callback) {
                   if (event === "data") dataListeners.push(callback);
                   return this;
@@ -1562,7 +1631,8 @@ async function loadExtension(
                     });
                   }
                   return child;
-                }
+                },
+                once(event, callback) { return child.on(event, callback); }
               };
               return child;
             }
