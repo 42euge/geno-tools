@@ -143,6 +143,47 @@ def test_reconcile_installs_the_source_branch_instead_of_the_remote_default(
     assert git(managed, "rev-parse", "HEAD") == feature_sha
 
 
+def test_reconcile_installs_the_recorded_commit_not_a_newer_branch_tip(
+    tmp_path, tmp_root, tmp_config, monkeypatch
+):
+    monkeypatch.setattr(install, "_install_skills_via_npx", lambda *_a, **_kw: None)
+    repository, recorded_sha = create_skillset(tmp_path, "geno-recorded")
+    source = lock("geno-recorded", repository, recorded_sha)
+    (repository / "payload.txt").write_text("newer\n")
+    commit(repository, "newer branch tip")
+
+    result = reconcile.reconcile(source, reconcile.ReconcileOptions(yes=True))
+
+    managed = paths.skillset_worktree("geno-recorded")
+    assert result.failures == ()
+    assert git(managed, "rev-parse", "HEAD") == recorded_sha
+    assert (managed / "payload.txt").read_text() == "one\n"
+
+
+def test_reconcile_moves_an_existing_stable_checkout_to_the_recorded_commit(
+    tmp_path, tmp_root, tmp_config, monkeypatch
+):
+    monkeypatch.setattr(install, "_install_skills_via_npx", lambda *_a, **_kw: None)
+    monkeypatch.setattr(upgrade, "_install_skills_via_npx", lambda *_a, **_kw: None)
+    monkeypatch.setattr(
+        upgrade, "_uninstall_skill_names_via_npx", lambda *_a, **_kw: None
+    )
+    repository, first_sha = create_skillset(tmp_path, "geno-rewind")
+    first = lock("geno-rewind", repository, first_sha)
+    reconcile.reconcile(first, reconcile.ReconcileOptions(yes=True))
+    (repository / "payload.txt").write_text("newer\n")
+    second_sha = commit(repository, "newer branch tip")
+    second = lock("geno-rewind", repository, second_sha)
+    reconcile.reconcile(second, reconcile.ReconcileOptions(yes=True))
+
+    result = reconcile.reconcile(first, reconcile.ReconcileOptions(yes=True))
+
+    managed = paths.skillset_worktree("geno-rewind")
+    assert result.failures == ()
+    assert git(managed, "rev-parse", "HEAD") == first_sha
+    assert (managed / "payload.txt").read_text() == "one\n"
+
+
 def create_selection_fixture(tmp_path, tmp_root, tmp_config, monkeypatch):
     name = "geno-selected"
     root = tmp_root / name

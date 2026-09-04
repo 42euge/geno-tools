@@ -46,7 +46,7 @@ class StatefulOperations:
     def export(self):
         return lock(self.state, self.config)
 
-    def install(self, url, *, installing, branch=None):
+    def install(self, url, *, installing, branch=None, revision=None):
         name = url.removesuffix(".git").rsplit("/", 1)[-1]
         self.calls.append(("install", name))
         if name in self.install_error:
@@ -56,7 +56,14 @@ class StatefulOperations:
             self.state[dependency] = entry(dependency)
         return 0
 
-    def update(self, name, *, force_venv_rebuild=False):
+    def update(
+        self,
+        name,
+        *,
+        force_venv_rebuild=False,
+        branch=None,
+        revision=None,
+    ):
         self.calls.append(("update", name, force_venv_rebuild))
         if name in self.update_error:
             raise RuntimeError("update exploded")
