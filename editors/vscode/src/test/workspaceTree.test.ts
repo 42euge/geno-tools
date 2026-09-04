@@ -44,11 +44,13 @@ test("remote mirrors are the same stable workspace on another host", async () =>
     generated_at: "2026-09-01T00:00:00Z",
     workspaces
   });
+  const registryForHost = async (host: { alias: string }) => host.alias === "build"
+    ? registry("build.example.com", [{ ...workspace, path: "/home/dev/code/chore/geno/demo.2026.q3" }])
+    : registry("lab.example.com", [{ ...workspace, id: "chore.geno.other.2026.q3" }]);
   const provider = new WorkspaceTreeProvider({
     hosts: async () => [local, lab, build],
-    registry: async (host: { alias: string }) => host.alias === "build"
-      ? registry("build.example.com", [{ ...workspace, path: "/home/dev/code/chore/geno/demo.2026.q3" }])
-      : registry("lab.example.com", [{ ...workspace, id: "chore.geno.other.2026.q3" }])
+    registry: registryForHost,
+    scanRegistry: registryForHost
   });
   const source = {
     kind: "workspace",
