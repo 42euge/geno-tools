@@ -32,9 +32,10 @@ geno-tools sync pull --dry-run
 geno-tools sync pull --yes
 ```
 
-Sync reproduces installed repositories and portable configuration through the
-normal lifecycle. It never copies venvs, credentials, dev checkouts, or dirty
-worktree content. See [docs/sync.md](docs/sync.md).
+Sync reproduces Stable fallbacks and can transfer selected active Dev
+checkouts, including dirty state and unpublished commits. It rebuilds runtimes
+on the receiving machine while excluding ignored files, credentials, venvs,
+and caches. See [docs/sync.md](docs/sync.md).
 
 ## Skillsets and subskillsets
 

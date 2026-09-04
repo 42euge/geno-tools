@@ -232,6 +232,31 @@ def test_status_shows_the_stable_selection_deactivate_will_restore(
     assert str(item["main"]) in output
 
 
+def test_status_shows_synced_snapshot_origin_and_fingerprint(
+    installed_dev_fixture, capsys
+):
+    item = installed_dev_fixture
+    dev.activate(
+        item["checkout"],
+        provenance={
+            "machine": "source-mac",
+            "captured": "2026-09-04T12:00:00Z",
+            "source": "/original/geno-tt",
+            "fingerprint": "abcdef0123456789" * 4,
+            "commit": "1234567890abcdef",
+            "branch": "feature/sync",
+        },
+    )
+    capsys.readouterr()
+
+    assert dev.status("geno-tt") == 0
+
+    output = capsys.readouterr().out
+    assert "snapshot from source-mac" in output
+    assert "abcdef012345" in output
+    assert "/original/geno-tt" in output
+
+
 def test_rollback_restores_the_previous_dev_selection(installed_dev_fixture):
     item = installed_dev_fixture
     first = item["checkout"]

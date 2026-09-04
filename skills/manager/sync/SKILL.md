@@ -1,8 +1,8 @@
 ---
 name: geno-tools-manager-sync
 description: >-
-  Use when comparing or reconciling geno-tools skillset installations across
-  computers configured as geno-tt hosts.
+  Use when comparing or reconciling geno-tools Stable and active Dev skillset
+  selections across computers configured as geno-tt hosts.
 allowed-tools: "Bash(geno-tools sync *)"
 license: MIT
 metadata:
@@ -10,31 +10,33 @@ metadata:
   version: "0.11.0"
 ---
 
-# manager/sync — reconcile installations across computers
+# Synchronize skillset selections
 
-Check installation and portable-config drift without changing either machine:
-
-```bash
-geno-tools sync status
-```
-
-Make this machine match the configured primary, previewing first:
+Use the sync commands as the user-facing workflow:
 
 ```bash
-geno-tools sync pull --dry-run
-geno-tools sync pull --yes
-```
-
-Or make a named host match this machine:
-
-```bash
+geno-tools sync status [HOST...]
 geno-tools sync push HOST --dry-run
 geno-tools sync push HOST --yes
+geno-tools sync pull [HOST] --dry-run
+geno-tools sync pull [HOST] --yes
 ```
 
-Sync reconciles installed skillset repositories through the normal install,
-update, and uninstall lifecycle. It transfers no worktrees, venvs, credentials,
-dev-mode selections, or uncommitted files. Dirty managed worktrees stop
-reconciliation before the first mutation.
+Interactive push and pull ask Stable or Dev separately for every active Dev
+skillset and offer Dev-for-all and Stable-for-all shortcuts. For automation or
+a non-TTY command, add `--dev-source active` or `--dev-source stable`.
 
-See `docs/sync.md` for setup, authority, and recovery details.
+Dev is a Git-aware snapshot: unpublished commits, staged and unstaged changes,
+deletions, and non-ignored untracked files are eligible. Ignored files and
+untracked secret, venv, and cache paths stay local, as do Git administration
+data and credentials. The destination rebuilds its runtime and keeps the
+matching Stable fallback.
+
+After sync, `geno-tools dev deactivate NAME` restores Stable and
+`geno-tools dev rollback NAME` restores the selection replaced by sync.
+
+Do not add manual Git remote changes, branch switching, checkout cleanup,
+directory copying, or legacy pipx uninstall steps. Sync owns source packaging,
+runtime reconstruction, and safe adoption of same-skillset executable links.
+
+See `docs/sync.md` for exclusions, transfer confirmation, and recovery.

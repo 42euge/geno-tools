@@ -50,10 +50,11 @@ registrations; `dev deactivate` restores stable main without modifying it.
 with a dry run and explicit confirmation, while preserving user data under
 `~/.geno/`.
 
-**Synchronize** — `sync status` compares installed skillsets and portable
-configuration across geno-tt hosts. `sync pull` and `sync push` reconcile
-through the normal install/update/uninstall lifecycle, with dirty-worktree
-refusal, dry-run previews, and guarded removals. See [sync.md](sync.md).
+**Synchronize** — `sync status` compares Stable installations, portable
+configuration, and active-selection fingerprints across geno-tt hosts. `sync
+pull` and `sync push` can reproduce dirty Dev snapshots with unpublished
+commits while rebuilding runtimes on the receiver. Dry runs transfer no
+snapshot data. See [sync.md](sync.md).
 
 ## On-disk layout
 
@@ -104,14 +105,15 @@ geno-tools uninstall <name> [--keep-data]
 geno-tools dev activate <checkout>
 geno-tools dev status [name]
 geno-tools dev deactivate <name>
+geno-tools dev rollback <name>
 geno-tools discover [--refresh]
 geno-tools scan [--namespace X] [--dry-run]
 geno-tools system uninstall [--dry-run] [--yes]
 geno-tools system update          # update geno-tools itself
 geno-tools config show | set <dot.path> <value>
 geno-tools sync status [host...]
-geno-tools sync pull [host] [--dry-run] [--yes] [--no-rebuild]
-geno-tools sync push <host> [--dry-run] [--yes] [--no-rebuild]
+geno-tools sync pull [host] [--dry-run] [--yes] [--dev-source ask|stable|active]
+geno-tools sync push <host> [--dry-run] [--yes] [--dev-source ask|stable|active]
 ```
 
 `gt` is the default short alias (`aliases.command_prefix` in config).
