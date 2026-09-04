@@ -36,6 +36,96 @@ class TestUpgradeOne:
         assert result.status == "up-to-date"
         assert result.old_rev == rev[:8]
 
+    def test_force_venv_rebuild_reinstalls_when_revision_is_current(
+        self, fake_skillset, monkeypatch
+    ):
+        fake_skillset("geno-dev", has_pyproject=True)
+        rebuilds = []
+
+        def fake_check_output(cmd, **kw):
+            if "status" in cmd and "--porcelain" in cmd:
+                return ""
+            if "branch" in cmd and "--show-current" in cmd:
+                return "main"
+            if "rev-parse" in cmd:
+                return "abc12345"
+            if "symbolic-ref" in cmd:
+                return "main"
+            return ""
+
+        monkeypatch.setattr("subprocess.check_output", fake_check_output)
+        monkeypatch.setattr("subprocess.check_call", lambda cmd, **kw: None)
+        monkeypatch.setattr(
+            commands,
+            "_create_venv_if_needed",
+            lambda name: rebuilds.append(name),
+        )
+
+        result = commands._update_one("geno-dev", force_venv_rebuild=True)
+
+        assert result.status == "up-to-date"
+        assert rebuilds == ["geno-dev"]
+
+    def test_default_update_does_not_force_rebuild_current_revision(
+        self, fake_skillset, monkeypatch
+    ):
+        fake_skillset("geno-dev", has_pyproject=True)
+        rebuilds = []
+
+        def fake_check_output(cmd, **kw):
+            if "status" in cmd and "--porcelain" in cmd:
+                return ""
+            if "branch" in cmd and "--show-current" in cmd:
+                return "main"
+            if "rev-parse" in cmd:
+                return "abc12345"
+            if "symbolic-ref" in cmd:
+                return "main"
+            return ""
+
+        monkeypatch.setattr("subprocess.check_output", fake_check_output)
+        monkeypatch.setattr("subprocess.check_call", lambda cmd, **kw: None)
+        monkeypatch.setattr(
+            commands,
+            "_create_venv_if_needed",
+            lambda name: rebuilds.append(name),
+        )
+
+        commands._update_one("geno-dev")
+
+        assert rebuilds == []
+
+    def test_force_venv_rebuild_failure_warns_without_failing_git_update(
+        self, fake_skillset, monkeypatch, capsys
+    ):
+        fake_skillset("geno-dev", has_pyproject=True)
+
+        def fake_check_output(cmd, **kw):
+            if "status" in cmd and "--porcelain" in cmd:
+                return ""
+            if "branch" in cmd and "--show-current" in cmd:
+                return "main"
+            if "rev-parse" in cmd:
+                return "abc12345"
+            if "symbolic-ref" in cmd:
+                return "main"
+            return ""
+
+        monkeypatch.setattr("subprocess.check_output", fake_check_output)
+        monkeypatch.setattr("subprocess.check_call", lambda cmd, **kw: None)
+        monkeypatch.setattr(
+            commands,
+            "_create_venv_if_needed",
+            lambda _name: (_ for _ in ()).throw(
+                subprocess.CalledProcessError(1, ["pip", "install"])
+            ),
+        )
+
+        result = commands._update_one("geno-dev", force_venv_rebuild=True)
+
+        assert result.status == "up-to-date"
+        assert "venv reinstall failed" in capsys.readouterr().err
+
     def test_updated_with_skill_re_registration(self, fake_skillset, monkeypatch):
         fake_skillset("geno-dev", sub_skills=["geno-dev-a"])
         call_count = {"rev": 0}
