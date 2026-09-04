@@ -101,7 +101,7 @@ def parse_lockfile(value: str | bytes | dict) -> dict:
     if not isinstance(data, dict):
         raise LockfileError("lockfile must be a JSON object")
     version = data.get("version")
-    if version != SCHEMA_VERSION:
+    if type(version) is not int or version != SCHEMA_VERSION:
         raise LockfileError(
             f"unsupported lockfile version {version!r}; this geno-tools supports version {SCHEMA_VERSION}"
         )

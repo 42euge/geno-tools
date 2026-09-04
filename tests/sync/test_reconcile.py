@@ -32,7 +32,9 @@ class StatefulOperations:
         self.calls = []
         self.requires = {}
         self.update_status = {}
+        self.update_error = set()
         self.install_error = set()
+        self.remove_error = set()
         monkeypatch.setattr(reconcile, "build_lockfile", self.export)
         monkeypatch.setattr(reconcile, "dirty_skillsets", lambda: [])
         monkeypatch.setattr(reconcile, "_install_one", self.install)
@@ -56,6 +58,8 @@ class StatefulOperations:
 
     def update(self, name, *, force_venv_rebuild=False):
         self.calls.append(("update", name, force_venv_rebuild))
+        if name in self.update_error:
+            raise RuntimeError("update exploded")
         status = self.update_status.get(name, "updated")
         if status == "updated":
             self.state[name] = self.source["skillsets"][name]
@@ -63,6 +67,8 @@ class StatefulOperations:
 
     def remove(self, args):
         self.calls.append(("remove", args.name))
+        if args.name in self.remove_error:
+            raise RuntimeError("remove exploded")
         self.state.pop(args.name, None)
         return 0
 
@@ -182,6 +188,27 @@ def test_reconcile_continues_after_independent_install_failure(monkeypatch):
     assert result.failures[0].kind == "install"
 
 
+def test_reconcile_collects_unexpected_update_and_remove_failures(monkeypatch):
+    source = lock({"geno-update": entry("geno-update")})
+    operations = StatefulOperations(
+        monkeypatch,
+        {
+            "geno-update": entry("geno-update", "old"),
+            "geno-remove": entry("geno-remove"),
+        },
+        source,
+    )
+    operations.update_error.add("geno-update")
+    operations.remove_error.add("geno-remove")
+
+    result = reconcile.reconcile(source, reconcile.ReconcileOptions(yes=True))
+
+    assert result.failures == (
+        reconcile.ReconcileAction("geno-update", "update", "update exploded"),
+        reconcile.ReconcileAction("geno-remove", "remove", "remove exploded"),
+    )
+
+
 def test_reconcile_no_rebuild_reconciles_git_without_venv(monkeypatch):
     source = lock({"geno-a": entry("geno-a")})
     operations = StatefulOperations(
@@ -213,7 +240,11 @@ def test_reconcile_preserves_dependency_absent_from_source_lockfile(monkeypatch)
     operations.requires["geno-app"] = ["geno-lib"]
 
     first = reconcile.reconcile(source, reconcile.ReconcileOptions(yes=True))
-    second = reconcile.reconcile(source, reconcile.ReconcileOptions(yes=True))
+    second = reconcile.reconcile(
+        source,
+        reconcile.ReconcileOptions(),
+        confirm=lambda names: pytest.fail(f"protected dependency prompted: {names}"),
+    )
 
     assert set(operations.state) == {"geno-app", "geno-lib"}
     assert all(call != ("remove", "geno-lib") for call in operations.calls)

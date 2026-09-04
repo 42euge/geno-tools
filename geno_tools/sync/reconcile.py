@@ -94,6 +94,7 @@ def _dependency_closure(desired: set[str]) -> set[str]:
 
 def _planned_actions(source: dict) -> tuple[list[ReconcileAction], list[str], bool]:
     delta = compare(build_lockfile(), source)
+    protected = _dependency_closure(set(source["skillsets"]))
     actions = [
         ReconcileAction(item.name, "install")
         for item in delta.skillsets
@@ -105,7 +106,9 @@ def _planned_actions(source: dict) -> tuple[list[ReconcileAction], list[str], bo
         if item.state == "version-skew"
     )
     removals = [
-        item.name for item in delta.skillsets if item.state == "extra-here"
+        item.name
+        for item in delta.skillsets
+        if item.state == "extra-here" and item.name not in protected
     ]
     actions.extend(ReconcileAction(name, "remove") for name in removals)
     config_changed = bool(delta.config)
@@ -153,9 +156,13 @@ def reconcile(
                 continue
             actions.append(action)
         elif item.state == "version-skew":
-            result = _update_one(
-                item.name, force_venv_rebuild=options.rebuild
-            )
+            try:
+                result = _update_one(
+                    item.name, force_venv_rebuild=options.rebuild
+                )
+            except Exception as error:
+                failures.append(ReconcileAction(item.name, "update", str(error)))
+                continue
             if result.status in {"error", "skipped"}:
                 failures.append(
                     ReconcileAction(item.name, "update", result.detail or result.status)
@@ -167,7 +174,11 @@ def reconcile(
     protected = _dependency_closure(set(desired["skillsets"]))
     removals = sorted(set(current["skillsets"]) - protected)
     for name in removals:
-        rc = remove.run(argparse.Namespace(name=name, keep_data=False))
+        try:
+            rc = remove.run(argparse.Namespace(name=name, keep_data=False))
+        except Exception as error:
+            failures.append(ReconcileAction(name, "remove", str(error)))
+            continue
         if rc:
             failures.append(
                 ReconcileAction(name, "remove", f"uninstaller exited {rc}")
