@@ -2,12 +2,42 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  parseDispatches,
   parseHosts,
   parseRegistry,
   relativeAge,
   sortedTracks,
   workspaceReference
 } from "../model";
+
+test("parseDispatches validates the editor-facing dispatch record", () => {
+  const dispatches = parseDispatches(JSON.stringify([{
+    name: "parser-fix",
+    status: "active",
+    session: "dispatch-parser-fix",
+    created_at: "2026-09-01T12:00:00+00:00",
+    source: { workspace_view: "/Users/dev/code/chore/geno/parser.2026.q3" },
+    target: { host_alias: "build", hostname: "build.example.com" }
+  }]));
+
+  assert.deepEqual(dispatches, [{
+    name: "parser-fix",
+    status: "active",
+    session: "dispatch-parser-fix",
+    created_at: "2026-09-01T12:00:00+00:00",
+    source: { workspace_view: "/Users/dev/code/chore/geno/parser.2026.q3" },
+    target: { host_alias: "build", hostname: "build.example.com" },
+    return_file: undefined
+  }]);
+});
+
+test("parseDispatches rejects malformed records", () => {
+  assert.throws(() => parseDispatches("{}"), /not an array/);
+  assert.throws(
+    () => parseDispatches('[{"name":"missing-state"}]'),
+    /dispatch entry 0 is invalid/
+  );
+});
 
 test("parseHosts recognizes aliases, hostnames, and the default host", () => {
   assert.deepEqual(

@@ -2,7 +2,7 @@
   "name": "geno-tools-tt-workspaces",
   "displayName": "Geno Tools: TT Workspaces",
   "description": "Browse and manage local and remote TT workspaces from VS Code.",
-  "version": "0.3.0",
+  "version": "0.3.6",
   "publisher": "42euge",
   "license": "MIT",
   "engines": {
@@ -23,9 +23,13 @@
     "url": "https://github.com/42euge/geno-tools.git"
   },
   "main": "./dist/extension.js",
+  "extensionKind": [
+    "ui"
+  ],
   "activationEvents": [
     "onView:genoTools.workspaces",
-    "onView:genoTools.currentWorkspace"
+    "onView:genoTools.currentWorkspace",
+    "onView:genoTools.remoteMirrors"
   ],
   "scripts": {
     "build": "node esbuild.js --production",
@@ -51,8 +55,14 @@
           "name": "Current Workspace"
         },
         {
+          "id": "genoTools.remoteMirrors",
+          "name": "Remote Mirrors",
+          "visibility": "collapsed"
+        },
+        {
           "id": "genoTools.workspaces",
-          "name": "All Workspaces"
+          "name": "All Workspaces",
+          "visibility": "collapsed"
         }
       ]
     },
@@ -137,7 +147,28 @@
       },
       {
         "command": "genoTools.mirrorWorkspace",
-        "title": "Geno Tools: Mirror Workspace to Host"
+        "title": "Geno Tools: Mirror Workspace to Host",
+        "icon": "$(remote)"
+      },
+      {
+        "command": "genoTools.dispatchWorkspace",
+        "title": "Geno Tools: Dispatch Workspace to Remote Host",
+        "icon": "$(rocket)"
+      },
+      {
+        "command": "genoTools.dispatchMirror",
+        "title": "Geno Tools: Dispatch Work to This Mirror",
+        "icon": "$(rocket)"
+      },
+      {
+        "command": "genoTools.retireMirror",
+        "title": "Geno Tools: Back Up and Retire Mirror",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "genoTools.manageDispatches",
+        "title": "Geno Tools: Manage Remote Dispatches",
+        "icon": "$(list-tree)"
       },
       {
         "command": "genoTools.createWorktree",
@@ -186,6 +217,16 @@
           "command": "genoTools.showReport",
           "when": "view == genoTools.workspaces",
           "group": "navigation@3"
+        },
+        {
+          "command": "genoTools.refreshWorkspaces",
+          "when": "view == genoTools.remoteMirrors",
+          "group": "navigation@2"
+        },
+        {
+          "command": "genoTools.manageDispatches",
+          "when": "view == genoTools.workspaces || view == genoTools.currentWorkspace || view == genoTools.remoteMirrors",
+          "group": "navigation@4"
         }
       ],
       "view/item/context": [
@@ -277,7 +318,27 @@
         {
           "command": "genoTools.mirrorWorkspace",
           "when": "(view == genoTools.workspaces || view == genoTools.currentWorkspace) && viewItem == workspace",
-          "group": "remote@1"
+          "group": "inline@4"
+        },
+        {
+          "command": "genoTools.dispatchWorkspace",
+          "when": "(view == genoTools.workspaces || view == genoTools.currentWorkspace) && viewItem == workspace",
+          "group": "remote@2"
+        },
+        {
+          "command": "genoTools.dispatchMirror",
+          "when": "view == genoTools.remoteMirrors && viewItem == remoteMirror",
+          "group": "inline@1"
+        },
+        {
+          "command": "genoTools.retireMirror",
+          "when": "view == genoTools.remoteMirrors && viewItem == remoteMirror",
+          "group": "inline@2"
+        },
+        {
+          "command": "genoTools.manageDispatches",
+          "when": "view == genoTools.remoteMirrors && viewItem == remoteMirror",
+          "group": "remote@2"
         }
       ]
     },

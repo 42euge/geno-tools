@@ -672,7 +672,7 @@ test("repository plus initializes a repo and refreshes its host registry", async
   ]);
 });
 
-test("workspace open actions are adjacent inline buttons", () => {
+test("workspace open and mirror actions are adjacent inline buttons", () => {
   const manifest = JSON.parse(
     readFileSync(join(__dirname, "..", "..", "package.json"), "utf8")
   ) as {
@@ -683,7 +683,10 @@ test("workspace open actions are adjacent inline buttons", () => {
     };
   };
   const actions = manifest.contributes.menus["view/item/context"]
-    .filter((item) => item.command.startsWith("genoTools.openWorkspace"))
+    .filter((item) =>
+      item.command.startsWith("genoTools.openWorkspace") ||
+      item.command === "genoTools.mirrorWorkspace"
+    )
     .map(({ command, group }) => ({ command, group }));
 
   assert.deepEqual(actions, [
@@ -691,6 +694,10 @@ test("workspace open actions are adjacent inline buttons", () => {
     {
       command: "genoTools.openWorkspaceInNewWindow",
       group: "inline@3"
+    },
+    {
+      command: "genoTools.mirrorWorkspace",
+      group: "inline@4"
     }
   ]);
 });
@@ -1573,6 +1580,7 @@ async function loadExtension(
     exports: compiledModule.exports,
     require: createRequire(__filename),
     process,
+    URL,
     Buffer,
     console,
     setTimeout,

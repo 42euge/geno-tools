@@ -220,6 +220,36 @@ export class WorkspaceTreeProvider
     )[0];
   }
 
+  async remoteMirrorsFor(source: WorkspaceNode): Promise<WorkspaceNode[]> {
+    const hosts = (await this.hosts()).filter(
+      (host) =>
+        host.alias !== source.host.alias &&
+        host.hostname !== source.host.hostname
+    );
+    const results = await Promise.allSettled(
+      hosts.map(async (host) => ({
+        host,
+        registry: await this.hostRegistry(host)
+      }))
+    );
+    return results
+      .flatMap((result) => {
+        if (result.status === "rejected") {
+          return [];
+        }
+        const { host, registry } = result.value;
+        return registry.workspaces
+          .filter((workspace) => workspace.id === source.workspace.id)
+          .map((workspace) => ({
+            kind: "workspace" as const,
+            host,
+            registry,
+            workspace
+          }));
+      })
+      .sort((left, right) => left.host.alias.localeCompare(right.host.alias));
+  }
+
   getTreeItem(node: WorkspaceTreeNode): vscode.TreeItem {
     switch (node.kind) {
       case "host":

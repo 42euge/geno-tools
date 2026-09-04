@@ -1,5 +1,39 @@
 # Changelog
 
+## 0.3.6
+
+- Place Remote Mirrors directly below Current Workspace and move All
+  Workspaces to the bottom
+- Collapse both secondary sections by default and reveal Remote Mirrors when
+  the current workspace has a mirror
+
+## 0.3.5
+
+- Add a confirmed trash action for remote mirrors that creates and verifies a
+  ZIP on the originating host before retirement
+- Run the locally installed extension in Remote - SSH windows through VS
+  Code's UI extension host
+
+## 0.3.4
+
+- Keep Remote Mirrors visible as the third sidebar section and show an explicit
+  empty state before a workspace is mirrored
+
+## 0.3.3
+
+- Mirror the selected workspace path with rsync instead of resolving and
+  cloning repository remotes
+
+## 0.3.2
+
+- Move Mirror Workspace from the section toolbar onto each workspace row
+
+## 0.3.1
+
+- Make workspace mirroring the lightweight primary remote action
+- Replace the task-scoped Remote Dispatches view with persistent Remote Mirrors
+- Allow work to be dispatched directly from a remote mirror row
+
 ## 0.3.0
 
 - Persist explicit ownership for tmux sessions created or adopted in the VS
@@ -11,6 +45,12 @@
   authorization, executable, or cancellation failures.
 - Refresh live tmux state when the tree loads and after lifecycle actions
   without background polling.
+- Add workspace dispatch to configured remote hosts using editor selections,
+  documents, brief instructions, or handoff files.
+- Add a conditional Remote Dispatches sidebar section for active dispatches
+  originating from the current workspace.
+- Add dispatch management for reopening tmux, safe recall, stop-and-recall,
+  and opening the returned handoff.
 
 ## 0.2.3
 

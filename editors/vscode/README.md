@@ -49,7 +49,13 @@ From the explorer you can:
   destructive operation, even when the tmux session or entire server is already
   gone;
 - create TT workspaces from a host's context menu and rescan them;
-- mirror a workspace to another configured TT host;
+- mirror a workspace to another configured TT host with one host choice;
+- dispatch work from an existing mirror using an editor selection, active
+  document, brief instruction, or Markdown handoff;
+- create a verified ZIP on the originating host and retire a remote mirror from
+  the mirror row's trash action;
+- open remote dispatch sessions, safely recall completed work, and open the
+  returned `RETURN.md` handoff;
 - create, list, and remove whole-workspace worktrees; and
 - render TT's cross-host workspace report.
 
@@ -81,7 +87,7 @@ and other failures remain visible errors and preserve the managed record.
 
 ## Requirements
 
-Install `geno-tt` and configure at least one host:
+Install `geno-tt` 0.9.0 or newer and configure at least one remote host:
 
 ```sh
 geno-tools install geno-tt
@@ -92,6 +98,10 @@ Remote entries require the VS Code **Remote - SSH** extension and working SSH
 access to the configured host. The extension invokes `tt` without a shell. Set
 `genoTools.ttPath` if it is not on VS Code's PATH; the default also checks
 `~/.local/bin/tt`.
+
+The extension declares itself as a VS Code UI extension. In a Remote - SSH
+window it continues running from the Mac installation and controls the local
+`tt` CLI; a second copy of this VSIX is not required on the SSH host.
 
 AI recovery reads its provider from `~/.geno/config.yaml` by default:
 
@@ -122,6 +132,46 @@ created. Terminal history is limited to 60,000 characters sampled
 chronologically across the full available scrollback and is sent only after the
 confirmation dialog, which also identifies the resolved endpoint, model, and
 credential variable. Saved Claude and Codex transcripts stay local.
+
+## Remote mirrors and dispatch
+
+Use the **Mirror Workspace to Host** button directly on a local workspace row,
+beside its open buttons. Choose a configured host and the extension creates the
+same workspace on that host with rsync, including Git metadata and current
+working state. No task name or agent handoff is needed. TT worktrees are
+excluded because their Git metadata contains source-machine paths.
+
+The **Remote Mirrors** section sits directly below **Current Workspace**, with
+**All Workspaces** at the bottom. Both secondary sections start collapsed;
+Remote Mirrors opens automatically when the current workspace has a mirror.
+Before mirroring it explains where to start; afterward each row represents the
+same stable TT workspace ID on another host. Select a row to open that mirror
+in a new VS Code window, or use its rocket action to **Dispatch Work to This
+Mirror**. The adjacent trash action is **Back Up and Retire Mirror**. It asks
+for modal confirmation, invokes the focused TT retirement path, and refreshes
+the section only after the remote workspace has moved.
+
+Retiring a mirror is backup-first. `tt` archives the complete remote workspace,
+copies the ZIP into `~/.geno/tt/backups/mirrors/` on the machine that created
+the mirror, and verifies SHA-256 before moving the remote workspace into its
+graveyard. Archive, transfer, or checksum failure leaves the mirror active.
+
+Dispatch is the separate task-level operation. It asks for a durable task name
+and the remote agent's context from:
+
+- the active editor selection;
+- the complete active document;
+- a short instruction; or
+- a Markdown/text handoff file.
+
+The extension sends that text to `tt dispatch` over stdin. `geno-tt` remains
+responsible for Git-state transfer, the isolated remote worktree, tmux startup,
+local-drift detection, and recall safety.
+
+Use **Manage Remote Dispatches** to reopen an active tmux session, recall an
+already stopped session, stop and recall an active session, or open the returned
+`RETURN.md`. **Stop and Recall** terminates the remote tmux session and therefore
+always requires confirmation.
 
 ## Development
 

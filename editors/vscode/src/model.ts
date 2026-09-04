@@ -41,6 +41,21 @@ export interface TtRegistry {
   workspaces: TtWorkspace[];
 }
 
+export interface TtDispatch {
+  name: string;
+  status: string;
+  session: string;
+  created_at: string;
+  source: {
+    workspace_view: string;
+  };
+  target: {
+    host_alias: string;
+    hostname: string;
+  };
+  return_file?: string;
+}
+
 export const TRACK_ORDER = ["crit", "explore", "chore", "side"] as const;
 
 export function parseHosts(output: string): TtHost[] {
@@ -89,6 +104,19 @@ export function parseRegistry(output: string): TtRegistry {
     generated_at: value.generated_at,
     workspaces
   };
+}
+
+export function parseDispatches(output: string): TtDispatch[] {
+  let value: unknown;
+  try {
+    value = JSON.parse(output);
+  } catch (error) {
+    throw new Error(`TT returned an invalid dispatch list: ${messageOf(error)}`);
+  }
+  if (!Array.isArray(value)) {
+    throw new Error("TT dispatch list is not an array.");
+  }
+  return value.map((record, index) => parseDispatch(record, index));
 }
 
 export function workspaceReference(workspace: TtWorkspace): string {
@@ -145,6 +173,36 @@ function parseWorkspace(value: unknown, index: number): TtWorkspace {
     path: stringField("path"),
     repos: value.repos.map((repo, repoIndex) => parseRepo(repo, index, repoIndex)),
     state: parseWorkspaceState(value.state, index)
+  };
+}
+
+function parseDispatch(value: unknown, index: number): TtDispatch {
+  if (
+    !isRecord(value) ||
+    typeof value.name !== "string" ||
+    typeof value.status !== "string" ||
+    typeof value.session !== "string" ||
+    typeof value.created_at !== "string" ||
+    !isRecord(value.source) ||
+    typeof value.source.workspace_view !== "string" ||
+    !isRecord(value.target) ||
+    typeof value.target.host_alias !== "string" ||
+    typeof value.target.hostname !== "string" ||
+    (value.return_file !== undefined && typeof value.return_file !== "string")
+  ) {
+    throw new Error(`TT dispatch entry ${index} is invalid.`);
+  }
+  return {
+    name: value.name,
+    status: value.status,
+    session: value.session,
+    created_at: value.created_at,
+    source: { workspace_view: value.source.workspace_view },
+    target: {
+      host_alias: value.target.host_alias,
+      hostname: value.target.hostname
+    },
+    return_file: value.return_file
   };
 }
 
