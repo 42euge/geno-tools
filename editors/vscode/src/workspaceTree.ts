@@ -6,11 +6,14 @@ import {
   TtHost,
   TtRegistry,
   TtRepo,
-  TtTmuxSession,
   TtWorkspace,
   workspaceReference
 } from "./model";
 import { TerminalLinkRegistry } from "./terminalLinks";
+import {
+  ManagedTmuxSessionStore,
+  TmuxSessionView
+} from "./tmuxSessions";
 import { TtCli } from "./ttCli";
 
 export type WorkspaceTreeNode =
@@ -87,7 +90,7 @@ export interface TmuxSessionNode {
   host: TtHost;
   registry: TtRegistry;
   workspace: TtWorkspace;
-  session: TtTmuxSession;
+  session: TmuxSessionView;
 }
 
 export interface TerminalNode {
@@ -142,13 +145,15 @@ export class WorkspaceTreeProvider
   private readonly changed = new vscode.EventEmitter<WorkspaceTreeNode | undefined>();
   private hostsCache: TtHost[] | undefined;
   private readonly registryCache = new Map<string, TtRegistry>();
+  private readonly scannedHosts = new Set<string>();
 
   readonly onDidChangeTreeData = this.changed.event;
 
   constructor(
     private readonly cli: TtCli,
     private readonly scope: "all" | "current" = "all",
-    private readonly terminalLinks = new TerminalLinkRegistry()
+    private readonly terminalLinks = new TerminalLinkRegistry(),
+    private readonly tmuxSessions = new ManagedTmuxSessionStore()
   ) {}
 
   async hosts(reload = false): Promise<TtHost[]> {
@@ -161,6 +166,7 @@ export class WorkspaceTreeProvider
   reload(): void {
     this.hostsCache = undefined;
     this.registryCache.clear();
+    this.scannedHosts.clear();
     this.changed.fire(undefined);
   }
 
@@ -168,8 +174,13 @@ export class WorkspaceTreeProvider
     this.changed.fire(undefined);
   }
 
-  invalidateHost(host: TtHost): void {
+  invalidateHost(host: TtHost, liveStateAlreadyRefreshed = false): void {
     this.registryCache.delete(host.alias);
+    if (liveStateAlreadyRefreshed) {
+      this.scannedHosts.add(host.alias);
+    } else {
+      this.scannedHosts.delete(host.alias);
+    }
     this.changed.fire(this.scope === "all" ? { kind: "host", host } : undefined);
   }
 
@@ -218,11 +229,11 @@ export class WorkspaceTreeProvider
       case "domain":
         return domainItem(node);
       case "workspace":
-        return workspaceItem(node);
+        return workspaceItem(node, this.tmuxSessions);
       case "repoGroup":
         return repoGroupItem(node);
       case "tmuxSessionGroup":
-        return tmuxSessionGroupItem(node);
+        return tmuxSessionGroupItem(node, this.tmuxSessions);
       case "terminalGroup":
         return terminalGroupItem(node, this.terminalLinks);
       case "repo":
@@ -254,7 +265,7 @@ export class WorkspaceTreeProvider
       }
       switch (node.kind) {
         case "host":
-          return this.hostChildren(node.host);
+          return await this.hostChildren(node.host);
         case "track":
           return trackChildren(node);
         case "domain":
@@ -264,7 +275,7 @@ export class WorkspaceTreeProvider
         case "repoGroup":
           return repoGroupChildren(node);
         case "tmuxSessionGroup":
-          return tmuxSessionGroupChildren(node);
+          return tmuxSessionGroupChildren(node, this.tmuxSessions);
         case "terminalGroup":
           return terminalGroupChildren(node, this.terminalLinks);
         case "repo":
@@ -313,7 +324,12 @@ export class WorkspaceTreeProvider
   private async hostRegistry(host: TtHost): Promise<TtRegistry> {
     let registry = this.registryCache.get(host.alias);
     if (!registry) {
-      registry = await this.cli.registry(host);
+      if (this.scannedHosts.has(host.alias)) {
+        registry = await this.cli.registry(host);
+      } else {
+        registry = await this.cli.scanRegistry(host);
+        this.scannedHosts.add(host.alias);
+      }
       this.registryCache.set(host.alias, registry);
     }
     return registry;
@@ -413,9 +429,15 @@ function domainItem(node: DomainNode): vscode.TreeItem {
   return item;
 }
 
-function workspaceItem(node: WorkspaceNode): vscode.TreeItem {
+function workspaceItem(
+  node: WorkspaceNode,
+  tmuxSessionStore: ManagedTmuxSessionStore
+): vscode.TreeItem {
   const reference = workspaceReference(node.workspace);
-  const tmuxSessions = node.workspace.state.tmux.sessions;
+  const tmuxSessions = tmuxSessionStore.forWorkspace(
+    node.registry.host,
+    node.workspace
+  );
   const item = new vscode.TreeItem(
     reference,
     vscode.TreeItemCollapsibleState.Collapsed
@@ -455,8 +477,14 @@ function repoGroupItem(node: RepoGroupNode): vscode.TreeItem {
   return item;
 }
 
-function tmuxSessionGroupItem(node: TmuxSessionGroupNode): vscode.TreeItem {
-  const count = node.workspace.state.tmux.sessions.length;
+function tmuxSessionGroupItem(
+  node: TmuxSessionGroupNode,
+  tmuxSessionStore: ManagedTmuxSessionStore
+): vscode.TreeItem {
+  const count = tmuxSessionStore.forWorkspace(
+    node.registry.host,
+    node.workspace
+  ).length;
   const item = new vscode.TreeItem(
     "tmux Sessions",
     count > 0
@@ -519,21 +547,36 @@ function tmuxSessionItem(
     node.session.session_name,
     vscode.TreeItemCollapsibleState.None
   );
-  item.contextValue = "tmuxSession";
-  item.description = `${node.session.pane_current_command}${
-    openInVsCode ? " · VS Code" : ""
-  }`;
+  item.contextValue = `tmuxSession.${node.session.lifecycle}`;
+  item.description = node.session.lifecycle === "stopped"
+    ? "Stopped"
+    : `${node.session.pane_current_command}${
+        node.session.lifecycle === "external" ? " · External" : ""
+      }${openInVsCode ? " · VS Code" : ""}`;
+  const stateDescription = node.session.lifecycle === "stopped"
+    ? "Managed session is stopped"
+    : node.session.lifecycle === "external"
+      ? "External live session; choose Manage before lifecycle actions"
+      : `Running ${node.session.pane_current_command}`;
   item.tooltip = new vscode.MarkdownString(
-    `**${node.session.session_name}**  \n${node.host.alias}:${node.session.pane_current_path}  \nRunning ${node.session.pane_current_command}${
+    `**${node.session.session_name}**  \n${node.host.alias}:${node.session.pane_current_path}  \n${stateDescription}${
       openInVsCode ? "  \nAttached in a VS Code terminal" : ""
     }`
   );
-  item.iconPath = new vscode.ThemeIcon("terminal-tmux");
-  item.command = {
-    command: "genoTools.openTmuxSession",
-    title: "Reopen tmux Session",
-    arguments: [node]
-  };
+  item.iconPath = new vscode.ThemeIcon(
+    node.session.lifecycle === "stopped" ? "debug-stop" : "terminal-tmux"
+  );
+  item.command = node.session.lifecycle === "stopped"
+    ? {
+        command: "genoTools.restoreTmuxSession",
+        title: "Restore tmux Session",
+        arguments: [node]
+      }
+    : {
+        command: "genoTools.openTmuxSession",
+        title: "Reopen tmux Session",
+        arguments: [node]
+      };
   return item;
 }
 
@@ -648,10 +691,11 @@ function repoGroupChildren(node: RepoGroupNode): RepoNode[] {
 }
 
 function tmuxSessionGroupChildren(
-  node: TmuxSessionGroupNode
+  node: TmuxSessionGroupNode,
+  tmuxSessionStore: ManagedTmuxSessionStore
 ): TmuxSessionNode[] {
-  return [...node.workspace.state.tmux.sessions]
-    .sort((left, right) => left.session_name.localeCompare(right.session_name))
+  return tmuxSessionStore
+    .forWorkspace(node.registry.host, node.workspace)
     .map((session) => tmuxSessionNode(node, session));
 }
 
@@ -724,7 +768,7 @@ function uriLocation(uri: vscode.Uri): WorkspaceLocation {
 
 function tmuxSessionNode(
   parent: TmuxSessionGroupNode,
-  session: TtTmuxSession
+  session: TmuxSessionView
 ): TmuxSessionNode {
   return {
     kind: "tmuxSession",

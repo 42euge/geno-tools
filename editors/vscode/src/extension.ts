@@ -18,6 +18,10 @@ import {
 } from "./agentSessions";
 import { TRACK_ORDER, TtHost, TtWorkspace, workspaceReference } from "./model";
 import { TerminalLinkRegistry } from "./terminalLinks";
+import {
+  ManagedTmuxSession,
+  ManagedTmuxSessionStore
+} from "./tmuxSessions";
 import { TtCli } from "./ttCli";
 import {
   HostNode,
@@ -46,8 +50,19 @@ export function activate(context: vscode.ExtensionContext): void {
   const output = vscode.window.createOutputChannel("Geno Tools: TT");
   const cli = new TtCli(output);
   const terminalLinks = new TerminalLinkRegistry();
-  const provider = new WorkspaceTreeProvider(cli, "all", terminalLinks);
-  const currentProvider = new WorkspaceTreeProvider(cli, "current", terminalLinks);
+  const tmuxSessions = new ManagedTmuxSessionStore(context.globalState);
+  const provider = new WorkspaceTreeProvider(
+    cli,
+    "all",
+    terminalLinks,
+    tmuxSessions
+  );
+  const currentProvider = new WorkspaceTreeProvider(
+    cli,
+    "current",
+    terminalLinks,
+    tmuxSessions
+  );
   const tree = vscode.window.createTreeView("genoTools.workspaces", {
     treeDataProvider: provider,
     showCollapseAll: true
@@ -110,6 +125,7 @@ export function activate(context: vscode.ExtensionContext): void {
         cli,
         [provider, currentProvider],
         terminalLinks,
+        tmuxSessions,
         workspace
       );
     }
@@ -130,12 +146,29 @@ export function activate(context: vscode.ExtensionContext): void {
       refreshTerminalViews();
     }
   });
-  register(context, "genoTools.deleteTmuxSession", async (node?: unknown) => {
+  register(context, "genoTools.manageTmuxSession", async (node?: unknown) => {
     if (isTmuxSessionNode(node)) {
-      await deleteTmuxSession(
+      await manageTmuxSession(tmuxSessions, [provider, currentProvider], node);
+    }
+  });
+  register(context, "genoTools.restoreTmuxSession", async (node?: unknown) => {
+    if (isTmuxSessionNode(node)) {
+      await restoreTmuxSession(
         cli,
         [provider, currentProvider],
         terminalLinks,
+        tmuxSessions,
+        node
+      );
+    }
+  });
+  register(context, "genoTools.deleteTmuxSession", async (node?: unknown) => {
+    if (isTmuxSessionNode(node)) {
+      await removeTmuxSession(
+        cli,
+        [provider, currentProvider],
+        terminalLinks,
+        tmuxSessions,
         node
       );
     }
@@ -151,6 +184,7 @@ export function activate(context: vscode.ExtensionContext): void {
         cli,
         [provider, currentProvider],
         terminalLinks,
+        tmuxSessions,
         node
       );
     }
@@ -259,9 +293,12 @@ async function refreshWorkspaces(
     try {
       await cli.refreshRegistry(host);
       for (const provider of providers) {
-        provider.invalidateHost(host);
+        provider.invalidateHost(host, true);
       }
     } catch (error) {
+      for (const provider of providers) {
+        provider.invalidateHost(host);
+      }
       failures.push(`${host.alias}: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -315,7 +352,7 @@ async function createWorkspace(
   );
   await cli.refreshRegistry(host);
   for (const one of providers) {
-    one.invalidateHost(host);
+    one.invalidateHost(host, true);
   }
 }
 
@@ -349,7 +386,7 @@ async function createRepo(
   );
   await cli.refreshRegistry(node.host);
   for (const provider of providers) {
-    provider.invalidateHost(node.host);
+    provider.invalidateHost(node.host, true);
   }
 }
 
@@ -357,13 +394,18 @@ async function createTmuxSession(
   cli: TtCli,
   providers: readonly WorkspaceTreeProvider[],
   terminalLinks: TerminalLinkRegistry,
+  tmuxSessions: ManagedTmuxSessionStore,
   node: WorkspaceNode | TmuxSessionGroupNode
 ): Promise<void> {
   const reference = workspaceReference(node.workspace);
+  const knownSessions = tmuxSessions.forWorkspace(
+    node.registry.host,
+    node.workspace
+  );
   const input = await vscode.window.showInputBox({
     title: `New tmux Session in ${reference}`,
     prompt: "Enter a session name, or leave blank to generate the next available name",
-    placeHolder: nextTmuxSessionName(node.workspace),
+    placeHolder: nextTmuxSessionName(node.workspace, knownSessions),
     validateInput: (value) => {
       const name = value.trim();
       return name.length === 0 || SAFE_TMUX_SESSION.test(name)
@@ -374,39 +416,47 @@ async function createTmuxSession(
   if (input === undefined) {
     return;
   }
-  const sessionName = input.trim() || nextTmuxSessionName(node.workspace);
+  const sessionName = input.trim() || nextTmuxSessionName(
+    node.workspace,
+    knownSessions
+  );
   await cli.createTmuxSession(
     node.host,
     node.registry.host,
     node.workspace.path,
     sessionName
   );
+  await tmuxSessions.put(managedTmuxRecord(
+    node.registry.host,
+    node.workspace,
+    sessionName,
+    node.workspace.path,
+    shellCommand(),
+    { kind: "shell" }
+  ));
   await cli.refreshRegistry(node.host);
   for (const provider of providers) {
-    provider.invalidateHost(node.host);
+    provider.invalidateHost(node.host, true);
   }
-  const terminal = vscode.window.createTerminal({
-    name: `TT: ${node.host.alias}/${sessionName}`,
-    cwd: homedir()
-  });
-  terminalLinks.markAttached(terminal, node.host.alias, sessionName);
+  await attachTmuxTerminal(
+    cli,
+    terminalLinks,
+    node.host,
+    node.workspace.path,
+    sessionName
+  );
   for (const provider of providers) {
     provider.refreshTerminals();
   }
-  terminal.show();
-  terminal.sendText(
-    await cli.openTmuxCommand(
-      node.host,
-      node.workspace.path,
-      sessionName
-    )
-  );
 }
 
-function nextTmuxSessionName(workspace: TtWorkspace): string {
+function nextTmuxSessionName(
+  workspace: TtWorkspace,
+  sessions = workspace.state.tmux.sessions
+): string {
   const base = `ws-${workspace.name}`;
   const existing = new Set(
-    workspace.state.tmux.sessions.map((session) => session.session_name)
+    sessions.map((session) => session.session_name)
   );
   if (!existing.has(base)) {
     return base;
@@ -419,46 +469,173 @@ function nextTmuxSessionName(workspace: TtWorkspace): string {
   }
 }
 
+function managedTmuxRecord(
+  registryHost: string,
+  workspace: TtWorkspace,
+  sessionName: string,
+  paneCurrentPath: string,
+  paneCurrentCommand: string,
+  launch: ManagedTmuxSession["launch"]
+): ManagedTmuxSession {
+  return {
+    registryHost,
+    workspaceId: workspace.id,
+    workspacePath: workspace.path,
+    sessionName,
+    paneCurrentPath,
+    paneCurrentCommand,
+    launch,
+    managedAt: new Date().toISOString()
+  };
+}
+
+function shellCommand(): string {
+  return basename(process.env.SHELL ?? "shell");
+}
+
 async function openTmuxSession(
   cli: TtCli,
   terminalLinks: TerminalLinkRegistry,
   node: TmuxSessionNode
 ): Promise<void> {
-  const terminal = vscode.window.createTerminal({
-    name: `TT: ${node.host.alias}/${node.session.session_name}`,
-    cwd: homedir()
-  });
-  terminalLinks.markAttached(
-    terminal,
-    node.host.alias,
+  if (node.session.lifecycle === "stopped") {
+    return;
+  }
+  await attachTmuxTerminal(
+    cli,
+    terminalLinks,
+    node.host,
+    node.session.pane_current_path,
     node.session.session_name
-  );
-  terminal.show();
-  terminal.sendText(
-    await cli.openTmuxCommand(
-      node.host,
-      node.session.pane_current_path,
-      node.session.session_name
-    )
   );
 }
 
-async function deleteTmuxSession(
+async function attachTmuxTerminal(
+  cli: TtCli,
+  terminalLinks: TerminalLinkRegistry,
+  host: TtHost,
+  cwd: string,
+  sessionName: string
+): Promise<void> {
+  const terminal = vscode.window.createTerminal({
+    name: `TT: ${host.alias}/${sessionName}`,
+    cwd: homedir()
+  });
+  terminalLinks.markAttached(terminal, host.alias, sessionName);
+  terminal.show();
+  terminal.sendText(
+    await cli.openTmuxCommand(host, cwd, sessionName)
+  );
+}
+
+async function manageTmuxSession(
+  tmuxSessions: ManagedTmuxSessionStore,
+  providers: readonly WorkspaceTreeProvider[],
+  node: TmuxSessionNode
+): Promise<void> {
+  if (node.session.lifecycle !== "external") {
+    return;
+  }
+  await tmuxSessions.put(managedTmuxRecord(
+    node.registry.host,
+    node.workspace,
+    node.session.session_name,
+    node.session.pane_current_path,
+    node.session.pane_current_command,
+    { kind: "shell" }
+  ));
+  for (const provider of providers) {
+    provider.invalidateHost(node.host, true);
+  }
+}
+
+async function restoreTmuxSession(
   cli: TtCli,
   providers: readonly WorkspaceTreeProvider[],
   terminalLinks: TerminalLinkRegistry,
+  tmuxSessions: ManagedTmuxSessionStore,
   node: TmuxSessionNode
 ): Promise<void> {
+  if (node.session.lifecycle !== "stopped" || !node.session.managed) {
+    return;
+  }
+  const record = node.session.managed;
+  const resume = record.launch.kind === "agent-resume"
+    ? `\n\nResume command: ${record.launch.command}`
+    : "";
   const confirmation = await vscode.window.showWarningMessage(
-    `Delete tmux session '${node.session.session_name}'?`,
+    `Restore tmux session '${record.sessionName}'?`,
+    {
+      modal: true,
+      detail: `Recreate it in ${record.paneCurrentPath}.${resume}`
+    },
+    "Restore tmux Session"
+  );
+  if (confirmation !== "Restore tmux Session") {
+    return;
+  }
+
+  await cli.createTmuxSession(
+    node.host,
+    record.registryHost,
+    record.paneCurrentPath,
+    record.sessionName
+  );
+  let resumeFailure: string | undefined;
+  if (record.launch.kind === "agent-resume") {
+    try {
+      await cli.sendTmuxCommand(
+        node.host,
+        record.registryHost,
+        record.sessionName,
+        record.launch.command
+      );
+    } catch (error) {
+      resumeFailure = error instanceof Error ? error.message : String(error);
+    }
+  }
+  await cli.refreshRegistry(node.host);
+  for (const provider of providers) {
+    provider.invalidateHost(node.host, true);
+  }
+  await attachTmuxTerminal(
+    cli,
+    terminalLinks,
+    node.host,
+    record.paneCurrentPath,
+    record.sessionName
+  );
+  for (const provider of providers) {
+    provider.refreshTerminals();
+  }
+
+  if (resumeFailure) {
+    void vscode.window.showWarningMessage(
+      `Restored ${record.sessionName}, but its agent resume command failed: ${resumeFailure}`
+    );
+  }
+}
+
+async function removeTmuxSession(
+  cli: TtCli,
+  providers: readonly WorkspaceTreeProvider[],
+  terminalLinks: TerminalLinkRegistry,
+  tmuxSessions: ManagedTmuxSessionStore,
+  node: TmuxSessionNode
+): Promise<void> {
+  if (node.session.lifecycle === "external" || !node.session.managed) {
+    return;
+  }
+  const confirmation = await vscode.window.showWarningMessage(
+    `Remove tmux session '${node.session.session_name}'?`,
     {
       modal: true,
       detail:
-        `This stops every process running in the session on ${node.host.alias}. This cannot be undone.`
+        `This stops every process running in the session on ${node.host.alias} and removes its saved restore recipe. This cannot be undone.`
     },
-    "Delete tmux Session"
+    "Remove tmux Session"
   );
-  if (confirmation !== "Delete tmux Session") {
+  if (confirmation !== "Remove tmux Session") {
     return;
   }
 
@@ -467,10 +644,14 @@ async function deleteTmuxSession(
     node.registry.host,
     node.session.session_name
   );
+  await tmuxSessions.remove(
+    node.registry.host,
+    node.session.session_name
+  );
   terminalLinks.unlinkSession(node.host.alias, node.session.session_name);
   await cli.refreshRegistry(node.host);
   for (const provider of providers) {
-    provider.invalidateHost(node.host);
+    provider.invalidateHost(node.host, true);
   }
 }
 
@@ -478,6 +659,7 @@ async function recoverTerminalInTmux(
   cli: TtCli,
   providers: readonly WorkspaceTreeProvider[],
   terminalLinks: TerminalLinkRegistry,
+  tmuxSessions: ManagedTmuxSessionStore,
   node: TerminalNode
 ): Promise<void> {
   if (terminalLinks.linkFor(node.terminal)) {
@@ -516,9 +698,11 @@ async function recoverTerminalInTmux(
     hostAlias: node.host.alias,
     workspacePath: node.workspace.path,
     currentDirectory: node.cwd,
-    existingSessionNames: node.workspace.state.tmux.sessions.map(
+    existingSessionNames: tmuxSessions
+      .forWorkspace(node.registry.host, node.workspace)
+      .map(
       ({ session_name }) => session_name
-    )
+      )
   };
   const matches = await vscode.window.withProgress(
     {
@@ -564,6 +748,14 @@ async function recoverTerminalInTmux(
     proposal.workingDirectory,
     proposal.sessionName
   );
+  await tmuxSessions.put(managedTmuxRecord(
+    node.registry.host,
+    node.workspace,
+    proposal.sessionName,
+    proposal.workingDirectory,
+    shellCommand(),
+    { kind: "shell" }
+  ));
 
   let resumeFailure: string | undefined;
   try {
@@ -573,13 +765,21 @@ async function recoverTerminalInTmux(
       proposal.sessionName,
       resumeCommand
     );
+    await tmuxSessions.put(managedTmuxRecord(
+      node.registry.host,
+      node.workspace,
+      proposal.sessionName,
+      proposal.workingDirectory,
+      resumeCommand.trim().split(/\s+/, 1)[0] || matchedSession.agent,
+      { kind: "agent-resume", command: resumeCommand }
+    ));
   } catch (error) {
     resumeFailure = error instanceof Error ? error.message : String(error);
   }
 
   await cli.refreshRegistry(node.host);
   for (const provider of providers) {
-    provider.invalidateHost(node.host);
+    provider.invalidateHost(node.host, true);
   }
 
   terminalLinks.markOrigin(
@@ -587,26 +787,16 @@ async function recoverTerminalInTmux(
     node.host.alias,
     proposal.sessionName
   );
-  const attached = vscode.window.createTerminal({
-    name: `TT: ${node.host.alias}/${proposal.sessionName}`,
-    cwd: homedir()
-  });
-  terminalLinks.markAttached(
-    attached,
-    node.host.alias,
+  await attachTmuxTerminal(
+    cli,
+    terminalLinks,
+    node.host,
+    proposal.workingDirectory,
     proposal.sessionName
   );
   for (const provider of providers) {
     provider.refreshTerminals();
   }
-  attached.show();
-  attached.sendText(
-    await cli.openTmuxCommand(
-      node.host,
-      proposal.workingDirectory,
-      proposal.sessionName
-    )
-  );
 
   if (resumeFailure) {
     void vscode.window.showWarningMessage(
@@ -729,7 +919,7 @@ async function mirrorWorkspace(
     homedir()
   );
   await cli.refreshRegistry(picked.host);
-  provider.invalidateHost(picked.host);
+  provider.invalidateHost(picked.host, true);
 }
 
 async function createWorktree(cli: TtCli, node: WorkspaceNode): Promise<void> {
