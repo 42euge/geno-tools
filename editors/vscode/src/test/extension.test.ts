@@ -672,7 +672,7 @@ test("activation reads unsupported VS Code state for native split markers", asyn
   );
 });
 
-test("view titles expose the extension version and build datetime", async () => {
+test("view titles expose a compact readable build identity", async () => {
   const stub: VscodeStub = {
     commands: new Map(),
     errorMessages: [],
@@ -685,7 +685,7 @@ test("view titles expose the extension version and build datetime", async () => 
   const context = { subscriptions: [] as Array<{ dispose?: () => void }> };
   extension.activate(context);
 
-  const expected = "v0.1.0-test · built 2026-09-01T20:00:00.000Z";
+  const expected = "v0.1.0-test · Fri Sep 4 2:57 PM · split terminals";
   assert.equal(stub.treeDescriptions?.["genoTools.workspaces"], expected);
   assert.equal(stub.treeDescriptions?.["genoTools.currentWorkspace"], expected);
 });
@@ -1443,7 +1443,8 @@ async function loadExtension(
     write: false,
     define: {
       __GENO_TOOLS_VERSION__: JSON.stringify("0.1.0-test"),
-      __GENO_TOOLS_BUILD_DATETIME__: JSON.stringify("2026-09-01T20:00:00.000Z")
+      __GENO_TOOLS_BUILD_DATETIME__: JSON.stringify("2026-09-04T14:57:00"),
+      __GENO_TOOLS_BUILD_NAME__: JSON.stringify("split terminals")
     },
     plugins: [{
       name: "vscode-stub",
