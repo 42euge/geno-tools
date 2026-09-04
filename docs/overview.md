@@ -50,6 +50,11 @@ registrations; `dev deactivate` restores stable main without modifying it.
 with a dry run and explicit confirmation, while preserving user data under
 `~/.geno/`.
 
+**Synchronize** — `sync status` compares installed skillsets and portable
+configuration across geno-tt hosts. `sync pull` and `sync push` reconcile
+through the normal install/update/uninstall lifecycle, with dirty-worktree
+refusal, dry-run previews, and guarded removals. See [sync.md](sync.md).
+
 ## On-disk layout
 
 All state lives under `~/.geno-tools/`, one directory per skillset:
@@ -104,11 +109,14 @@ geno-tools scan [--namespace X] [--dry-run]
 geno-tools system uninstall [--dry-run] [--yes]
 geno-tools system update          # update geno-tools itself
 geno-tools config show | set <dot.path> <value>
+geno-tools sync status [host...]
+geno-tools sync pull [host] [--dry-run] [--yes] [--no-rebuild]
+geno-tools sync push <host> [--dry-run] [--yes] [--no-rebuild]
 ```
 
 `gt` is the default short alias (`aliases.command_prefix` in config).
 
 The CLI is also surfaced as skills, so an agent can drive it conversationally:
 `skills/manager/*` (install, upgrade, remove, status, discover, dev),
-`skills/config/*`, `skills/author/*` (scaffold a new skill or skillset), and
+`skills/config/*`, `skills/manager/sync`, `skills/author/*` (scaffold a new skill or skillset), and
 `skills/meta/ecosystem/*` (discover, scan, onboarding).

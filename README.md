@@ -22,6 +22,20 @@ geno-tools dev deactivate geno-tt
 The activation command creates the editable runtime under `~/.geno-tools`; the
 source checkout does not need its own `.venv`.
 
+Installations on multiple computers can be compared and reconciled through the
+host aliases already managed by geno-tt:
+
+```zsh
+geno-tools config set sync.primary lab
+geno-tools sync status
+geno-tools sync pull --dry-run
+geno-tools sync pull --yes
+```
+
+Sync reproduces installed repositories and portable configuration through the
+normal lifecycle. It never copies venvs, credentials, dev checkouts, or dirty
+worktree content. See [docs/sync.md](docs/sync.md).
+
 ## Skillsets and subskillsets
 
 A **skillset** is a self-contained git repo named `{prefix}-{slug}` that geno-tools knows how to clone, sandbox, link, and register with any supported coding agent. The prefix is the org/brand namespace; the slug names the domain.

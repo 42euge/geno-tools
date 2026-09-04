@@ -1,6 +1,9 @@
 """Tests for CLI argument parsing — every documented command is present and parseable."""
 
+from pathlib import Path
+
 import pytest
+import yaml
 
 from geno_tools.cli import main
 
@@ -64,7 +67,15 @@ class TestCliHelp:
         with pytest.raises(SystemExit) as exc:
             main(["--version"])
         assert exc.value.code == 0
-        assert "geno-tools" in capsys.readouterr().out
+        assert capsys.readouterr().out.strip() == "geno-tools 0.11.0"
+
+    def test_sync_skill_metadata_is_triggered_and_scoped(self):
+        path = Path("skills/manager/sync/SKILL.md")
+        text = path.read_text()
+        frontmatter = yaml.safe_load(text.split("---", 2)[1])
+        assert frontmatter["name"] == "geno-tools-manager-sync"
+        assert frontmatter["description"].startswith("Use when")
+        assert frontmatter["allowed-tools"] == "Bash(geno-tools sync *)"
 
     @pytest.mark.parametrize("cmd", EXPECTED_COMMANDS)
     def test_command_exists_in_help(self, cmd, capsys):
