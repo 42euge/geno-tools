@@ -218,6 +218,43 @@ def test_status_reports_mode_source_and_consistency(installed_dev_fixture, capsy
     assert "ok" in output
 
 
+def test_status_shows_the_stable_selection_deactivate_will_restore(
+    installed_dev_fixture, capsys
+):
+    item = installed_dev_fixture
+    dev.activate(item["checkout"])
+    capsys.readouterr()
+
+    assert dev.status("geno-tt") == 0
+
+    output = capsys.readouterr().out
+    assert "deactivate restores stable 0.8.1" in output
+    assert str(item["main"]) in output
+
+
+def test_rollback_restores_the_previous_dev_selection(installed_dev_fixture):
+    item = installed_dev_fixture
+    first = item["checkout"]
+    second = first.parent / "other-checkout" / "geno-tt"
+    _write_project(
+        second,
+        name="geno-tt",
+        version="1.0.0",
+        skill="geno-tt-other",
+    )
+    dev.activate(first)
+    dev.preserve_rollback("geno-tt")
+    dev.activate(second)
+
+    dev.rollback("geno-tt")
+
+    assert paths.skillset_active("geno-tt").resolve() == first.resolve()
+    assert json.loads(paths.skillset_dev_state("geno-tt").read_text())[
+        "checkout"
+    ] == str(first.resolve())
+    assert not (item["root"] / "dev-rollback.json").exists()
+
+
 def test_dev_cli_routes_activate_status_and_deactivate(installed_dev_fixture, capsys):
     item = installed_dev_fixture
 
@@ -228,6 +265,18 @@ def test_dev_cli_routes_activate_status_and_deactivate(installed_dev_fixture, ca
     output = capsys.readouterr().out
     assert "activated geno-tt dev 0.9.0" in output
     assert "deactivated geno-tt dev mode" in output
+
+
+def test_dev_cli_routes_rollback(installed_dev_fixture, capsys):
+    item = installed_dev_fixture
+    dev.activate(item["checkout"])
+    dev.preserve_rollback("geno-tt")
+    dev.deactivate("geno-tt")
+
+    assert main(["dev", "rollback", "geno-tt"]) == 0
+
+    assert paths.skillset_active("geno-tt").resolve() == item["checkout"].resolve()
+    assert "rolled back geno-tt to dev 0.9.0" in capsys.readouterr().out
 
 
 def test_invalid_state_fails_closed(installed_dev_fixture):

@@ -56,6 +56,10 @@ def add_parser(subparsers: argparse._SubParsersAction) -> None:
         "deactivate", help="restore an installed skillset's stable main checkout"
     )
     dev_deactivate.add_argument("name")
+    dev_rollback = dev_commands.add_parser(
+        "rollback", help="restore the selection preserved before a sync switch"
+    )
+    dev_rollback.add_argument("name")
 
     discover_parser = subparsers.add_parser(
         "discover", help="find & list installable skillsets, by category"
