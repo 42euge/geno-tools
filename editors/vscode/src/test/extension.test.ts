@@ -12,10 +12,18 @@ import * as esbuild from "esbuild";
 interface VscodeStub {
   agentOptions?: Record<string, unknown>;
   agentProposal?: Record<string, unknown>;
+  agentProposals?: Array<Record<string, unknown>>;
+  activeTerminal?: { name: string; show(preserveFocus?: boolean): void };
   clipboardText?: string;
   commands: Map<string, (...args: unknown[]) => Promise<unknown>>;
   errorMessages: string[];
   globalState?: Map<string, unknown>;
+  executedCommands?: Array<{ name: string; args: unknown[] }>;
+  informationCalls?: Array<{
+    message: string;
+    options?: { modal?: boolean; detail?: string };
+  }>;
+  informationMessages?: string[];
   informationResults?: string[];
   inputValues: string[];
   openFolderCalls: Array<[{ path: string }, boolean]>;
@@ -24,10 +32,15 @@ interface VscodeStub {
   terminals?: unknown[];
   terminalCommands: string[];
   terminalHistory?: string;
+  terminalProcessRequiresShow?: boolean;
   treeDescriptions?: Record<string, string>;
   treeProviders?: Map<string, {
     getChildren(node?: Record<string, unknown>): Promise<Array<Record<string, unknown>>>;
-    getTreeItem(node: Record<string, unknown>): { label: string };
+    getTreeItem(node: Record<string, unknown>): {
+      label: string;
+      contextValue?: string;
+      description?: string;
+    };
   }>;
   warningMessages?: string[];
   warningResults?: string[];
@@ -41,7 +54,8 @@ test("+ creates a new tmux session and accepts an optional name", async () => {
     inputValues: ["", "focus", "remote-focus"],
     openFolderCalls: [],
     spawnCalls: [],
-    terminalCommands: []
+    terminalCommands: [],
+    terminalProcessRequiresShow: true
   };
   const extension = await loadExtension(stub);
   const context = { subscriptions: [] as Array<{ dispose?: () => void }> };
@@ -690,6 +704,27 @@ test("view titles expose a compact readable build identity", async () => {
   assert.equal(stub.treeDescriptions?.["genoTools.currentWorkspace"], expected);
 });
 
+test("view titles prefer the runtime installed extension version", async () => {
+  const stub: VscodeStub = {
+    commands: new Map(),
+    errorMessages: [],
+    inputValues: [],
+    openFolderCalls: [],
+    spawnCalls: [],
+    terminalCommands: []
+  };
+  const extension = await loadExtension(stub);
+  const context = {
+    extension: { packageJSON: { version: "0.3.7" } },
+    subscriptions: [] as Array<{ dispose?: () => void }>
+  };
+  extension.activate(context);
+
+  const expected = "v0.3.7 · Fri Sep 4 2:57 PM · split terminals";
+  assert.equal(stub.treeDescriptions?.["genoTools.workspaces"], expected);
+  assert.equal(stub.treeDescriptions?.["genoTools.currentWorkspace"], expected);
+});
+
 test("repository plus initializes a repo and refreshes its host registry", async () => {
   const stub: VscodeStub = {
     commands: new Map(),
@@ -911,6 +946,153 @@ test("unlinked terminal rows expose the OpenAI tmux recovery button", () => {
   );
 });
 
+test("unmanaged terminal rows and groups expose AI naming actions", () => {
+  const manifest = JSON.parse(
+    readFileSync(join(__dirname, "..", "..", "package.json"), "utf8")
+  ) as {
+    contributes: {
+      commands: Array<{ command: string; title: string; icon?: string }>;
+      menus: {
+        "view/item/context": Array<{
+          command: string;
+          when: string;
+          group: string;
+        }>;
+      };
+    };
+  };
+
+  assert.deepEqual(
+    manifest.contributes.commands
+      .filter(({ command }) => command.startsWith("genoTools.name") &&
+        command.endsWith("WithAi"))
+      .map(({ command, title, icon }) => ({ command, title, icon })),
+    [
+      {
+        command: "genoTools.nameTerminalWithAi",
+        title: "Geno Tools: Name with AI",
+        icon: "$(tag)"
+      },
+      {
+        command: "genoTools.nameAllTerminalsWithAi",
+        title: "Geno Tools: Name All with AI",
+        icon: "$(tag)"
+      }
+    ]
+  );
+  assert.deepEqual(
+    manifest.contributes.menus["view/item/context"]
+      .filter(({ command }) => command.includes("nameTerminal") ||
+        command.includes("nameAllTerminals")),
+    [
+      {
+        command: "genoTools.nameTerminalWithAi",
+        when: "(view == genoTools.workspaces || view == genoTools.currentWorkspace) && viewItem == terminal",
+        group: "inline@2"
+      },
+      {
+        command: "genoTools.nameAllTerminalsWithAi",
+        when: "(view == genoTools.workspaces || view == genoTools.currentWorkspace) && viewItem == terminalGroup",
+        group: "inline@2"
+      }
+    ]
+  );
+});
+
+test("Name with AI immediately reads and renames one unmanaged terminal", async (t) => {
+  const stub: VscodeStub = {
+    agentProposal: { tag: "session cleanup" },
+    clipboardText: "clipboard before naming",
+    commands: new Map(),
+    errorMessages: [],
+    inputValues: [],
+    openFolderCalls: [],
+    spawnCalls: [],
+    terminalCommands: [],
+    terminalHistory: "Human: finish the session cleanup"
+  };
+  const terminal = testTerminal(stub, "zsh", "/tmp/demo.2026.q3");
+  stub.terminals = [terminal];
+  const restoreEnvironment = setAgentEnvironment();
+  t.after(restoreEnvironment);
+
+  const extension = await loadExtension(stub);
+  extension.activate({ subscriptions: [] as Array<{ dispose?: () => void }> });
+  const nameTerminal = stub.commands.get("genoTools.nameTerminalWithAi");
+  assert.ok(nameTerminal);
+
+  await nameTerminal(terminalNode(terminal));
+
+  assert.equal(
+    terminal.name,
+    "session cleanup",
+    stub.errorMessages.join("\n")
+  );
+  assert.equal(stub.clipboardText, "clipboard before naming");
+  assert.ok(stub.executedCommands?.some(({ name, args }) =>
+    name === "workbench.action.terminal.renameWithArg" &&
+    JSON.stringify(args) === JSON.stringify([{ name: "session cleanup" }])
+  ));
+});
+
+test("Name All with AI immediately skips protected titles and continues after a failure", async (t) => {
+  const stub: VscodeStub = {
+    agentProposals: [
+      { tag: "this proposed tag has too many words" },
+      { tag: "api debug" }
+    ],
+    clipboardText: "clipboard before naming",
+    commands: new Map(),
+    errorMessages: [],
+    inputValues: [],
+    openFolderCalls: [],
+    spawnCalls: [],
+    terminalCommands: []
+  };
+  const first = testTerminal(stub, "zsh", "/tmp/demo.2026.q3", "zsh");
+  const second = testTerminal(stub, "codex", "/tmp/demo.2026.q3", "codex");
+  const custom = testTerminal(stub, "database console", "/tmp/demo.2026.q3");
+  const managed = testTerminal(
+    stub,
+    "TT: local/managed-agent",
+    "/tmp/demo.2026.q3"
+  );
+  stub.terminals = [first, second, custom, managed];
+  const restoreEnvironment = setAgentEnvironment();
+  t.after(restoreEnvironment);
+
+  const extension = await loadExtension(stub);
+  extension.activate({ subscriptions: [] as Array<{ dispose?: () => void }> });
+  const nameAll = stub.commands.get("genoTools.nameAllTerminalsWithAi");
+  assert.ok(nameAll);
+
+  const group = terminalGroupNode();
+  group.workspace.state.tmux.sessions.push({
+    session_name: "managed-agent",
+    pane_current_path: "/tmp/demo.2026.q3",
+    pane_current_command: "codex",
+    session_activity: 0
+  });
+  await nameAll(group);
+
+  assert.equal(first.name, "zsh", "the failed terminal should remain unchanged");
+  assert.equal(
+    second.name,
+    "api debug",
+    `later terminals should still be named: ${stub.errorMessages.join("\n")}`
+  );
+  assert.equal(custom.name, "database console");
+  assert.equal(managed.name, "TT: local/managed-agent");
+  assert.equal(stub.clipboardText, "clipboard before naming");
+  assert.match(stub.informationMessages?.at(-1) ?? "", /named 1 terminal/i);
+  assert.match(stub.informationMessages?.at(-1) ?? "", /1 failed/i);
+  assert.equal(stub.informationCalls?.at(-1)?.options?.modal, true);
+  assert.match(
+    stub.informationCalls?.at(-1)?.options?.detail ?? "",
+    /one to three words/i
+  );
+});
+
 test("tmux rows expose actions for their lifecycle state", () => {
   const manifest = JSON.parse(
     readFileSync(join(__dirname, "..", "..", "package.json"), "utf8")
@@ -1111,6 +1293,89 @@ test("the recovery agent creates, seeds, registers, and attaches a tmux session"
       command: `codexd resume ${sessionId}`
     }
   );
+});
+
+test("recovery relinks an existing tmux session instead of creating it again", async (t) => {
+  const sessionId = "bbbbbbbb-cccc-4ddd-8eee-ffffffffffff";
+  const history = [
+    "Human: continue the distinctive workspace cleanup implementation",
+    "Assistant: I will preserve every open editor window while repairing the registry"
+  ];
+  const temporaryHome = await createCodexSessionHome(
+    "/tmp/demo.2026.q3/repo-a",
+    sessionId,
+    history
+  );
+  const previousHome = process.env.HOME;
+  process.env.HOME = temporaryHome;
+  t.after(async () => {
+    if (previousHome === undefined) {
+      delete process.env.HOME;
+    } else {
+      process.env.HOME = previousHome;
+    }
+    await rm(temporaryHome, { recursive: true, force: true });
+  });
+  const stub: VscodeStub = {
+    agentProposal: {
+      sessionName: "iterative-ui-design",
+      workingDirectory: "/tmp/demo.2026.q3/repo-a",
+      summary: "Continue the iterative UI design work."
+    },
+    clipboardText: "original clipboard",
+    commands: new Map(),
+    errorMessages: [],
+    informationResults: ["Link Existing Session"],
+    inputValues: [],
+    openFolderCalls: [],
+    spawnCalls: [],
+    terminalCommands: [],
+    terminalHistory: history.join("\n"),
+    warningResults: ["Scan History"]
+  };
+  const origin = testTerminal(
+    stub,
+    "iterative ui design",
+    "/tmp/demo.2026.q3/repo-a",
+    undefined,
+    true
+  );
+  stub.terminals = [origin];
+  const extension = await loadExtension(stub);
+  extension.activate({ subscriptions: [] as Array<{ dispose?: () => void }> });
+  const recover = stub.commands.get("genoTools.recoverTerminalInTmux");
+  assert.ok(recover);
+
+  const previousKey = process.env.OPENAI_API_KEY;
+  process.env.OPENAI_API_KEY = "test-only";
+  try {
+    const node = terminalNode(origin);
+    node.cwd = "/tmp/demo.2026.q3/repo-a";
+    node.workspace.state.tmux.sessions.push({
+      session_name: "iterative-ui-design",
+      pane_current_path: "/tmp/demo.2026.q3/repo-a",
+      pane_current_command: "codex",
+      session_activity: 0
+    });
+    await recover(node);
+  } finally {
+    if (previousKey === undefined) {
+      delete process.env.OPENAI_API_KEY;
+    } else {
+      process.env.OPENAI_API_KEY = previousKey;
+    }
+  }
+
+  assert.deepEqual(stub.errorMessages, []);
+  assert.deepEqual(stub.spawnCalls, []);
+  assert.deepEqual(stub.terminalCommands, [
+    "tt-test -H local tmux repo-a iterative-ui-design"
+  ]);
+  const provider = stub.treeProviders?.get("genoTools.workspaces");
+  assert.ok(provider);
+  const item = provider.getTreeItem(terminalNode(origin));
+  assert.equal(item.contextValue, "terminalLinked");
+  assert.match(item.description ?? "", /tmux: iterative-ui-design/);
 });
 
 test("recovery does not create tmux without a matching saved agent session", async () => {
@@ -1399,6 +1664,87 @@ function persistedSessions(stub: VscodeStub): StoredTmuxSession[] {
   return value?.sessions ?? [];
 }
 
+function testTerminal(
+  stub: VscodeStub,
+  name: string,
+  cwd: string,
+  explicitName?: string,
+  preserveHistory = false
+): { name: string; creationOptions: { cwd: string; name?: string }; show(): void } {
+  const terminal = {
+    name,
+    creationOptions: {
+      cwd,
+      ...(explicitName === undefined ? {} : { name: explicitName })
+    },
+    show() {
+      stub.activeTerminal = terminal;
+      if (!preserveHistory) {
+        stub.terminalHistory = `Human: continue the work shown in ${terminal.name}`;
+      }
+    }
+  };
+  return terminal;
+}
+
+function terminalGroupNode() {
+  const sessions: Array<{
+    session_name: string;
+    pane_current_path: string;
+    pane_current_command: string;
+    session_activity: number;
+  }> = [];
+  return {
+    kind: "terminalGroup" as const,
+    host: { alias: "local", hostname: "localhost", isDefault: true },
+    registry: {
+      schema_version: 1,
+      host: "localhost",
+      generated_at: "2026-09-01T00:00:00Z",
+      workspaces: []
+    },
+    workspace: {
+      id: "chore.geno.demo.2026.q3",
+      track: "chore",
+      domain: "geno",
+      name: "demo",
+      born: "2026.q3",
+      path: "/tmp/demo.2026.q3",
+      repos: [],
+      state: { tmux: { sessions } }
+    }
+  };
+}
+
+function terminalNode(terminal: unknown) {
+  return {
+    ...terminalGroupNode(),
+    kind: "terminal" as const,
+    terminal,
+    cwd: "/tmp/demo.2026.q3"
+  };
+}
+
+function setAgentEnvironment(): () => void {
+  const previous = {
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+    OPENAI_BASE_URL: process.env.OPENAI_BASE_URL,
+    OPENAI_DEFAULT_MODEL: process.env.OPENAI_DEFAULT_MODEL
+  };
+  process.env.OPENAI_API_KEY = "test-only";
+  process.env.OPENAI_BASE_URL = "https://gateway.example/v1";
+  process.env.OPENAI_DEFAULT_MODEL = "gpt-test";
+  return () => {
+    for (const [key, value] of Object.entries(previous)) {
+      if (value === undefined) {
+        delete process.env[key];
+      } else {
+        process.env[key] = value;
+      }
+    }
+  };
+}
+
 async function createCodexSessionHome(
   workingDirectory: string,
   sessionId: string,
@@ -1502,8 +1848,10 @@ async function loadExtension(
               },
               window: {
                 terminals: state.terminals ?? [],
+                get activeTerminal() { return state.activeTerminal; },
                 onDidOpenTerminal: () => ({ dispose() {} }),
                 onDidCloseTerminal: () => ({ dispose() {} }),
+                onDidChangeTerminalState: () => ({ dispose() {} }),
                 onDidChangeTerminalShellIntegration: () => ({ dispose() {} }),
                 createOutputChannel: () => ({
                   append() {}, appendLine() {}, show() {}, dispose() {}
@@ -1521,20 +1869,42 @@ async function loadExtension(
                   return view;
                 },
                 withProgress: async (_options, task) => task(
-                  {},
+                  { report() {} },
                   { onCancellationRequested: () => ({ dispose() {} }) }
                 ),
-                createTerminal: () => ({
-                  show() {},
-                  sendText(command) { state.terminalCommands.push(command); }
-                }),
+                createTerminal: (options) => {
+                  let shown = false;
+                  return {
+                    name: options.name,
+                    creationOptions: options,
+                    processId: state.terminalProcessRequiresShow
+                      ? {
+                          then(resolve, reject) {
+                            if (!shown) {
+                              reject(new Error("terminal process requested before show"));
+                            } else {
+                              resolve(undefined);
+                            }
+                          }
+                        }
+                      : Promise.resolve(undefined),
+                    show() { shown = true; },
+                    sendText(command) { state.terminalCommands.push(command); }
+                  };
+                },
                 showInputBox: async () => state.inputValues.shift(),
                 showWarningMessage: async (message) => {
                   state.warningMessages ??= [];
                   state.warningMessages.push(message);
                   return state.warningResults?.shift();
                 },
-                showInformationMessage: async () => state.informationResults?.shift(),
+                showInformationMessage: async (message, options) => {
+                  state.informationCalls ??= [];
+                  state.informationCalls.push({ message, options });
+                  state.informationMessages ??= [];
+                  state.informationMessages.push(message);
+                  return state.informationResults?.shift();
+                },
                 showErrorMessage: async (message) => {
                   state.errorMessages.push(message);
                   return undefined;
@@ -1546,11 +1916,16 @@ async function loadExtension(
                   return { dispose() {} };
                 },
                 executeCommand: async (name, ...args) => {
+                  state.executedCommands ??= [];
+                  state.executedCommands.push({ name, args });
                   if (name === "vscode.openFolder") {
                     state.openFolderCalls.push(args);
                   }
                   if (name === "workbench.action.terminal.copySelection") {
                     state.clipboardText = state.terminalHistory ?? "";
+                  }
+                  if (name === "workbench.action.terminal.renameWithArg") {
+                    state.activeTerminal.name = args[0].name;
                   }
                 }
               }
@@ -1578,10 +1953,11 @@ async function loadExtension(
             class Runner {
               constructor(config) { state.runnerConfig = config; }
               async run() {
-                if (!state.agentProposal) {
+                const proposal = state.agentProposals?.shift() ?? state.agentProposal;
+                if (!proposal) {
                   throw new Error("Unexpected OpenAI agent run in test");
                 }
-                return { finalOutput: state.agentProposal };
+                return { finalOutput: proposal };
               }
             }
             module.exports = { Agent, OpenAIProvider, Runner };
@@ -1651,8 +2027,8 @@ async function loadExtension(
     exports: compiledModule.exports,
     require: createRequire(__filename),
     process,
-    URL,
     Buffer,
+    URL,
     console,
     setTimeout,
     clearTimeout,

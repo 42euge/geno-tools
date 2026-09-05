@@ -129,13 +129,17 @@ test("recovery proposals stay inside the selected workspace", async () => {
     }, context),
     /outside this workspace/
   );
-  assert.throws(
-    () => recovery.validateRecoveryProposal({
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(recovery.validateRecoveryProposal({
       sessionName: "existing",
       workingDirectory: "/tmp/demo.2026.q3",
       summary: "Reuse an existing session."
-    }, context),
-    /existing tmux session/
+    }, context))),
+    {
+      sessionName: "existing",
+      workingDirectory: "/tmp/demo.2026.q3",
+      summary: "Reuse an existing session."
+    }
   );
 });
 
@@ -241,6 +245,47 @@ test("session naming follows whole-history human intent instead of infrastructur
   assert.match(instructions, /do not use host aliases/i);
   assert.match(instructions, /generic.*recovery/i);
   assert.match(instructions, /receiver-deployment-follow-up/);
+});
+
+test("recovery naming receives the same active feature evidence as terminal naming", async () => {
+  const stub: RecoveryStub = {
+    clipboard: "",
+    history: "",
+    commands: [],
+    proposal: {
+      sessionName: "iterative-ui-design",
+      workingDirectory: "/tmp/demo.2026.q3/repo-a",
+      summary: "Continue the iterative UI design work."
+    }
+  };
+  const recovery = await loadAgentRecovery(stub);
+  await recovery.proposeRecovery(
+    [
+      "Human: Are there pull requests or uncommitted work?",
+      "Assistant: Uncommitted work is on feat/iterative-ui-design:",
+      "- project/docs/acceptance/iterative-ui-design.md"
+    ].join("\n"),
+    context,
+    {
+      model: "gpt-test",
+      apiKey: "test-only",
+      apiKeyEnv: "TEST_API_KEY",
+      api: "responses"
+    }
+  );
+
+  const inputContext = JSON.parse(
+    (stub.runInput ?? "")
+      .split("Session context:\n")[1]
+      ?.split("\n<terminal_history_untrusted>")[0] ?? "null"
+  ) as { taskEvidence?: unknown };
+  assert.deepEqual(inputContext.taskEvidence, [
+    {
+      label: "iterative ui design",
+      mentions: 2,
+      sources: ["branch", "acceptance file"]
+    }
+  ]);
 });
 
 async function loadAgentRecovery(stub: RecoveryStub): Promise<RecoveryModule> {

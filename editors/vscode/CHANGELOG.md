@@ -1,7 +1,21 @@
 # Changelog
 
-## Unreleased
+## 0.3.9
 
+- Add `Name with AI` actions for one unmanaged VS Code terminal or every
+  eligible terminal in a workspace.
+- Generate unique, validated one-to-three-word terminal tags from bounded
+  scrollback using the same configured AI runtime as tmux recovery.
+- Run terminal naming immediately from its action without an extra confirmation
+  dialog, while retaining explicit review before tmux recovery changes state.
+- Prefer corroborated active branch, worktree, spec, and acceptance-file topics
+  over generic transient actions when generating terminal tags.
+- Persist terminal naming provenance and TT relationships so restored generic
+  shell names remain eligible for bulk naming while manually named, previously
+  AI-named, and tmux-managed terminals remain protected.
+- Reuse the improved task naming during agent recovery and relink a matching
+  existing tmux session instead of trying to create or resume it twice.
+- Continue bulk naming after individual failures.
 - Show integrated terminal split groups in VS Code's native order with the same
   `┌`, `├`, and `└` row markers.
 - Read split membership from unsupported VS Code workspace state because the

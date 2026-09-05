@@ -5,6 +5,10 @@ import * as vscode from "vscode";
 import { z } from "zod";
 
 import { AgentRuntimeConfig } from "./agentConfig";
+import {
+  TERMINAL_TASK_FOCUS_INSTRUCTIONS,
+  terminalTaskEvidence
+} from "./terminalTask";
 
 const MAX_HISTORY_CHARACTERS = 60_000;
 const HISTORY_CHUNK_COUNT = 5;
@@ -68,7 +72,9 @@ export async function proposeRecovery(
       "Do not use tools or mutate the machine. Return only the requested structured proposal.",
       "Infer the overarching task from the whole terminal history, not merely the latest command or output.",
       "Give the most weight to explicit human-authored requests, goals, corrections, and decisions; give less weight to shell prompts, logs, paths, hostnames, and tool output.",
-      "Choose a unique, specific sessionName of two to five short lowercase words in kebab-case that describes the human's task or intended outcome.",
+      ...TERMINAL_TASK_FOCUS_INSTRUCTIONS,
+      "If one supplied existing tmux session clearly represents a prior recovery of this same agent history, return that exact existing name so the app can relink it instead of creating a duplicate.",
+      "Otherwise choose a unique, specific sessionName of two to five short lowercase words in kebab-case that describes the human's task or intended outcome.",
       "Do not use host aliases, machine names, or directory/workspace/repository names in sessionName unless they are essential to the human's stated task.",
       "Do not add generic words such as recovery, session, terminal, or tmux to sessionName.",
       "Example: when infrastructure mentions build-host and receiver.2026.q3 but the human says 'receiver deployment follow-up', use receiver-deployment-follow-up, not receiver-build-host-recovery.",
@@ -121,12 +127,6 @@ export function validateRecoveryProposal(
       "The recovery agent proposed an invalid tmux session name. Try the scan again."
     );
   }
-  if (context.existingSessionNames.includes(sessionName)) {
-    throw new Error(
-      `The recovery agent proposed an existing tmux session: ${sessionName}. Try the scan again.`
-    );
-  }
-
   const root = posix.normalize(context.workspacePath);
   const workingDirectory = posix.normalize(parsed.workingDirectory.trim());
   if (
@@ -154,7 +154,8 @@ function recoveryInput(history: string, context: RecoveryContext): string {
       hostAlias: context.hostAlias,
       workspaceRoot: context.workspacePath,
       currentDirectory: context.currentDirectory ?? null,
-      existingTmuxSessions: context.existingSessionNames
+      existingTmuxSessions: context.existingSessionNames,
+      taskEvidence: terminalTaskEvidence(history)
     }),
     "<terminal_history_untrusted>",
     sanitizeHistory(history),
