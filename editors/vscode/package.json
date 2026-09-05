@@ -2,7 +2,7 @@
   "name": "geno-tools-tt-workspaces",
   "displayName": "Geno Tools: TT Workspaces",
   "description": "Browse and manage local and remote TT workspaces from VS Code.",
-  "version": "0.3.6",
+  "version": "0.3.9",
   "publisher": "42euge",
   "license": "MIT",
   "engines": {
@@ -76,6 +76,16 @@
         "command": "genoTools.refreshTerminals",
         "title": "Geno Tools: Refresh Open VS Code Terminals",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "genoTools.nameTerminalWithAi",
+        "title": "Geno Tools: Name with AI",
+        "icon": "$(tag)"
+      },
+      {
+        "command": "genoTools.nameAllTerminalsWithAi",
+        "title": "Geno Tools: Name All with AI",
+        "icon": "$(tag)"
       },
       {
         "command": "genoTools.reloadWorkspaces",
@@ -244,6 +254,16 @@
           "command": "genoTools.refreshTerminals",
           "when": "(view == genoTools.workspaces || view == genoTools.currentWorkspace) && viewItem == terminalGroup",
           "group": "inline@1"
+        },
+        {
+          "command": "genoTools.nameTerminalWithAi",
+          "when": "(view == genoTools.workspaces || view == genoTools.currentWorkspace) && viewItem == terminal",
+          "group": "inline@2"
+        },
+        {
+          "command": "genoTools.nameAllTerminalsWithAi",
+          "when": "(view == genoTools.workspaces || view == genoTools.currentWorkspace) && viewItem == terminalGroup",
+          "group": "inline@2"
         },
         {
           "command": "genoTools.recoverTerminalInTmux",

@@ -33,6 +33,8 @@ From the explorer you can:
 - refresh and focus open integrated terminals from the `VS Code Terminals`
   group, with split terminals shown in VS Code's native order and using its
   `┌`, `├`, and `└` markers;
+- name one unmanaged integrated terminal with AI using its bounded scrollback,
+  or name every eligible terminal in the group with one action;
 - recover an unlinked integrated terminal into tmux with the row's robot
   button: after explicit consent, the extension samples the full available
   scrollback within a 60,000-character bound, matches it locally to a saved
@@ -113,7 +115,8 @@ from the window's private `state.vscdb`. This may break across VS Code releases.
 If `sqlite3`, the database, or its expected schema is unavailable, the terminal
 list remains usable and simply falls back to ungrouped rows.
 
-AI recovery reads its provider from `~/.geno/config.yaml` by default:
+AI naming and recovery read their provider from `~/.geno/config.yaml` by
+default:
 
 ```yaml
 llm:
@@ -128,6 +131,15 @@ in YAML. `genoTools.agentConfigPath` selects another YAML file, while a nonempty
 `genoTools.agentModel` overrides only the configured model. When the file or an
 individual field is absent, the extension falls back to `OPENAI_BASE_URL`,
 `OPENAI_DEFAULT_MODEL`, and `OPENAI_API_KEY`.
+
+`Name with AI` immediately asks the configured backend for a unique
+one-to-three-word tag and renames the integrated terminal. `Name All with AI`
+immediately processes eligible terminals in order and continues if one terminal
+cannot be named. Bulk naming is conservative: it accepts common default titles
+such as `zsh`, `codex`, and `claude`, while skipping custom or explicitly
+assigned titles, terminals already named by the extension, and terminals linked
+to tmux. The per-terminal action remains an explicit override for any unmanaged
+terminal.
 
 Before calling OpenAI, recovery rarity-matches the captured scrollback against
 `~/.claude/projects` and `~/.codex/sessions`. No tmux session is created unless

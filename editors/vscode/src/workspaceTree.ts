@@ -9,11 +9,11 @@ import {
   TtWorkspace,
   workspaceReference
 } from "./model";
-import { TerminalLinkRegistry } from "./terminalLinks";
 import {
   ManagedTmuxSessionStore,
   TmuxSessionView
 } from "./tmuxSessions";
+import { TerminalRegistry } from "./terminalRegistry";
 import { TtCli } from "./ttCli";
 
 export type WorkspaceTreeNode =
@@ -140,6 +140,12 @@ export function isTerminalNode(value: unknown): value is TerminalNode {
   return isNode(value) && value.kind === "terminal";
 }
 
+export function isTerminalGroupNode(
+  value: unknown
+): value is TerminalGroupNode {
+  return isNode(value) && value.kind === "terminalGroup";
+}
+
 export function isHostNode(value: unknown): value is HostNode {
   return isNode(value) && value.kind === "host";
 }
@@ -157,7 +163,7 @@ export class WorkspaceTreeProvider
   constructor(
     private readonly cli: TtCli,
     private readonly scope: "all" | "current" = "all",
-    private readonly terminalLinks = new TerminalLinkRegistry(),
+    private readonly terminalRegistry = new TerminalRegistry(),
     private readonly tmuxSessions = new ManagedTmuxSessionStore(),
     private readonly terminalLayout?: TerminalLayoutReader,
     private readonly terminalsByLayoutId = new Map<number, vscode.Terminal>()
@@ -272,13 +278,13 @@ export class WorkspaceTreeProvider
       case "tmuxSessionGroup":
         return tmuxSessionGroupItem(node, this.tmuxSessions);
       case "terminalGroup":
-        return terminalGroupItem(node, this.terminalLinks);
+        return terminalGroupItem(node, this.terminalRegistry);
       case "repo":
         return repoItem(node);
       case "tmuxSession":
-        return tmuxSessionItem(node, this.terminalLinks);
+        return tmuxSessionItem(node, this.terminalRegistry);
       case "terminal":
-        return terminalItem(node, this.terminalLinks);
+        return terminalItem(node, this.terminalRegistry);
       case "message":
         return messageItem(node);
     }
@@ -316,7 +322,7 @@ export class WorkspaceTreeProvider
         case "terminalGroup":
           return terminalGroupChildren(
             node,
-            this.terminalLinks,
+            this.terminalRegistry,
             this.terminalLayout,
             this.terminalsByLayoutId
           );
@@ -542,9 +548,9 @@ function tmuxSessionGroupItem(
 
 function terminalGroupItem(
   node: TerminalGroupNode,
-  terminalLinks: TerminalLinkRegistry
+  terminalRegistry: TerminalRegistry
 ): vscode.TreeItem {
-  const count = terminalsForWorkspace(node, terminalLinks).length;
+  const count = terminalsForWorkspace(node, terminalRegistry).length;
   const item = new vscode.TreeItem(
     "VS Code Terminals",
     count > 0
@@ -579,9 +585,9 @@ function repoItem(node: RepoNode): vscode.TreeItem {
 
 function tmuxSessionItem(
   node: TmuxSessionNode,
-  terminalLinks: TerminalLinkRegistry
+  terminalRegistry: TerminalRegistry
 ): vscode.TreeItem {
-  const openInVsCode = terminalLinks.hasAttachedTerminal(
+  const openInVsCode = terminalRegistry.hasAttachedTerminal(
     node.host.alias,
     node.session.session_name
   );
@@ -624,9 +630,9 @@ function tmuxSessionItem(
 
 function terminalItem(
   node: TerminalNode,
-  terminalLinks: TerminalLinkRegistry
+  terminalRegistry: TerminalRegistry
 ): vscode.TreeItem {
-  const link = terminalLinks.linkFor(node.terminal);
+  const link = terminalRegistry.linkFor(node.terminal);
   const location = node.cwd ?? "working directory unavailable";
   const item = new vscode.TreeItem(
     `${node.splitPrefix ? `${node.splitPrefix} ` : ""}${node.terminal.name}`,
@@ -640,7 +646,7 @@ function terminalItem(
     `**${node.terminal.name}**  \n${node.cwd ?? "Working directory unavailable"}${
       link
         ? `  \nLinked to ${link.hostAlias}/${link.sessionName}${
-            link.kind === "attached" ? " (attached)" : " (recovery source)"
+            link.role === "attached" ? " (attached)" : " (recovery source)"
           }`
         : "  \nNot linked to tmux"
     }`
@@ -743,7 +749,7 @@ function tmuxSessionGroupChildren(
 
 async function terminalGroupChildren(
   node: TerminalGroupNode,
-  terminalLinks: TerminalLinkRegistry,
+  terminalRegistry: TerminalRegistry,
   terminalLayout: TerminalLayoutReader | undefined,
   terminalsByLayoutId: Map<number, vscode.Terminal>
 ): Promise<TerminalNode[]> {
@@ -752,7 +758,7 @@ async function terminalGroupChildren(
     vscode.window.terminals,
     terminalsByLayoutId
   );
-  return terminalsForWorkspace(node, terminalLinks, displayTerminals)
+  return terminalsForWorkspace(node, terminalRegistry, displayTerminals)
     .map(({ terminal, cwd, splitPrefix }) => ({
       kind: "terminal",
       host: node.host,
@@ -771,7 +777,7 @@ interface DisplayTerminal {
 
 function terminalsForWorkspace(
   node: TerminalGroupNode,
-  terminalLinks: TerminalLinkRegistry,
+  terminalRegistry: TerminalRegistry,
   displayTerminals: DisplayTerminal[] = vscode.window.terminals.map(
     (terminal) => ({ terminal })
   )
@@ -780,7 +786,7 @@ function terminalsForWorkspace(
   return displayTerminals.flatMap((displayTerminal) => {
     const { terminal } = displayTerminal;
     const location = terminalLocation(terminal);
-    const link = terminalLinks.linkFor(terminal);
+    const link = terminalRegistry.linkFor(terminal);
     const linkedToWorkspace = link?.hostAlias === node.host.alias &&
       node.workspace.state.tmux.sessions.some(
         ({ session_name }) => session_name === link.sessionName

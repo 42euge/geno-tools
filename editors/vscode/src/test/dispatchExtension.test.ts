@@ -419,6 +419,7 @@ async function loadExtension(
                 terminals: [],
                 onDidOpenTerminal: () => ({ dispose() {} }),
                 onDidCloseTerminal: () => ({ dispose() {} }),
+                onDidChangeTerminalState: () => ({ dispose() {} }),
                 onDidChangeTerminalShellIntegration: () => ({ dispose() {} }),
                 activeTextEditor: {
                   selection: { isEmpty: true },
