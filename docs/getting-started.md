@@ -30,13 +30,13 @@ geno-tools discover
 Install by discovered name:
 
 ```zsh
-geno-tools install geno-dev
+geno-tools install geno-tt
 ```
 
 You can also install directly from a git URL or a local repository:
 
 ```zsh
-geno-tools install https://github.com/42euge/geno-dev.git
+geno-tools install https://github.com/42euge/geno-tt.git
 geno-tools install /path/to/your-skillset
 ```
 
