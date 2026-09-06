@@ -46,6 +46,7 @@ theme:
 nav:
   - Home: index.md
   - Getting Started: getting-started.md
+  - VS Code Extension: vscode-extension.md
 exclude_docs: |
   README.md
 extra_css:
